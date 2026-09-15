@@ -526,17 +526,33 @@ class PostgresStore:
             item.role_title,
             str(item.started_on or ""),
         )
+        existing = conn.execute(
+            """
+            SELECT id FROM handbook_roles
+            WHERE handbook_entry_id = %s
+              AND role_title = %s
+              AND COALESCE(started_on, DATE '0001-01-01') = COALESCE(%s, DATE '0001-01-01')
+            """,
+            (entry_id, item.role_title, item.started_on),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                """
+                UPDATE handbook_roles SET
+                    role_kind = COALESCE(%s, role_kind),
+                    ended_on = COALESCE(%s, ended_on),
+                    notes = COALESCE(%s, notes)
+                WHERE id = %s
+                """,
+                (item.role_kind, item.ended_on, item.notes, existing["id"]),
+            )
+            return
         conn.execute(
             """
             INSERT INTO handbook_roles (
                 id, handbook_entry_id, role_title, role_kind, started_on, ended_on, notes
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (handbook_entry_id, role_title, (COALESCE(started_on, DATE '0001-01-01')))
-            DO UPDATE SET
-                role_kind = COALESCE(EXCLUDED.role_kind, handbook_roles.role_kind),
-                ended_on = COALESCE(EXCLUDED.ended_on, handbook_roles.ended_on),
-                notes = COALESCE(EXCLUDED.notes, handbook_roles.notes)
             """,
             (
                 rid,
@@ -558,17 +574,33 @@ class PostgresStore:
             item.chamber or "",
             str(item.started_on or ""),
         )
+        existing = conn.execute(
+            """
+            SELECT id FROM handbook_tenure
+            WHERE handbook_entry_id = %s
+              AND COALESCE(chamber, '') = COALESCE(%s, '')
+              AND COALESCE(started_on, DATE '0001-01-01') = COALESCE(%s, DATE '0001-01-01')
+            """,
+            (entry_id, item.chamber, item.started_on),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                """
+                UPDATE handbook_tenure SET
+                    electorate = COALESCE(%s, electorate),
+                    parliament_number = COALESCE(%s, parliament_number),
+                    ended_on = COALESCE(%s, ended_on)
+                WHERE id = %s
+                """,
+                (item.electorate, item.parliament_number, item.ended_on, existing["id"]),
+            )
+            return
         conn.execute(
             """
             INSERT INTO handbook_tenure (
                 id, handbook_entry_id, chamber, electorate, parliament_number, started_on, ended_on
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (handbook_entry_id, (COALESCE(chamber, '')), (COALESCE(started_on, DATE '0001-01-01')))
-            DO UPDATE SET
-                electorate = COALESCE(EXCLUDED.electorate, handbook_tenure.electorate),
-                parliament_number = COALESCE(EXCLUDED.parliament_number, handbook_tenure.parliament_number),
-                ended_on = COALESCE(EXCLUDED.ended_on, handbook_tenure.ended_on)
             """,
             (
                 tid,
