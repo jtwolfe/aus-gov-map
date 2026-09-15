@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PinButton } from "@/components/pin-button";
 import { SourceBadge } from "@/components/source-badge";
+import { loadRoleAtDate } from "@/lib/accountability";
 import { getPerson } from "@/lib/data";
-import { formatDate, roleLabel, typeLabel } from "@/lib/format";
+import { formatDate, roleLabel, roleTypeLabel, typeLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export default async function PersonPage({
   const result = await getPerson(slug);
   if (!result) notFound();
   const { person, appearances, satWith } = result;
+  const occupancies = await loadRoleAtDate(null, person.slug, null);
+  const roles = occupancies.rows.filter((row) => row.personSlug === person.slug);
 
   return (
     <article className="space-y-10">
@@ -52,6 +55,37 @@ export default async function PersonPage({
           />
         </div>
       </header>
+
+      {roles.length ? (
+        <section>
+          <p className="eyebrow">Sourced occupancy</p>
+          <h2 className="mt-2 font-serif text-2xl text-navy">Roles</h2>
+          <ul className="mt-4 divide-y divide-rule border-y border-rule">
+            {roles.map((row, idx) => (
+              <li key={`${row.roleType}-${idx}`} className="py-3">
+                <p className="font-serif text-lg text-navy">
+                  {roleTypeLabel(row.roleType)}
+                  {row.roleTitle ? ` · ${row.roleTitle}` : ""}
+                </p>
+                <p className="text-sm text-muted">
+                  {row.agencySlug ? (
+                    <Link href={`/agencies/${row.agencySlug}`} className="hover:text-ochre">
+                      {row.agencyName ?? row.agencySlug}
+                    </Link>
+                  ) : (
+                    (row.agencyName ?? row.organisation ?? row.portfolio)
+                  )}
+                </p>
+                <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted">
+                  {formatDate(row.startDate)} – {row.endDate ? formatDate(row.endDate) : "open"}
+                  {" · "}
+                  {row.source}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section>
         <p className="eyebrow">Appearances timeline</p>

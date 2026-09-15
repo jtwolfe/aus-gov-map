@@ -151,8 +151,21 @@ python -m aus_gov_ingest run --source instrument_propose \
 # recorded: dry_run_instrument_propose.json — 8 proposed (6 program, 2 contract)
 ```
 
-Handbook does **not** include APS secretaries. OpenAustralia has **no** Estimates QoN feed.
-EQON bulk ZIP downloads require My Parliament sign-in; ingest uses the public search API.
+Handbook does **not** include APS secretaries. Use `--source aps_leaders`
+(directory.gov.au / official executive pages / `fixtures/live/aps/`).
+OpenAustralia has **no** Estimates QoN feed.
+EQON bulk ZIP downloads require My Parliament sign-in; ingest uses the public
+search API, a portfolio sweep, and committed JSON under `fixtures/live/qon/`
+(dozens of real Estimates questions; © Commonwealth of Australia, typically
+CC BY-NC-ND).
+
+```bash
+python -m aus_gov_ingest run --source aps_leaders --limit 10 --dry-run
+python -m aus_gov_ingest run --source qon --limit 20 --dry-run
+```
+
+See `fixtures/live/aps/NOTES.md`. Historical secretary timelines may need
+annual reports or the Wayback Machine — not invented here.
 
 ## ANAO / Budget / AusTender (first-pass adapters)
 
@@ -176,4 +189,3 @@ Recorded dry-runs: `dry_run_anao.json`, `dry_run_budget_measure.json`, `dry_run_
 Live transports (this environment): AusTender OCDS and data.gov.au / budget.gov.au BP2 DOCX succeed; anao.gov.au often times out or WAF-blocks datacentre IPs — fixture fallback is expected.
 
 ANAO outcomes are created only when the fixture excerpt or report page contains parseable finding language (`partly effective`, `not effective`, `fully effective`). Agreement language is recorded in notes when present; it is not treated as a verdict.
-

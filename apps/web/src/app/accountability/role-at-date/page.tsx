@@ -86,12 +86,31 @@ export default async function RoleAtDatePage({
                 {roleTypeLabel(row.roleType)}
                 {row.roleTitle ? ` · ${row.roleTitle}` : ""}
                 {row.portfolio ? ` · ${row.portfolio}` : ""}
-                {row.agencyName ? ` · ${row.agencyName}` : ""}
+                {row.agencyName ? (
+                  <>
+                    {" · "}
+                    {row.agencySlug ? (
+                      <Link href={`/agencies/${row.agencySlug}`} className="hover:text-ochre">
+                        {row.agencyName}
+                      </Link>
+                    ) : (
+                      row.agencyName
+                    )}
+                  </>
+                ) : null}
               </p>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted">
                 {formatDate(row.startDate)} – {row.endDate ? formatDate(row.endDate) : "open"}
                 {" · "}
                 {row.source}
+                {row.sourceUrl ? (
+                  <>
+                    {" · "}
+                    <a href={row.sourceUrl} className="link normal-case tracking-normal" rel="noreferrer">
+                      source
+                    </a>
+                  </>
+                ) : null}
               </p>
             </li>
           ))}

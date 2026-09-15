@@ -1,0 +1,42 @@
+{
+  "Id": 222612,
+  "Number": 2326,
+  "PortfolioQuestionNumber": "SED25-859",
+  "AskedDate": "2025-12-11T00:00:00",
+  "AnsweredDate": "2026-05-11T00:00:00",
+  "DueDate": "2026-01-29T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "David",
+      "Initials": "D.",
+      "Surname": "Shoebridge",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Home Affairs",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Legal and Constitutional Affairs",
+  "CommitteeId": 6,
+  "Portfolio": "Home Affairs",
+  "PortfolioId": 20,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "Research report from November <br>Re your November report ''Antisemitism in Australia Findings of research commissioned by Australia's Special Envoy to Combat Antisemitism'' <br>Who undertook this research? <br>Assuming it wasn't in house, what was the value of the contract? <br>Was this done via an open or limited tender? <br>Were all relevant procedures and processes for procurement followed (including management of any conflict of interests)?  <br>We note that in conflict of interest forms you have referred to a procurement project ''''a nationwide survey'''', and declared a redacted conflict of interest - why was this redacted?",
+  "BroadTopic": "Anti semitism envoy - Research report from November",
+  "AnswerText": "Please see attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 208533,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=6&estimatesroundid=28&portfolioid=20&number=2326"
+}

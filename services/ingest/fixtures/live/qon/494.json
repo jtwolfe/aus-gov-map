@@ -1,0 +1,42 @@
+{
+  "Id": 48034,
+  "Number": 130,
+  "PortfolioQuestionNumber": "494",
+  "AskedDate": "2017-10-23T00:00:00",
+  "AnsweredDate": "2017-12-22T00:00:00",
+  "DueDate": "2017-12-15T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Murray",
+      "Initials": "M.",
+      "Surname": "Watt",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Infrastructure and Regional Development",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Rural and Regional Affairs and Transport",
+  "CommitteeId": 7,
+  "Portfolio": "Infrastructure and Regional Development",
+  "PortfolioId": 15,
+  "EstimatesRoundName": "2017-18 Supplementary budget estimates",
+  "EstimatesRoundId": 1,
+  "SearchWeight": 0,
+  "QuestionText": "Is there any Commonwealth funding attached to the National Road Safety Plan and if so, how much?",
+  "BroadTopic": "National Road Safety Plan",
+  "AnswerText": "The Commonwealth and state and territory governments are jointly progressing the implementation of priority actions included in the National Road Safety Action Plan for 2015-17 through a broad range of Commonwealth and state and territory programs.<br />\n<br />\nThe Commonwealth&rsquo;s $75 billion infrastructure investment from 2017-18 to 2026-27 makes a significant contribution to improved national road safety. A number of programs specifically target road safety, including:<br />\n&bull; the Roads to Recovery Program ($4.4 billion from 2013-14 to 2020-2021);<br />\n&bull; the Black Spot program ($684.5 million from 2013-14 to 2020-21);<br />\n&bull; the Bridges Renewal program ($420 million from 2015-16 to 2020-21); and<br />\n&bull; the Heavy Vehicle Safety and Productivity Program ($328 million from 2013-14 to 2020-21).<br />\n<br />\nOther Commonwealth resources support the National Transport Commission, Austroads, the National Heavy Vehicle Regulator and the administration of the national standards for vehicle safety by the Department of Infrastructure and Regional Development.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 37384,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=7&estimatesroundid=1&portfolioid=15&number=130"
+}

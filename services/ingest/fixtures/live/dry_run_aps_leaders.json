@@ -1,0 +1,78 @@
+{
+  "source": "aps_leaders",
+  "fetched": 10,
+  "upserted": 0,
+  "chunks": 0,
+  "status": "dry_run",
+  "error": null,
+  "meta": {
+    "dry_run": true,
+    "embedder": "hash",
+    "titles": [],
+    "held_on": [],
+    "with_transcript": 0,
+    "people_sample": [
+      "Jenny Wilkinson",
+      "Damien White",
+      "Ben Rimmer",
+      "Katrina Di Marco",
+      "Angelia Grant",
+      "James Kelly",
+      "Diane Brown",
+      "Stephanie Foster",
+      "Clare Sharp"
+    ],
+    "handbook_entries": 0,
+    "handbook_roles": 0,
+    "handbook_tenure": 0,
+    "agencies": 3,
+    "questions": 0,
+    "instruments": 0,
+    "person_roles": 10,
+    "occupancies": 10,
+    "role_types": [
+      "agency_head",
+      "deputy",
+      "secretary"
+    ],
+    "leaders_sample": [
+      "Jenny Wilkinson \u00b7 Secretary to the Australian Treasury",
+      "Jenny Wilkinson \u00b7 Secretary of the Department of Finance",
+      "Damien White \u00b7 Deputy Secretary, Fiscal Group",
+      "Ben Rimmer \u00b7 Director-General, Housing Group",
+      "Katrina Di Marco \u00b7 Deputy Secretary, International, Corporate and Investment Group",
+      "Angelia Grant \u00b7 Deputy Secretary, Macroeconomic Group",
+      "James Kelly \u00b7 Deputy Secretary, Markets Group",
+      "Diane Brown \u00b7 Deputy Secretary, Revenue, Small Business and Law Group",
+      "Stephanie Foster \u00b7 Secretary",
+      "Clare Sharp \u00b7 Deputy Secretary"
+    ],
+    "segments": 0,
+    "estimated_chunks": 0,
+    "chunks_with_speaker": 0,
+    "status": "ok",
+    "home": "https://www.directory.gov.au/",
+    "transport": "aps_file:fixtures/live/aps/leaders.json (leaders.json)",
+    "license_note": "\u00a9 Commonwealth of Australia. Australian Government Directory / official department executive pages. Attribute the originating agency; research / non-commercial.",
+    "gaps": "directory.gov.au agency pages and the Directory XML export are often unreachable from datacentre IPs. Historical secretary timelines beyond what a current executive page states need annual reports or the Wayback Machine. Do not invent occupancy. Estimates appearance is not a tenure.",
+    "limit": 10,
+    "skipped_existing": 0,
+    "errors": [],
+    "people": 9,
+    "by_role_type": {
+      "secretary": 3,
+      "deputy": 6,
+      "agency_head": 1
+    },
+    "endpoints": {
+      "directory": "https://www.directory.gov.au/",
+      "agor": "https://www.directory.gov.au/reports/australian-government-organisations-register",
+      "directory_export": "https://www.directory.gov.au/sites/default/files/export.xml",
+      "agor_csv": "https://data.gov.au/data/dataset/c77cface-69aa-4dd0-b99f-b065dc33c8e6/resource/55f33a8e-eebc-4342-8d63-ed53a4d4ea0a/download/agor-register.csv",
+      "treasury_executive": "https://treasury.gov.au/the-department/about-treasury/our-executive",
+      "home_affairs_senior_staff": "https://www.homeaffairs.gov.au/about-us/who-we-are/our-senior-staff"
+    },
+    "schema": "infra/postgres/007_accountability.sql + 010_aps_leaders.sql",
+    "note": "Current APS secretaries / deputies from directory.gov.au or official executive pages. Fixture fallback if live pages are blocked. No invented historical tenures."
+  }
+}

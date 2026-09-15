@@ -1,0 +1,42 @@
+{
+  "Id": 71694,
+  "Number": 399,
+  "PortfolioQuestionNumber": "385",
+  "AskedDate": "2019-11-08T00:00:00",
+  "AnsweredDate": "2019-12-10T00:00:00",
+  "DueDate": "2019-12-06T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Glenn",
+      "Initials": "G.",
+      "Surname": "Sterle",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Infrastructure, Transport, Cities and Regional Development",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Rural and Regional Affairs and Transport",
+  "CommitteeId": 7,
+  "Portfolio": "Infrastructure, Transport, Cities and Regional Development",
+  "PortfolioId": 30,
+  "EstimatesRoundName": "2019-20 Supplementary budget estimates",
+  "EstimatesRoundId": 7,
+  "SearchWeight": 0,
+  "QuestionText": "A new Division has been added to the Department's organisation chart - Transport Sector Skills Division: <br> Could you provide an overview of the work of this Division?<br> How many staff have been allocated to this task?<br> Is there a work program?  Can you share it with the committee?<br> How is the Division working with commonwealth/state/territory agencies and industry?<br> What is the budget for this work?<br> Which parts of the transport sector are covered by your work? <br> Does the work of the Division include all elements of the transport sector - aviation, road, rail and shipping?",
+  "BroadTopic": "TRANSPORT SECTOR SKILLS",
+  "AnswerText": "See attachment.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 60509,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=7&estimatesroundid=7&portfolioid=30&number=399"
+}

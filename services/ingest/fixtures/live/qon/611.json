@@ -1,0 +1,42 @@
+{
+  "Id": 75132,
+  "Number": 400,
+  "PortfolioQuestionNumber": "611",
+  "AskedDate": "2019-10-21T00:00:00",
+  "AnsweredDate": "2020-02-25T00:00:00",
+  "DueDate": "2019-12-06T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Glenn",
+      "Initials": "G.",
+      "Surname": "Sterle",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Infrastructure, Transport, Cities and Regional Development",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Rural and Regional Affairs and Transport",
+  "CommitteeId": 7,
+  "Portfolio": "Infrastructure, Transport, Cities and Regional Development",
+  "PortfolioId": 30,
+  "EstimatesRoundName": "2019-20 Supplementary budget estimates",
+  "EstimatesRoundId": 7,
+  "SearchWeight": 0,
+  "QuestionText": "<p>Senator STERLE: When we say 'underway', I want to be clear. I can't help get the mess of APVMA out of my head for the last four years. When we say underway, are they in the process of relocating, or have people said, `No, thank you. I'll take a redundancy' and you're searching for staff? </p>\n<p>Senator McKenzie: There's a range of issues like funding accommodation et cetera. I'll go to the witness for the details on that. </p>\n<p>Dr Bacon: We don't have those live details for the agencies in other portfolios. We're happy to provide you with an update on the relocations that are underway in our department at the moment, if that's helpful.</p>",
+  "BroadTopic": "Decentralisation",
+  "AnswerText": "Refer to Committee Question Number 101.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 63917,
+  "ProofHansardPage": "32",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=7&estimatesroundid=7&portfolioid=30&number=400"
+}

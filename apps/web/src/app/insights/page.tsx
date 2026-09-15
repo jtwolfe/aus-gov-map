@@ -132,14 +132,24 @@ export default async function InsightsPage() {
         <p className="mt-2 text-sm text-muted">
           Best-effort EQON ingest. Empty until{" "}
           <span className="font-mono">ingest run --source qon</span> has persisted.
-          Instruments extracted from text are proposed only — see{" "}
+          Open the{" "}
+          <Link href="/accountability/qon-debt" className="hover:text-ochre">
+            QoN debt
+          </Link>{" "}
+          lens for agency and responsible-official links after{" "}
+          <span className="font-mono">aps_leaders</span>. Instruments extracted
+          from text are proposed only — see{" "}
           <span className="font-mono">docs/accountability-map.md</span>.
         </p>
         <ul className="mt-4 divide-y divide-rule border-y border-rule">
           {insights.qonByPortfolio.length ? (
             insights.qonByPortfolio.map((row) => (
               <li key={row.portfolio} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
-                <p className="font-serif text-lg text-navy">{row.portfolio}</p>
+                <p className="font-serif text-lg text-navy">
+                  <Link href="/accountability/qon-debt" className="hover:text-ochre">
+                    {row.portfolio}
+                  </Link>
+                </p>
                 <p className="text-xs uppercase tracking-[0.12em] text-muted">
                   {row.questionCount} · {row.answeredCount} answered · {row.openCount} open
                   {row.overdueCount ? ` · ${row.overdueCount} overdue` : ""}

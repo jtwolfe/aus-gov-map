@@ -13,6 +13,7 @@ Numbered files in this directory are applied **once** by Docker on first volume 
 | `007_accountability.sql` | Stage 2 duty map: agencies, roles, person_roles, instruments, scrutiny, QoNs, claims, outcomes + views |
 | `008_hearing_segments.sql` | Additive: hearing_segments, instrument status/confidence, QoN portfolio alias view |
 | `009_source_adapters.sql` | Additive: outcome confidence / source_key / agency + scrutiny FKs for ANAO / Budget / AusTender |
+| `010_aps_leaders.sql` | Additive: person_roles.source_key, claims.qon_id, agency-head view, QoN debt + responsible official |
 
 Readable copies of the views also live in `analytics/` (`001_views.sql` and `accountability_*.sql`).
 

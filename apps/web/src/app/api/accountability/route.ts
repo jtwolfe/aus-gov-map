@@ -15,7 +15,8 @@ export async function GET() {
       budgetMeasure: "best-effort BP2 DOCX + PBS CSV (PDF follow-up)",
       austender: "best-effort OCDS / fixture fallback",
       instrumentsProposed: "regex from Officials — proposed only",
-      agencies: "official names, stub rows (no secretaries)",
+      agencies: "official names; secretaries via aps_leaders occupancies",
+      apsLeaders: "real current incumbents (directory / executive pages / fixture)",
     },
   });
 }

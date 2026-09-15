@@ -1,0 +1,127 @@
+{
+  "license_note": "© Commonwealth of Australia. Australian Government Directory / official department executive pages. Research / non-commercial use. Attribute the originating agency.",
+  "source_url": "https://www.directory.gov.au/",
+  "note": "Current APS secretaries and deputies from official pages fetched 2026-09-15. start_date is stored only when the source states a month or day; otherwise null. end_date is null for current incumbents. Historical tenures are included only when the same official page states them. Do not invent occupancy.",
+  "gaps": "directory.gov.au agency pages and the Directory XML export timed out from this datacentre IP. Historical secretary timelines beyond what a current executive page states need annual reports or the Wayback Machine — follow-up, not invented here.",
+  "leaders": [
+    {
+      "name": "Jenny Wilkinson",
+      "role_title": "Secretary to the Australian Treasury",
+      "role_type": "secretary",
+      "agency_slug": "treasury",
+      "agency_name": "Department of the Treasury",
+      "portfolio": "Treasury",
+      "start_date": "2025-06-01",
+      "end_date": null,
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive",
+      "directory_url": "https://www.directory.gov.au/portfolios/treasury/department-treasury",
+      "notes": "Treasury executive page: became Secretary in June 2025. Day of month not stated; stored as the first of that month."
+    },
+    {
+      "name": "Jenny Wilkinson",
+      "role_title": "Secretary of the Department of Finance",
+      "role_type": "secretary",
+      "agency_slug": "finance",
+      "agency_name": "Department of Finance",
+      "portfolio": "Finance",
+      "start_date": "2022-08-01",
+      "end_date": "2025-06-01",
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive",
+      "notes": "Same Treasury page: Secretary of Finance from August 2022 to June 2025. Month-only dates stored as the first of the month. Successor not named on that page."
+    },
+    {
+      "name": "Damien White",
+      "role_title": "Deputy Secretary, Fiscal Group",
+      "role_type": "deputy",
+      "agency_slug": "treasury",
+      "agency_name": "Department of the Treasury",
+      "portfolio": "Treasury",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive",
+      "notes": "Listed as a current deputy on the Treasury executive page. No appointment date on that page."
+    },
+    {
+      "name": "Ben Rimmer",
+      "role_title": "Director-General, Housing Group",
+      "role_type": "agency_head",
+      "agency_slug": "treasury",
+      "agency_name": "Department of the Treasury",
+      "portfolio": "Treasury",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive",
+      "notes": "Listed on the Treasury executive page. No appointment date on that page."
+    },
+    {
+      "name": "Katrina Di Marco",
+      "role_title": "Deputy Secretary, International, Corporate and Investment Group",
+      "role_type": "deputy",
+      "agency_slug": "treasury",
+      "agency_name": "Department of the Treasury",
+      "portfolio": "Treasury",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive"
+    },
+    {
+      "name": "Angelia Grant",
+      "role_title": "Deputy Secretary, Macroeconomic Group",
+      "role_type": "deputy",
+      "agency_slug": "treasury",
+      "agency_name": "Department of the Treasury",
+      "portfolio": "Treasury",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive",
+      "notes": "Page styles the name as Dr Angelia Grant."
+    },
+    {
+      "name": "James Kelly",
+      "role_title": "Deputy Secretary, Markets Group",
+      "role_type": "deputy",
+      "agency_slug": "treasury",
+      "agency_name": "Department of the Treasury",
+      "portfolio": "Treasury",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive"
+    },
+    {
+      "name": "Diane Brown",
+      "role_title": "Deputy Secretary, Revenue, Small Business and Law Group",
+      "role_type": "deputy",
+      "agency_slug": "treasury",
+      "agency_name": "Department of the Treasury",
+      "portfolio": "Treasury",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive"
+    },
+    {
+      "name": "Stephanie Foster",
+      "role_title": "Secretary",
+      "role_type": "secretary",
+      "agency_slug": "home-affairs",
+      "agency_name": "Department of Home Affairs",
+      "portfolio": "Home Affairs",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://www.homeaffairs.gov.au/about-us/who-we-are/our-senior-staff",
+      "directory_url": "https://www.directory.gov.au/portfolios/home-affairs/department-home-affairs",
+      "notes": "Listed as Secretary on the Home Affairs senior-staff page fetched 2026-09-15. No appointment date on that page."
+    },
+    {
+      "name": "Clare Sharp",
+      "role_title": "Deputy Secretary",
+      "role_type": "deputy",
+      "agency_slug": "home-affairs",
+      "agency_name": "Department of Home Affairs",
+      "portfolio": "Home Affairs",
+      "start_date": null,
+      "end_date": null,
+      "source_url": "https://www.homeaffairs.gov.au/about-us/who-we-are/our-senior-staff",
+      "notes": "Listed as Deputy Secretary on the Home Affairs senior-staff page fetched 2026-09-15. No appointment date on that page."
+    }
+  ]
+}

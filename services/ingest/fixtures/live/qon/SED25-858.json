@@ -1,0 +1,42 @@
+{
+  "Id": 222611,
+  "Number": 2325,
+  "PortfolioQuestionNumber": "SED25-858",
+  "AskedDate": "2025-12-11T00:00:00",
+  "AnsweredDate": "2026-05-26T00:00:00",
+  "DueDate": "2026-01-29T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "David",
+      "Initials": "D.",
+      "Surname": "Shoebridge",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Home Affairs",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Legal and Constitutional Affairs",
+  "CommitteeId": 6,
+  "Portfolio": "Home Affairs",
+  "PortfolioId": 20,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "Is it accurate that your position is paid at a daily rate rather than a regular ongoing position with an annual salary? Why is this? <br>How many days have you worked since your appointment in July 2024? <br>What are the roles and seniority levels of your staff members? <br>Does the cost of ''''corporate support'''' provided by the Department of Home Affairs for your office come out of your budget?",
+  "BroadTopic": "Anti semitism envoy - pay and staff rates",
+  "AnswerText": "Please see attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 208532,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=6&estimatesroundid=28&portfolioid=20&number=2325"
+}

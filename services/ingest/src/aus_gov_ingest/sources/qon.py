@@ -11,6 +11,7 @@ and single-question JSON instead.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from aus_gov_ingest.http import AphClient
@@ -27,9 +28,22 @@ ENDPOINTS = {
     "eqon": EQON_HOME,
     "eqon_search": EQON_SEARCH,
     "eqon_question": EQON_QUESTION,
+    "eqon_download": EQON_DOWNLOAD,
     "parlinfo": "https://parlinfo.aph.gov.au/",
     "house_questions": "https://www.aph.gov.au/Parliamentary_Business/Chamber_documents/HoR/Questions_and_Answers",
 }
+
+# Public portfolio ids observed on the EQON search form. "x" = all.
+# Sweeping a few ids recovers unanswered / older-portfolio rows the default
+# first page (often Health + Indigenous, all Answered) does not show.
+PORTFOLIO_IDS = ("20", "2", "5", "8", "51", "1", "15")
+
+_QON_NUMBER = re.compile(
+    r"\b(?:QSC|NIAA|DPS|NCVER)\s+SQ\d{2}[-–]\d+\b"
+    r"|\b(?:SE|SQ|AE|SED|BE|SA)\d{2}[-–]\d+\b"
+    r"|\b(?:SE|SQ|AE|QoN|QON)[-– ]?\d{2}[-–]\d+\b",
+    re.I,
+)
 
 LICENSE_NOTE = (
     "© Commonwealth of Australia. Senate Estimates Questions on Notice. "
@@ -100,10 +114,12 @@ class QonSource:
 
         known = incremental_keys or set()
         questions: list[QuestionOnNoticeIn] = []
-        for row in rows:
+        seen_keys: set[str] = set()
+        for row in _prefer_richer_rows(rows):
             item = question_from_eqon(row)
-            if not item or item.source_key in known:
+            if not item or item.source_key in known or item.source_key in seen_keys:
                 continue
+            seen_keys.add(item.source_key)
             questions.append(item)
             if limit and len(questions) >= limit:
                 break
@@ -128,27 +144,51 @@ class QonSource:
                 "by_portfolio": counts_by_portfolio(questions),
                 "by_status": counts_by_status(questions),
                 "endpoints": ENDPOINTS,
-                "schema": "infra/postgres/007_accountability.sql (qons)",
+                "schema": "infra/postgres/007_accountability.sql + 010_aps_leaders.sql (qons, claims.qon_id)",
                 "note": (
-                    "Senate Estimates EQON search into foundation qons. "
+                    "Senate Estimates EQON search into foundation qons + scrutiny_items. "
+                    "Browser-like UA, session warm-up, and portfolio sweep. "
                     "No invented answers; fixture fallback if the live API is blocked."
                 ),
             },
         )
 
     def _fetch_live(self, *, limit: int) -> list[dict]:
-        page = max(limit, 1)
-        data = _search_form(start=0, length=page)
-        payload = self.client.post_form(
-            EQON_SEARCH,
-            data,
-            referer=EQON_HOME,
-        )
+        # Warm the APH session — some 403s go away after a browser-like GET.
+        try:
+            self.client.get(EQON_HOME)
+        except Exception:
+            pass
+        want = max(limit, 20)
+        rows = self._search_page(start=0, length=want)
+        # Default first page is often one or two portfolios, all Answered.
+        # Sweep public portfolio ids for unanswered / older-portfolio rows.
+        if len(rows) < want or _too_homogeneous(rows):
+            for portfolio_id in PORTFOLIO_IDS:
+                extra = self._search_page(
+                    start=0,
+                    length=min(15, want),
+                    portfolio_id=portfolio_id,
+                )
+                rows.extend(extra)
+                if len(_unique_eqon_rows(rows)) >= want:
+                    break
+        rows = _unique_eqon_rows(rows)
+        return self._hydrate_rows(rows[: max(want, 1)])
+
+    def _search_page(
+        self, *, start: int, length: int, portfolio_id: str | None = None
+    ) -> list[dict]:
+        data = _search_form(start=start, length=length)
+        if portfolio_id:
+            data["fieldPortfolio"] = str(portfolio_id)
+        payload = self.client.post_form(EQON_SEARCH, data, referer=EQON_HOME)
         inner = payload
         if isinstance(payload.get("Message"), str):
             inner = json.loads(payload["Message"])
-        rows = inner.get("data") or []
-        # Hydrate empty search rows from the per-question JSON when IDs exist.
+        return [r for r in (inner.get("data") or []) if isinstance(r, dict)]
+
+    def _hydrate_rows(self, rows: list[dict]) -> list[dict]:
         hydrated: list[dict] = []
         for row in rows:
             if row.get("QuestionText") or not row.get("CommitteeId"):
@@ -286,6 +326,68 @@ def map_qon_status(row: dict) -> str:
     if status in {"withdrawn", ""}:
         return "unknown"
     return "unknown"
+
+
+def qon_numbers_in_text(text: str) -> list[str]:
+    """Detect Estimates-style QoN numbers in a Hansard / claim span."""
+    if not text:
+        return []
+    seen: list[str] = []
+    for match in _QON_NUMBER.finditer(text):
+        token = re.sub(r"\s+", " ", match.group(0)).strip()
+        if token and token not in seen:
+            seen.append(token)
+    return seen
+
+
+def qon_number_needles(item: QuestionOnNoticeIn) -> list[str]:
+    needles: list[str] = []
+    for raw in (item.portfolio_question_number, item.qon_number):
+        token = (raw or "").strip()
+        if token and token not in needles:
+            needles.append(token)
+        compact = token.replace(" ", "")
+        if compact and compact not in needles:
+            needles.append(compact)
+    return needles
+
+
+def _eqon_row_key(row: dict) -> str:
+    return str(row.get("Id") or row.get("PortfolioQuestionNumber") or row.get("Number") or "")
+
+
+def _unique_eqon_rows(rows: list[dict]) -> list[dict]:
+    seen: set[str] = set()
+    out: list[dict] = []
+    for row in rows:
+        key = _eqon_row_key(row)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        out.append(row)
+    return out
+
+
+def _prefer_richer_rows(rows: list[dict]) -> list[dict]:
+    """When search + detail files collide, keep the row with question text."""
+    best: dict[str, dict] = {}
+    order: list[str] = []
+    for row in rows:
+        key = _eqon_row_key(row) or str(id(row))
+        if key not in best:
+            best[key] = row
+            order.append(key)
+            continue
+        current = best[key]
+        if len(str(row.get("QuestionText") or "")) > len(str(current.get("QuestionText") or "")):
+            best[key] = row
+    return [best[k] for k in order]
+
+
+def _too_homogeneous(rows: list[dict]) -> bool:
+    statuses = {str(r.get("Status") or "") for r in rows}
+    portfolios = {str(r.get("Portfolio") or "") for r in rows}
+    return len(rows) >= 8 and len(statuses) <= 1 and len(portfolios) <= 2
 
 
 def counts_by_portfolio(questions: list[QuestionOnNoticeIn]) -> dict[str, int]:

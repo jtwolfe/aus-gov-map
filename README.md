@@ -184,8 +184,8 @@ The product is becoming a **decision / duty map**: who held which office when (e
 
 | Layer | Postgres | Ingest `--source` |
 | --- | --- | --- |
-| Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` (live OData + fixture fallback) |
-| Agencies | `agencies` | `agencies` (official-name stubs) |
+| Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` (live OData + fixture fallback); `aps_leaders` (secretaries / agency heads) |
+| Agencies | `agencies` | `agencies` (official-name stubs); `aps_leaders` (links incumbents) |
 | Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); `budget_measure` (BP2 / PBS); `austender` (OCDS) |
 | Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments` | `qon` (EQON), `anao` (work index), Stage 1 hearings |
 | Outcomes | `outcomes` (sourced signals only) | `anao` (parseable finding language only) |
@@ -201,10 +201,11 @@ Web: **Accountability** in the nav. Lenses (safe with zero rows):
 APIs under `/api/accountability/*` read the views in `infra/postgres/analytics/accountability_*.sql` when present. `GET /api/qon` lists foundation `qons`.
 
 ```bash
-make db-apply   # 007_accountability.sql + 008 + 009 + views
+make db-apply   # 007–010 + views
 cd services/ingest
 python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
-python -m aus_gov_ingest run --source qon --limit 10 --dry-run
+python -m aus_gov_ingest run --source aps_leaders --limit 10 --dry-run
+python -m aus_gov_ingest run --source qon --limit 20 --dry-run
 python -m aus_gov_ingest run --source agencies --dry-run
 python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
 python -m aus_gov_ingest run --source anao --limit 5 --dry-run
@@ -215,7 +216,7 @@ python -m aus_gov_ingest run --source austender --limit 10 --dry-run
 #   python -m aus_gov_ingest run --source anao --limit 10 --no-graph
 ```
 
-Estimates Official ingest also writes `hearing_segments` (portfolio / agency headers, speaker turns, taken-on-notice markers). Instrument candidates from text are **proposed only**. APS secretaries are not in the Handbook. Appearance at Estimates is **not** a tenure.
+Estimates Official ingest also writes `hearing_segments` (portfolio / agency headers, speaker turns, taken-on-notice markers). Instrument candidates from text are **proposed only**. APS secretaries are ingested via `aps_leaders` (directory.gov.au / official executive pages / cited fixtures). Appearance at Estimates is **not** a tenure. Historical secretary timelines may need annual reports or the Wayback Machine.
 
 ## Graph model
 
@@ -235,7 +236,7 @@ See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `T
 - OpenAustralia / TheyWorkForYou-AU XML
 - GrantConnect + legislation API + TheyVoteForYou divisions
 - Asserted bills / instruments (this repo only proposes candidates from text)
-- APS secretary biographies
+- Full historical APS secretary timelines (annual reports / Wayback)
 - Auth-backed shared boards
 - Production deploy
 

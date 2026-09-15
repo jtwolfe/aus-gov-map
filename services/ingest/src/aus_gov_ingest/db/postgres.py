@@ -24,6 +24,7 @@ from aus_gov_ingest.models import (
     InstrumentIn,
     OutcomeIn,
     PersonIn,
+    PersonRoleIn,
     PinIn,
     QuestionOnNoticeIn,
     ScrutinyItemIn,
@@ -156,6 +157,16 @@ class PostgresStore:
             except Exception:
                 return set()
         return {row["source_key"] for row in rows}
+
+    def existing_person_role_keys(self) -> set[str]:
+        with self.connect() as conn:
+            try:
+                rows = conn.execute(
+                    "SELECT source_key FROM person_roles WHERE source_key IS NOT NULL"
+                ).fetchall()
+            except Exception:
+                return set()
+        return {row["source_key"] for row in rows if row.get("source_key")}
 
     def start_run(self, source: str, meta: dict | None = None) -> UUID:
         run_id = uuid4()
@@ -776,19 +787,24 @@ class PostgresStore:
         role_type: str,
         portfolio: str | None,
         organisation: str | None,
+        agency_id: UUID | None = None,
+        source: str = "handbook",
+        source_url: str | None = None,
     ) -> UUID:
         slug = slugify(f"{role_type}-{title}-{portfolio or ''}")[:80] or slugify(title)
         rid = _uuid("role", slug)
         conn.execute(
             """
-            INSERT INTO roles (id, slug, title, role_type, portfolio, organisation, source)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO roles (id, slug, title, role_type, portfolio, organisation, agency_id, source, source_url)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (slug) DO UPDATE SET
                 title = EXCLUDED.title,
                 portfolio = COALESCE(EXCLUDED.portfolio, roles.portfolio),
-                organisation = COALESCE(EXCLUDED.organisation, roles.organisation)
+                organisation = COALESCE(EXCLUDED.organisation, roles.organisation),
+                agency_id = COALESCE(EXCLUDED.agency_id, roles.agency_id),
+                source_url = COALESCE(EXCLUDED.source_url, roles.source_url)
             """,
-            (rid, slug, title, role_type, portfolio, organisation, "handbook"),
+            (rid, slug, title, role_type, portfolio, organisation, agency_id, source, source_url),
         )
         row = conn.execute("SELECT id FROM roles WHERE slug = %s", (slug,)).fetchone()
         return row["id"] if row else rid
@@ -808,16 +824,29 @@ class PostgresStore:
         source_url: str | None,
         handbook_role_id: UUID | None = None,
         handbook_tenure_id: UUID | None = None,
+        agency_id: UUID | None = None,
+        source_key: str | None = None,
+        notes: str | None = None,
     ) -> UUID:
-        existing = conn.execute(
-            """
-            SELECT id FROM person_roles
-            WHERE person_id = %s
-              AND role_id = %s
-              AND COALESCE(start_date, DATE '0001-01-01') = COALESCE(%s, DATE '0001-01-01')
-            """,
-            (person_id, role_id, start_date),
-        ).fetchone()
+        existing = None
+        if source_key:
+            try:
+                existing = conn.execute(
+                    "SELECT id FROM person_roles WHERE source_key = %s",
+                    (source_key,),
+                ).fetchone()
+            except Exception:
+                existing = None
+        if existing is None:
+            existing = conn.execute(
+                """
+                SELECT id FROM person_roles
+                WHERE person_id = %s
+                  AND role_id = %s
+                  AND COALESCE(start_date, DATE '0001-01-01') = COALESCE(%s, DATE '0001-01-01')
+                """,
+                (person_id, role_id, start_date),
+            ).fetchone()
         if existing:
             conn.execute(
                 """
@@ -825,16 +854,22 @@ class PostgresStore:
                     end_date = COALESCE(%s, end_date),
                     portfolio = COALESCE(%s, portfolio),
                     organisation = COALESCE(%s, organisation),
+                    agency_id = COALESCE(%s, agency_id),
                     handbook_role_id = COALESCE(%s, handbook_role_id),
-                    handbook_tenure_id = COALESCE(%s, handbook_tenure_id)
+                    handbook_tenure_id = COALESCE(%s, handbook_tenure_id),
+                    source_url = COALESCE(%s, source_url),
+                    notes = COALESCE(%s, notes)
                 WHERE id = %s
                 """,
                 (
                     end_date,
                     portfolio,
                     organisation,
+                    agency_id,
                     handbook_role_id,
                     handbook_tenure_id,
+                    source_url,
+                    notes,
                     existing["id"],
                 ),
             )
@@ -844,32 +879,95 @@ class PostgresStore:
             str(person_id),
             str(role_id),
             str(start_date or ""),
+            source_key or "",
         )
-        conn.execute(
-            """
-            INSERT INTO person_roles (
-                id, person_id, role_id, role_type, portfolio, organisation,
-                start_date, end_date, source, source_url,
-                handbook_role_id, handbook_tenure_id
+        try:
+            conn.execute(
+                """
+                INSERT INTO person_roles (
+                    id, person_id, role_id, role_type, portfolio, organisation,
+                    agency_id, start_date, end_date, source, source_url,
+                    handbook_role_id, handbook_tenure_id, source_key, notes
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    prid,
+                    person_id,
+                    role_id,
+                    role_type,
+                    portfolio,
+                    organisation,
+                    agency_id,
+                    start_date,
+                    end_date,
+                    source,
+                    source_url,
+                    handbook_role_id,
+                    handbook_tenure_id,
+                    source_key,
+                    notes,
+                ),
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """,
-            (
-                prid,
-                person_id,
-                role_id,
-                role_type,
-                portfolio,
-                organisation,
-                start_date,
-                end_date,
-                source,
-                source_url,
-                handbook_role_id,
-                handbook_tenure_id,
-            ),
-        )
+        except Exception:
+            # Pre-010 volumes: no source_key / notes columns yet.
+            conn.execute(
+                """
+                INSERT INTO person_roles (
+                    id, person_id, role_id, role_type, portfolio, organisation,
+                    agency_id, start_date, end_date, source, source_url,
+                    handbook_role_id, handbook_tenure_id
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    prid,
+                    person_id,
+                    role_id,
+                    role_type,
+                    portfolio,
+                    organisation,
+                    agency_id,
+                    start_date,
+                    end_date,
+                    source,
+                    source_url,
+                    handbook_role_id,
+                    handbook_tenure_id,
+                ),
+            )
         return prid
+
+    def upsert_person_role_occupancy(self, conn: Connection, item: PersonRoleIn) -> UUID:
+        person_id = self.upsert_person(conn, item.person)
+        agency_id = None
+        if item.agency:
+            agency_id = self.upsert_agency(conn, item.agency)
+        role_id = self._upsert_role_catalog(
+            conn,
+            title=item.role_title,
+            role_type=item.role_type,
+            portfolio=item.portfolio,
+            organisation=item.organisation,
+            agency_id=agency_id,
+            source=item.source,
+            source_url=item.source_url,
+        )
+        return self._upsert_person_role(
+            conn,
+            person_id=person_id,
+            role_id=role_id,
+            role_type=item.role_type,
+            portfolio=item.portfolio,
+            organisation=item.organisation,
+            start_date=item.start_date,
+            end_date=item.end_date,
+            source=item.source,
+            source_url=item.source_url,
+            agency_id=agency_id,
+            source_key=item.source_key,
+            notes=item.notes,
+        )
 
     def upsert_hearing_segment(
         self,
@@ -1076,6 +1174,7 @@ class PostgresStore:
                 Json(identifiers),
             ),
         )
+        self._link_claims_to_qon(conn, item, qid)
         return qid
 
     def resolve_agency(
@@ -1118,6 +1217,30 @@ class PostgresStore:
                 source_url=source_url,
             ),
         )
+
+    def _link_claims_to_qon(
+        self, conn: Connection, item: QuestionOnNoticeIn, qon_id: UUID
+    ) -> None:
+        """Attach taken-on-notice claims whose span cites this QoN number."""
+        from aus_gov_ingest.sources.qon import qon_number_needles
+
+        needles = qon_number_needles(item)
+        if not needles:
+            return
+        try:
+            for needle in needles:
+                conn.execute(
+                    """
+                    UPDATE claims SET qon_id = %s
+                    WHERE claim_type = 'taken_on_notice'
+                      AND qon_id IS NULL
+                      AND text_span ILIKE %s
+                    """,
+                    (qon_id, f"%{needle}%"),
+                )
+        except Exception:
+            # Pre-010 volumes have no claims.qon_id.
+            return
 
     def upsert_instrument(
         self,

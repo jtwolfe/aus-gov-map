@@ -1,0 +1,42 @@
+{
+  "Id": 53566,
+  "Number": 293,
+  "PortfolioQuestionNumber": "293",
+  "AskedDate": "2018-05-22T00:00:00",
+  "AnsweredDate": "2018-07-09T00:00:00",
+  "DueDate": "2018-07-11T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator the Hon",
+      "FirstName": "Kristina",
+      "Initials": "K.K.",
+      "Surname": "Keneally",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Snowy Hydro Limited",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Environment and Communications",
+  "CommitteeId": 8,
+  "Portfolio": "Environment and Energy",
+  "PortfolioId": 10,
+  "EstimatesRoundName": "2018-19 Budget estimates",
+  "EstimatesRoundId": 3,
+  "SearchWeight": 0,
+  "QuestionText": "<p>On 22 May, I asked: </p>\n<p> <em>If I can go back to my question about the renewable energy share in 2030. I asked, according to the modelling in your feasibility study, what was the renewable share in 2030 with Snowy 2.0 in place. I note that I asked a similar question of Mr Whitby and he agreed to take it on notice, because at that point we were talking about the modelling that has already been done for 2040, which I understand MJA has done. I am asking for the 2030 figures. I've asked for them before. Can you please take that on notice? </em></p>\n<p> Can Snowy Hydro Limited please provide these figures?</p>",
+  "BroadTopic": "Renewable energy share in 2030",
+  "AnswerText": "This question was answered on notice previously - see Portfolio Question Number 269",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 42833,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=8&estimatesroundid=3&portfolioid=10&number=293"
+}

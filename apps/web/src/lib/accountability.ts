@@ -16,10 +16,12 @@ export type RoleAtDateRow = {
   roleType: string;
   portfolio: string | null;
   organisation: string | null;
+  agencySlug: string | null;
   agencyName: string | null;
   startDate: string | null;
   endDate: string | null;
   source: string;
+  sourceUrl: string | null;
 };
 
 export type PromiseReceiptRow = {
@@ -41,12 +43,27 @@ export type QonDebtRow = {
   portfolio: string;
   agencySlug: string | null;
   agencyName: string | null;
+  responsibleOfficialSlug: string | null;
+  responsibleOfficialName: string | null;
+  responsibleOfficialRole: string | null;
   openishCount: number;
   overdueCount: number;
   answeredCount: number;
   refusedCount: number;
   qonCount: number;
   latestDue: string | null;
+};
+
+export type AgencyRow = {
+  slug: string;
+  name: string;
+  portfolio: string | null;
+  source: string | null;
+  sourceUrl: string | null;
+  officialSlug: string | null;
+  officialName: string | null;
+  officialRole: string | null;
+  qonCount: number;
 };
 
 export type ChainRow = {
@@ -64,6 +81,7 @@ export type InstrumentRow = {
   slug: string;
   title: string;
   instrumentType: string;
+  agencySlug: string | null;
   agencyName: string | null;
   announcedOn: string | null;
   amountAud: string | null;
@@ -184,8 +202,8 @@ async function withFoundation<T>(
 
 export async function loadRoleAtDate(on: string | null, person?: string | null, portfolio?: string | null) {
   const hint = needed(
-    "Role-at-date needs sourced occupancies in person_roles (promoted from Handbook tenures or AAO). Stage 1 hearing appearances are not tenures. Ingest: handbook (set HANDBOOK_LIVE=1 to probe OData).",
-    { sources: ["handbook"], tables: ["person_roles", "roles", "handbook_roles"] },
+    "Role-at-date needs sourced occupancies in person_roles. Handbook covers parliamentarians; APS secretaries and agency heads come from aps_leaders (directory.gov.au / official executive pages). Stage 1 hearing appearances are not tenures.",
+    { sources: ["handbook", "aps_leaders"], tables: ["person_roles", "roles", "agencies"] },
   );
   return withFoundation<RoleAtDateRow>(hint, async () => {
     const rows = await query<Record<string, unknown>>(
@@ -193,7 +211,8 @@ export async function loadRoleAtDate(on: string | null, person?: string | null, 
       SELECT p.slug AS person_slug, p.name AS person_name,
              COALESCE(r.title, pr.organisation, pr.role_type) AS role_title,
              pr.role_type, pr.portfolio, pr.organisation,
-             a.name AS agency_name, pr.start_date, pr.end_date, pr.source
+             a.slug AS agency_slug, a.name AS agency_name,
+             pr.start_date, pr.end_date, pr.source, pr.source_url
       FROM person_roles pr
       JOIN people p ON p.id = pr.person_id
       LEFT JOIN roles r ON r.id = pr.role_id
@@ -201,8 +220,18 @@ export async function loadRoleAtDate(on: string | null, person?: string | null, 
       WHERE ($1::date IS NULL OR pr.start_date IS NULL OR pr.start_date <= $1::date)
         AND ($1::date IS NULL OR pr.end_date IS NULL OR pr.end_date >= $1::date)
         AND ($2::text IS NULL OR p.name ILIKE '%' || $2 || '%' OR p.slug ILIKE '%' || $2 || '%')
-        AND ($3::text IS NULL OR pr.portfolio ILIKE '%' || $3 || '%' OR r.portfolio ILIKE '%' || $3 || '%')
-      ORDER BY pr.portfolio NULLS LAST, role_title, p.name
+        AND ($3::text IS NULL OR pr.portfolio ILIKE '%' || $3 || '%'
+             OR r.portfolio ILIKE '%' || $3 || '%'
+             OR a.slug ILIKE '%' || $3 || '%'
+             OR a.name ILIKE '%' || $3 || '%')
+      ORDER BY CASE pr.role_type
+                 WHEN 'secretary' THEN 0
+                 WHEN 'agency_head' THEN 1
+                 WHEN 'deputy' THEN 2
+                 WHEN 'minister' THEN 3
+                 ELSE 4
+               END,
+               pr.portfolio NULLS LAST, role_title, p.name
       LIMIT 80
       `,
       [on || null, person?.trim() || null, portfolio?.trim() || null],
@@ -214,10 +243,12 @@ export async function loadRoleAtDate(on: string | null, person?: string | null, 
       roleType: String(r.role_type),
       portfolio: (r.portfolio as string | null) ?? null,
       organisation: (r.organisation as string | null) ?? null,
+      agencySlug: (r.agency_slug as string | null) ?? null,
       agencyName: (r.agency_name as string | null) ?? null,
       startDate: dateOnly(r.start_date),
       endDate: dateOnly(r.end_date),
       source: String(r.source),
+      sourceUrl: (r.source_url as string | null) ?? null,
     }));
   }, { on });
 }
@@ -272,20 +303,24 @@ export async function loadPromiseReceipt() {
 
 export async function loadQonDebt() {
   const hint = needed(
-    "QoN debt counts open and overdue questions by portfolio and answering agency. Run the qon adapter once a real extract exists. Taken-on-notice lines in Hansard are not QoNs until they are promoted.",
-    { sources: ["qon"], tables: ["qons", "agencies"] },
+    "QoN debt counts open and overdue questions by portfolio and answering agency. Run qon (EQON / fixtures/live/qon). Taken-on-notice lines in Hansard are not QoNs until they are promoted. Responsible officials appear after aps_leaders writes person_roles.",
+    { sources: ["qon", "aps_leaders", "agencies"], tables: ["qons", "agencies", "person_roles"] },
   );
   return withFoundation<QonDebtRow>(hint, async () => {
     const sql = (await viewExists("v_accountability_qon_debt"))
       ? `
-        SELECT portfolio, agency_slug, agency_name, openish_count, overdue_count,
-               answered_count, refused_count, qon_count, latest_due
+        SELECT portfolio, agency_slug, agency_name,
+               responsible_official_slug, responsible_official_name, responsible_official_role,
+               openish_count, overdue_count, answered_count, refused_count, qon_count, latest_due
         FROM v_accountability_qon_debt
         ORDER BY overdue_count DESC, openish_count DESC, portfolio
       `
       : `
         SELECT COALESCE(q.portfolio, '(unspecified portfolio)') AS portfolio,
                a.slug AS agency_slug, a.name AS agency_name,
+               NULL::text AS responsible_official_slug,
+               NULL::text AS responsible_official_name,
+               NULL::text AS responsible_official_role,
                COUNT(*) FILTER (WHERE q.status IN ('open', 'overdue', 'unknown'))::int AS openish_count,
                COUNT(*) FILTER (WHERE q.status = 'overdue'
                  OR (q.status = 'open' AND q.due_on IS NOT NULL AND q.due_on < CURRENT_DATE))::int AS overdue_count,
@@ -298,11 +333,33 @@ export async function loadQonDebt() {
         GROUP BY q.portfolio, a.slug, a.name
         ORDER BY overdue_count DESC, openish_count DESC
       `;
-    const rows = await query<Record<string, unknown>>(sql);
+    const rows = await query<Record<string, unknown>>(sql).catch(async () =>
+      query<Record<string, unknown>>(`
+        SELECT COALESCE(q.portfolio, '(unspecified portfolio)') AS portfolio,
+               a.slug AS agency_slug, a.name AS agency_name,
+               NULL::text AS responsible_official_slug,
+               NULL::text AS responsible_official_name,
+               NULL::text AS responsible_official_role,
+               COUNT(*) FILTER (WHERE q.status IN ('open', 'overdue', 'unknown'))::int AS openish_count,
+               COUNT(*) FILTER (WHERE q.status = 'overdue'
+                 OR (q.status = 'open' AND q.due_on IS NOT NULL AND q.due_on < CURRENT_DATE))::int AS overdue_count,
+               COUNT(*) FILTER (WHERE q.status = 'answered')::int AS answered_count,
+               COUNT(*) FILTER (WHERE q.status = 'refused')::int AS refused_count,
+               COUNT(*)::int AS qon_count,
+               MAX(q.due_on) AS latest_due
+        FROM qons q
+        LEFT JOIN agencies a ON a.id = q.answering_agency_id
+        GROUP BY q.portfolio, a.slug, a.name
+        ORDER BY overdue_count DESC, openish_count DESC
+      `),
+    );
     return rows.map((r) => ({
       portfolio: String(r.portfolio),
       agencySlug: (r.agency_slug as string | null) ?? null,
       agencyName: (r.agency_name as string | null) ?? null,
+      responsibleOfficialSlug: (r.responsible_official_slug as string | null) ?? null,
+      responsibleOfficialName: (r.responsible_official_name as string | null) ?? null,
+      responsibleOfficialRole: (r.responsible_official_role as string | null) ?? null,
       openishCount: Number(r.openish_count ?? 0),
       overdueCount: Number(r.overdue_count ?? 0),
       answeredCount: Number(r.answered_count ?? 0),
@@ -311,6 +368,91 @@ export async function loadQonDebt() {
       latestDue: dateOnly(r.latest_due),
     }));
   });
+}
+
+export async function loadAgencies() {
+  const hint = needed(
+    "Agency pages list official-name stubs (agencies ingest) and current secretaries / agency heads after aps_leaders writes person_roles. Empty is correct until those sources run.",
+    { sources: ["agencies", "aps_leaders"], tables: ["agencies", "person_roles"] },
+  );
+  return withFoundation<AgencyRow>(hint, async () => {
+    const rows = await query<Record<string, unknown>>(`
+      SELECT a.slug, a.name, a.portfolio, a.source, a.source_url,
+             head.person_slug, head.person_name, head.role_type,
+             (SELECT COUNT(*)::int FROM qons q WHERE q.answering_agency_id = a.id) AS qon_count
+      FROM agencies a
+      LEFT JOIN LATERAL (
+        SELECT p.slug AS person_slug, p.name AS person_name, pr.role_type
+        FROM person_roles pr
+        JOIN people p ON p.id = pr.person_id
+        WHERE pr.agency_id = a.id
+          AND pr.role_type IN ('secretary', 'agency_head')
+          AND (pr.end_date IS NULL OR pr.end_date >= CURRENT_DATE)
+        ORDER BY CASE pr.role_type WHEN 'secretary' THEN 0 ELSE 1 END,
+                 pr.start_date DESC NULLS LAST
+        LIMIT 1
+      ) head ON TRUE
+      ORDER BY a.name
+      LIMIT 80
+    `);
+    return rows.map((r) => ({
+      slug: String(r.slug),
+      name: String(r.name),
+      portfolio: (r.portfolio as string | null) ?? null,
+      source: (r.source as string | null) ?? null,
+      sourceUrl: (r.source_url as string | null) ?? null,
+      officialSlug: (r.person_slug as string | null) ?? null,
+      officialName: (r.person_name as string | null) ?? null,
+      officialRole: (r.role_type as string | null) ?? null,
+      qonCount: Number(r.qon_count ?? 0),
+    }));
+  });
+}
+
+export async function loadAgency(slug: string) {
+  const hint = needed(
+    "An agency page needs a row in agencies and, for a responsible official, an open person_roles occupancy from aps_leaders.",
+    { sources: ["agencies", "aps_leaders", "qon"], tables: ["agencies", "person_roles", "qons"] },
+  );
+  const payload = await withFoundation<AgencyRow>(hint, async () => {
+    const rows = await query<Record<string, unknown>>(
+      `
+      SELECT a.slug, a.name, a.portfolio, a.source, a.source_url,
+             head.person_slug, head.person_name, head.role_type,
+             (SELECT COUNT(*)::int FROM qons q WHERE q.answering_agency_id = a.id) AS qon_count
+      FROM agencies a
+      LEFT JOIN LATERAL (
+        SELECT p.slug AS person_slug, p.name AS person_name, pr.role_type
+        FROM person_roles pr
+        JOIN people p ON p.id = pr.person_id
+        WHERE pr.agency_id = a.id
+          AND pr.role_type IN ('secretary', 'agency_head', 'deputy')
+          AND (pr.end_date IS NULL OR pr.end_date >= CURRENT_DATE)
+        ORDER BY CASE pr.role_type
+                   WHEN 'secretary' THEN 0
+                   WHEN 'agency_head' THEN 1
+                   ELSE 2
+                 END,
+                 pr.start_date DESC NULLS LAST
+        LIMIT 1
+      ) head ON TRUE
+      WHERE a.slug = $1
+      `,
+      [slug],
+    );
+    return rows.map((r) => ({
+      slug: String(r.slug),
+      name: String(r.name),
+      portfolio: (r.portfolio as string | null) ?? null,
+      source: (r.source as string | null) ?? null,
+      sourceUrl: (r.source_url as string | null) ?? null,
+      officialSlug: (r.person_slug as string | null) ?? null,
+      officialName: (r.person_name as string | null) ?? null,
+      officialRole: (r.role_type as string | null) ?? null,
+      qonCount: Number(r.qon_count ?? 0),
+    }));
+  });
+  return payload;
 }
 
 export async function loadChainCompleteness() {
@@ -366,7 +508,8 @@ export async function loadInstruments(q: string | null) {
   return withFoundation<InstrumentRow>(hint, async () => {
     const rows = await query<Record<string, unknown>>(
       `
-      SELECT i.slug, i.title, i.instrument_type, a.name AS agency_name,
+      SELECT i.slug, i.title, i.instrument_type,
+             a.slug AS agency_slug, a.name AS agency_name,
              i.announced_on, i.amount_aud, i.source, i.source_url
       FROM instruments i
       LEFT JOIN agencies a ON a.id = i.agency_id
@@ -382,6 +525,7 @@ export async function loadInstruments(q: string | null) {
       slug: String(r.slug),
       title: String(r.title),
       instrumentType: String(r.instrument_type),
+      agencySlug: (r.agency_slug as string | null) ?? null,
       agencyName: (r.agency_name as string | null) ?? null,
       announcedOn: dateOnly(r.announced_on),
       amountAud: r.amount_aud != null ? String(r.amount_aud) : null,
@@ -398,6 +542,7 @@ export const LENSES = [
   { href: "/accountability/qon-debt", label: "QoN debt" },
   { href: "/accountability/chain-completeness", label: "Chain completeness" },
   { href: "/accountability/instruments", label: "Instruments" },
+  { href: "/agencies", label: "Agencies" },
 ];
 
 export type QonStatus = "open" | "answered" | "overdue" | "refused" | "unknown";

@@ -1,0 +1,42 @@
+{
+  "Id": 218290,
+  "Number": 666,
+  "PortfolioQuestionNumber": "SA SQ25-000486",
+  "AskedDate": "2025-12-12T00:00:00",
+  "AnsweredDate": "2026-01-29T00:00:00",
+  "DueDate": "2026-01-29T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "James",
+      "Initials": "J.",
+      "Surname": "Paterson",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Services Australia",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Finance and Public Administration",
+  "CommitteeId": 1,
+  "Portfolio": "Finance",
+  "PortfolioId": 2,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "1.\tPlease explain what payment verification systems are used by Services Australia to ensure that a customer's name matches the account details that have been entered before payments, such as Centrelink or Medicare benefits, are paid into a customer's bank account. <br>2.\tHas Services Australia considered any options to strengthen payment systems verification? When? Please provide relevant details of any options considered by the Agency.",
+  "BroadTopic": "Payment Verification Systems",
+  "AnswerText": "See attached.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 204212,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=1&estimatesroundid=28&portfolioid=2&number=666"
+}

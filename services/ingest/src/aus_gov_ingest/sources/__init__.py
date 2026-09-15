@@ -4,6 +4,7 @@ from pathlib import Path
 
 from aus_gov_ingest.sources.agencies import AgenciesSource
 from aus_gov_ingest.sources.anao import AnaoSource
+from aus_gov_ingest.sources.aps_leaders import ApsLeadersSource
 from aus_gov_ingest.sources.aph_transcript_file import AphTranscriptFileSource
 from aus_gov_ingest.sources.austender import AustenderSource
 from aus_gov_ingest.sources.base import Source
@@ -30,6 +31,7 @@ SOURCES: dict[str, type] = {
     "budget_measure": BudgetMeasureSource,
     "austender": AustenderSource,
     "agencies": AgenciesSource,
+    "aps_leaders": ApsLeadersSource,
     "instrument_propose": InstrumentProposeSource,
 }
 
@@ -38,6 +40,7 @@ PATH_SOURCES = {
     "handbook",
     "qon",
     "agencies",
+    "aps_leaders",
     "instrument_propose",
     "anao",
     "budget_measure",

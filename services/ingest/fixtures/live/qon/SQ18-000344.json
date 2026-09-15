@@ -1,0 +1,42 @@
+{
+  "Id": 60825,
+  "Number": 194,
+  "PortfolioQuestionNumber": "SQ18-000344",
+  "AskedDate": "2018-10-25T00:00:00",
+  "AnsweredDate": "2019-02-13T00:00:00",
+  "DueDate": "2018-12-06T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Larissa",
+      "Initials": "L. J.",
+      "Surname": "Waters",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Human Services",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Community Affairs",
+  "CommitteeId": 2,
+  "Portfolio": "Human Services",
+  "PortfolioId": 25,
+  "EstimatesRoundName": "2018-19 Supplementary budget estimates",
+  "EstimatesRoundId": 4,
+  "SearchWeight": 0,
+  "QuestionText": "What reviews are you undertaking to ensure the system isn't creating these scenarios?",
+  "BroadTopic": "Centrelink Customer Reference Numbers and Domestic Violence",
+  "AnswerText": "Please see the attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 49993,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=2&estimatesroundid=4&portfolioid=25&number=194"
+}

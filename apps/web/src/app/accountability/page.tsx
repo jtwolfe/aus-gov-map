@@ -10,7 +10,7 @@ const LENSES = [
     href: "/accountability/role-at-date",
     kicker: "01",
     title: "Role at date",
-    body: "Who occupied a seat on a hearing or decision date. Occupancy comes from Handbook / AAO tenures, not from sitting at the table.",
+    body: "Who occupied a seat on a hearing or decision date. Occupancy comes from Handbook tenures and APS secretaries (aps_leaders), not from sitting at the table.",
   },
   {
     href: "/accountability/promise-receipt",
@@ -35,6 +35,12 @@ const LENSES = [
     kicker: "05",
     title: "Instruments",
     body: "Programs, measures, bills, contracts, grants, and policies. Search titles and identifiers once adapters write rows.",
+  },
+  {
+    href: "/agencies",
+    kicker: "06",
+    title: "Agencies",
+    body: "Official department names plus the current secretary or agency head when aps_leaders has written a sourced occupancy.",
   },
 ];
 
@@ -106,9 +112,9 @@ export default async function AccountabilityPage() {
 
       <LensNeeded
         needed={{
-          note: "Lenses read Postgres views when 007–009 have been applied. Handbook, QoN, agencies, instrument_propose, ANAO, Budget/PBS, and AusTender now write into that model. Sparse data is correct; nothing invents officials or findings.",
+          note: "Lenses read Postgres views when 007–010 have been applied. Handbook, QoN, agencies, aps_leaders, instrument_propose, ANAO, Budget/PBS, and AusTender now write into that model. Sparse data is correct; nothing invents officials or findings.",
           apply: "make db-apply",
-          sources: ["handbook", "qon", "agencies", "instrument_propose", "anao", "budget_measure", "austender"],
+          sources: ["handbook", "aps_leaders", "qon", "agencies", "instrument_propose", "anao", "budget_measure", "austender"],
           tables: ["person_roles", "instruments", "qons", "claims", "scrutiny_items", "outcomes"],
         }}
       />

@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { AccountabilityNav, EmptyRows } from "@/components/accountability-lens";
 import { loadQonDebt } from "@/lib/accountability";
-import { formatDate } from "@/lib/format";
+import { formatDate, roleTypeLabel } from "@/lib/format";
 
 export const metadata = { title: "QoN debt" };
 export const dynamic = "force-dynamic";
@@ -34,7 +35,30 @@ export default async function QonDebtPage() {
             >
               <div>
                 <p className="font-serif text-lg text-navy">{row.portfolio}</p>
-                <p className="text-sm text-muted">{row.agencyName ?? "Agency not linked"}</p>
+                <p className="text-sm text-muted">
+                  {row.agencySlug ? (
+                    <Link href={`/agencies/${row.agencySlug}`} className="hover:text-ochre">
+                      {row.agencyName ?? row.agencySlug}
+                    </Link>
+                  ) : (
+                    (row.agencyName ?? "Agency not linked")
+                  )}
+                  {row.responsibleOfficialName ? (
+                    <>
+                      {" · "}
+                      {row.responsibleOfficialSlug ? (
+                        <Link href={`/people/${row.responsibleOfficialSlug}`} className="hover:text-ochre">
+                          {row.responsibleOfficialName}
+                        </Link>
+                      ) : (
+                        row.responsibleOfficialName
+                      )}
+                      {row.responsibleOfficialRole
+                        ? ` (${roleTypeLabel(row.responsibleOfficialRole)})`
+                        : ""}
+                    </>
+                  ) : null}
+                </p>
               </div>
               <p className="text-xs uppercase tracking-[0.12em] text-muted">
                 {row.overdueCount} overdue · {row.openishCount} open/unknown ·{" "}

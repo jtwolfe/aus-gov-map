@@ -41,7 +41,8 @@ export default function AboutPage() {
           <a className="link" href="https://handbook.aph.gov.au">
             Parliamentary Handbook
           </a>{" "}
-          (live OData ingest — parliamentarians, tenure, ministries; not APS secretaries)
+          (live OData ingest — parliamentarians, tenure, ministries; APS secretaries via directory /{" "}
+          <span className="font-mono">aps_leaders</span>)
         </li>
         <li>
           <a className="link" href="https://www.anao.gov.au">
@@ -79,6 +80,12 @@ export default function AboutPage() {
           </a>{" "}
           (best-effort public search API / committed fixtures)
         </li>
+        <li>
+          <a className="link" href="https://www.directory.gov.au/">
+            directory.gov.au
+          </a>{" "}
+          and official department executive pages (APS secretaries / agency heads)
+        </li>
       </ul>
       <h2 className="font-serif text-2xl text-navy">Duty map (Stage 2)</h2>
       <p className="leading-relaxed text-muted">
@@ -88,8 +95,10 @@ export default function AboutPage() {
         EQON search or committed examples.{" "}
         <strong> Instruments</strong> extracted from Estimates text are{" "}
         <strong>proposed candidates only</strong> — low confidence, not asserted
-        facts. Agency stubs use official department names; secretaries need a
-        separate APS source. Hansard is a citation of what was said, not ground
+        facts. Agency stubs use official department names. Secretaries come from
+        the{" "}
+        <span className="font-mono">aps_leaders</span> adapter (directory.gov.au
+        / executive pages / cited fixtures). Hansard is a citation of what was said, not ground
         truth. See{" "}
         <span className="font-mono">docs/accountability-map.md</span>.
       </p>

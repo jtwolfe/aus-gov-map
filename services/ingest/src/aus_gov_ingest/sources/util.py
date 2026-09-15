@@ -83,6 +83,11 @@ def parse_flexible_date(value, *, open_if_today: bool = False) -> date | None:
         match = _MS_DATE.search(raw)
         if match:
             parsed = datetime.fromtimestamp(int(match.group(1)) / 1000, tz=timezone.utc).date()
+        elif re.match(r"\d{4}-\d{2}-\d{2}", raw):
+            try:
+                parsed = datetime.fromisoformat(raw.replace("Z", "+00:00")[:10]).date()
+            except ValueError:
+                parsed = parse_date(raw)
         elif "T" in raw:
             try:
                 parsed = datetime.fromisoformat(raw.replace("Z", "+00:00")).date()

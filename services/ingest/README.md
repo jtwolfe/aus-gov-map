@@ -34,6 +34,7 @@ python -m aus_gov_ingest cron
 python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
 python -m aus_gov_ingest run --source qon --limit 10 --dry-run
 python -m aus_gov_ingest run --source agencies --dry-run
+python -m aus_gov_ingest run --source aps_leaders --limit 10 --dry-run
 python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
 python -m aus_gov_ingest run --source anao --limit 5 --dry-run
 python -m aus_gov_ingest run --source budget_measure --limit 10 --dry-run
@@ -66,6 +67,7 @@ DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 | `handbook` | Parliamentary Handbook OData (`handbookapi.aph.gov.au`) — people, chamber tenure, party, ministries. Fixture fallback: `fixtures/live/handbook/`. Promotes into `person_roles`. Secretaries are out of scope. |
 | `qon` | Senate Estimates EQON search (`/api/qon/getestimatesdata`) or `fixtures/live/qon/` into foundation `qons`. Status: open / answered / overdue / unknown. |
 | `agencies` | Official department / agency stubs (`fixtures/live/agencies.json`) upserted into foundation `agencies`. |
+| `aps_leaders` | Secretaries / deputies / agency heads from directory.gov.au and official executive pages into `people`, `agencies`, `roles`, `person_roles`. Fixture fallback: `fixtures/live/aps/`. Does not invent historical tenures. |
 | `instrument_propose` | Regex candidates from Officials (bills, programs, contract/grant mentions). **Proposed only** (`instruments.status`). |
 | `anao` | ANAO work / performance-audit index → `scrutiny_items` (type anao). Outcomes only when finding language is parseable. Fixture fallback: `fixtures/live/anao/`. |
 | `budget_measure` | BP2 measures DOCX + data.gov.au PBS program-expense CSV → `instruments` (measure / program). PDF Budget Papers are follow-up. Fixture: `fixtures/live/budget/`. |
@@ -139,7 +141,7 @@ python -m aus_gov_ingest apply-schema
 python -m aus_gov_ingest seed-demo-board
 ```
 
-That creates analytics views, Handbook tables, Stage 2 accountability tables (`007` + `008` + `009` adapter columns), a unique pins index, and the FOI/procurement demo board.
+That creates analytics views, Handbook tables, Stage 2 accountability tables (`007` + `008` + `009` adapter columns + `010` APS/QoN glue), a unique pins index, and the FOI/procurement demo board.
 
 ## Graph
 

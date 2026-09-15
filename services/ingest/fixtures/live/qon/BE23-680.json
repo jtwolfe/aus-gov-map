@@ -1,0 +1,42 @@
+{
+  "Id": 137181,
+  "Number": 672,
+  "PortfolioQuestionNumber": "BE23-680",
+  "AskedDate": "2023-08-22T00:00:00",
+  "AnsweredDate": "2023-10-20T00:00:00",
+  "DueDate": "2023-09-01T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Deborah",
+      "Initials": "D. M.",
+      "Surname": "O'Neill",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Australian Federal Police",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Legal and Constitutional Affairs",
+  "CommitteeId": 6,
+  "Portfolio": "Attorney-General's",
+  "PortfolioId": 5,
+  "EstimatesRoundName": "2023-24 Budget estimates",
+  "EstimatesRoundId": 21,
+  "SearchWeight": 0,
+  "QuestionText": "1) During Mr Peter Dutton&rsquo;s time as the Minister for Immigration and Border Protection and the Minister for Home Affairs, how many of the AFP&rsquo;s foreign bribery investigations related to individuals or companies that had contracts with the Department of Immigration and Border Protection / Home Affairs in connection with Nauru or Papua New Guinea? Note: The reference to contracts includes contracts that were in place when the AFP commenced relevant investigations, and contracts that were entered into while those investigations were ongoing.&nbsp;<br />\n2) During Mr Dutton&rsquo;s time as the Minister for Immigration and Border Protection and the Minister for Home Affairs, how many times did the AFP provide him with a verbal or written briefing or report relating wholly or partly to a foreign bribery investigation the AFP was undertaking into individuals or companies that the AFP knew or reasonably suspected had contracts with Mr Dutton&rsquo;s Department or another part of the Australian Government?<br />\na. In respect of each relevant written briefing or report:<br />\ni. when was it provided<br />\nii. what did the briefing or report say<br />\niii. how was it provided (via email, a formal submission etc)<br />\niv. did the briefing or report refer to the fact that the target(s) of the investigation had, or were associated with people or entities that had, Australian Government contracts<br />\nb. In respect of each relevant verbal briefing, please provide the following information:<br />\ni. the name of each individual who attended the briefing<br />\nii. the location of the briefing (e.g. ministerial office in Canberra)<br />\niii. the date of the briefing<br />\niv. the time of the briefing (e.g. 1pm)<br />\nv. whether the briefing or report referred to the fact that the target(s) of the investigation had, or were associated with people or entities that had, Australian Government contracts<br />\nvi. whether there exists any record of the meeting and, if a record exists, what the record says<br />\n3) Is the AFP currently investigating any current or former Home Affairs officials for foreign bribery, or for any offence in connection with dealings an official had with Broadspectrum, Paladin or Canstruct?<br />\n4) It was reported in the Nine Papers that the AFP is investigating Canstruct, or persons connected to Canstruct, in relation to allegations of foreign bribery or other corruption offences. Is the AFP undertaking such an investigation?<br />\na. Whe…",
+  "BroadTopic": "Foreign Bribery – General",
+  "AnswerText": "Please see the attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 123837,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=6&estimatesroundid=21&portfolioid=5&number=672"
+}

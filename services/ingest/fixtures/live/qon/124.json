@@ -1,0 +1,42 @@
+{
+  "Id": 220160,
+  "Number": 3349,
+  "PortfolioQuestionNumber": "124",
+  "AskedDate": "2025-12-03T00:00:00",
+  "AnsweredDate": "2026-01-27T00:00:00",
+  "DueDate": "2026-01-29T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Jane",
+      "Initials": "J.",
+      "Surname": "Hume",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Australian War Memorial",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Foreign Affairs, Defence and Trade",
+  "CommitteeId": 5,
+  "Portfolio": "Defence",
+  "PortfolioId": 7,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "In relation to any functions or official receptions hosted by Ministers or Assistant Ministers in the portfolio in financial year 2025-26 to date, please provide the following:<br><br>a. List of functions;<br>b. List of attendees;<br>c. Function venue;<br>d. Itemised list of costs (GST inclusive);<br>e. Details of any food served;<br>f. Details of any wines or champagnes served including brand and vintage; and<br>g. Details of any entertainment provided.",
+  "BroadTopic": "AWM - Functions and Official Receptions - Hosted by Ministers",
+  "AnswerText": "Please see the attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 206082,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=5&estimatesroundid=28&portfolioid=7&number=3349"
+}
