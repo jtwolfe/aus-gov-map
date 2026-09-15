@@ -1,11 +1,188 @@
 {
   "source": "aph_transcript_file",
-  "fetched": 3,
+  "fetched": 21,
   "status": "dry_run",
   "transport": "aph_transcript_file",
   "command": "python -m aus_gov_ingest run --source aph_transcript_file --dry-run",
+  "also": "make ingest-backfill-files",
   "path": "services/ingest/fixtures/live/transcripts",
   "hearings": [
+    {
+      "title": "Finance and Public Administration Legislation Committee - 28/02/2025 - Estimates",
+      "held_on": "2025-02-28",
+      "source_key": "hansard:committees/estimate/28750",
+      "official_chars": 289404,
+      "people_sample": [
+        "Senator McCarthy",
+        "Ms Jody Broun",
+        "Ms Julie-Ann Guivarra"
+      ]
+    },
+    {
+      "title": "Environment and Communications Legislation Committee - 28/02/2025 - Estimates",
+      "held_on": "2025-02-28",
+      "source_key": "hansard:committees/estimate/28751",
+      "official_chars": 246294,
+      "people_sample": [
+        "Senator McAllister",
+        "Mr David Fredericks PSM",
+        "Ms Lyn O'Connell PSM"
+      ]
+    },
+    {
+      "title": "Finance and Public Administration Legislation Committee - 27/03/2025 - Estimates",
+      "held_on": "2025-03-27",
+      "source_key": "hansard:committees/estimate/28778",
+      "official_chars": 535505,
+      "people_sample": [
+        "Senator Lines",
+        "Ms Jaala Hinchcliffe",
+        "Ms Nicola Hinder PSM"
+      ]
+    },
+    {
+      "title": "Legal and Constitutional Affairs Legislation Committee - 27/03/2025 - Estimates",
+      "held_on": "2025-03-27",
+      "source_key": "hansard:committees/estimate/28779",
+      "official_chars": 549740,
+      "people_sample": [
+        "Senator Watt",
+        "Ms Stephanie Foster PSM",
+        "Mr Gavan Reynolds AO"
+      ]
+    },
+    {
+      "title": "Environment and Communications Legislation Committee - 27/03/2025 - Estimates",
+      "held_on": "2025-03-27",
+      "source_key": "hansard:committees/estimate/28780",
+      "official_chars": 464376,
+      "people_sample": [
+        "Senator Ayres",
+        "Senator McAllister",
+        "Mr David Fredericks PSM"
+      ]
+    },
+    {
+      "title": "Community Affairs Legislation Committee - 09/10/2025 - Estimates -  and",
+      "held_on": "2025-10-09",
+      "source_key": "hansard:committees/estimate/29000",
+      "official_chars": 587154,
+      "people_sample": [
+        "Senator Green",
+        "Senator McCarthy",
+        "Mr Blair Comley PSM"
+      ]
+    },
+    {
+      "title": "Education and Employment Legislation Committee - 10/10/2025 - Estimates -  and",
+      "held_on": "2025-10-10",
+      "source_key": "hansard:committees/estimate/29001",
+      "official_chars": 435587,
+      "people_sample": [
+        "Senator Walsh",
+        "Mr Tony Cook PSM",
+        "Ms Jasna Blackwell"
+      ]
+    },
+    {
+      "title": "Economics Legislation Committee - 10/10/2025 - Estimates",
+      "held_on": "2025-10-10",
+      "source_key": "hansard:committees/estimate/29003",
+      "official_chars": 456376,
+      "people_sample": [
+        "Senator Ayres",
+        "Ms Michele Bullock",
+        "Dr Christopher Kent"
+      ]
+    },
+    {
+      "title": "Community Affairs Legislation Committee - 10/10/2025 - Estimates",
+      "held_on": "2025-10-10",
+      "source_key": "hansard:committees/estimate/29004",
+      "official_chars": 367361,
+      "people_sample": [
+        "Senator McAllister",
+        "Mr Blair Comley PSM",
+        "Ms Rachel Balmanno"
+      ]
+    },
+    {
+      "title": "Finance and Public Administration Legislation Committee - 04/11/2025 - Estimates -  and",
+      "held_on": "2025-11-04",
+      "source_key": "hansard:committees/estimate/29091",
+      "official_chars": 115150,
+      "people_sample": [
+        "Senator Lines",
+        "Ms Jaala Hinchcliffe",
+        "Ms Nicola Hinder PSM"
+      ]
+    },
+    {
+      "title": "Community Affairs Legislation Committee - 11/02/2026 - Estimates",
+      "held_on": "2026-02-11",
+      "source_key": "hansard:committees/estimate/29370",
+      "official_chars": 476558,
+      "people_sample": [
+        "Senator Green",
+        "Senator McCarthy",
+        "Mr Blair Comley PSM"
+      ]
+    },
+    {
+      "title": "Education and Employment Legislation Committee - 12/02/2026 - Estimates -  and",
+      "held_on": "2026-02-12",
+      "source_key": "hansard:committees/estimate/29371",
+      "official_chars": 510931,
+      "people_sample": [
+        "Senator Walsh",
+        "Mr Tony Cook PSM",
+        "Mr Marcus Markovic"
+      ]
+    },
+    {
+      "title": "Economics Legislation Committee - 12/02/2026 - Estimates",
+      "held_on": "2026-02-12",
+      "source_key": "hansard:committees/estimate/29373",
+      "official_chars": 569422,
+      "people_sample": [
+        "Senator Ayres",
+        "Ms Michele Bullock",
+        "Dr Christopher Kent"
+      ]
+    },
+    {
+      "title": "Community Affairs Legislation Committee - 12/02/2026 - Estimates -  and",
+      "held_on": "2026-02-12",
+      "source_key": "hansard:committees/estimate/29374",
+      "official_chars": 429293,
+      "people_sample": [
+        "Senator McAllister",
+        "Mr Blair Comley PSM",
+        "Professor Michael Kidd"
+      ]
+    },
+    {
+      "title": "Foreign Affairs, Defence and Trade Legislation Committee - 10/03/2026 - Additional Esimates 2025-2026 — Estimates",
+      "held_on": "2026-03-10",
+      "source_key": "hansard:committees/estimate/29420",
+      "official_chars": 107651,
+      "people_sample": [
+        "Senator McAllister",
+        "Ms Alison Frame",
+        "Ms Alison McLaren"
+      ]
+    },
+    {
+      "title": "Education and Employment Legislation Committee - 04/06/2026 - Estimates",
+      "held_on": "2026-06-04",
+      "source_key": "hansard:committees/estimate/29616",
+      "official_chars": 450230,
+      "people_sample": [
+        "Senator Walsh",
+        "Mr Tony Cook PSM",
+        "Mr Marcus Markovic"
+      ]
+    },
     {
       "title": "Education and Employment Legislation Committee - 05/06/2026 - Estimates",
       "held_on": "2026-06-05",
@@ -18,6 +195,17 @@
       ]
     },
     {
+      "title": "Economics Legislation Committee - 04/06/2026 - Estimates",
+      "held_on": "2026-06-04",
+      "source_key": "hansard:committees/estimate/29624",
+      "official_chars": 582136,
+      "people_sample": [
+        "Senator Gallagher",
+        "Ms Jenny Wilkinson PSM",
+        "Ms Katrina Di Marco"
+      ]
+    },
+    {
       "title": "Economics Legislation Committee - 05/06/2026 - Estimates",
       "held_on": "2026-06-05",
       "source_key": "hansard:committees/estimate/29625",
@@ -26,6 +214,17 @@
         "Senator Ayres",
         "Senator Gallagher",
         "Ms Sarah Court"
+      ]
+    },
+    {
+      "title": "Community Affairs Legislation Committee - 04/06/2026 - Estimates",
+      "held_on": "2026-06-04",
+      "source_key": "hansard:committees/estimate/29628",
+      "official_chars": 399467,
+      "people_sample": [
+        "Senator Ayres",
+        "Senator Chisholm",
+        "Mr Michael Lye"
       ]
     },
     {

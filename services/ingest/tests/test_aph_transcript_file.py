@@ -54,25 +54,31 @@ def test_rejects_html(tmp_path: Path) -> None:
     assert "HTML" in batch.meta["errors"][0]
 
 
+ORIGINAL_LIVE_IDS = ("29617", "29625", "29629")
+
+
 def test_live_fixtures_are_api_json() -> None:
-    expected = ("29617.json", "29625.json", "29629.json")
-    for name in expected:
-        path = LIVE_TRANSCRIPTS / name
-        assert path.is_file(), f"missing {path}"
+    files = sorted(p for p in LIVE_TRANSCRIPTS.glob("*.json") if p.is_file())
+    assert len(files) > 3, "expected broadened Estimates Official backfill"
+    for name in ORIGINAL_LIVE_IDS:
+        assert (LIVE_TRANSCRIPTS / f"{name}.json").is_file(), f"missing {name}.json"
+    for path in files:
         text = path.read_text(encoding="utf-8").lstrip()
-        assert text.startswith("{"), f"{name} is not JSON"
+        assert text.startswith("{"), f"{path.name} is not JSON"
         payload = json.loads(text)
-        assert payload.get("TalkText"), f"{name} missing TalkText"
+        assert payload.get("TalkText"), f"{path.name} missing TalkText"
         assert "committees/estimate/" in str(payload.get("SystemId"))
 
     batch = AphTranscriptFileSource(path=LIVE_TRANSCRIPTS).fetch()
-    assert len(batch.hearings) == 3
+    assert len(batch.hearings) == len(files)
+    assert len(batch.hearings) > 3
     assert all(h.documents for h in batch.hearings)
     titles = " ".join(h.title for h in batch.hearings)
     assert "Community Affairs" in titles
     assert "Economics" in titles
     assert "Education and Employment" in titles
-    assert {h.source_key for h in batch.hearings} == {
+    keys = {h.source_key for h in batch.hearings}
+    assert keys >= {
         "hansard:committees/estimate/29617",
         "hansard:committees/estimate/29625",
         "hansard:committees/estimate/29629",
@@ -86,9 +92,9 @@ def test_dry_run_live_fixtures() -> None:
         source_path=str(LIVE_TRANSCRIPTS),
     )
     assert result.status == "dry_run"
-    assert result.fetched == 3
+    assert result.fetched > 3
     assert result.upserted == 0
-    assert result.meta["with_transcript"] == 3
+    assert result.meta["with_transcript"] == result.fetched
 
 
 def test_missing_path(tmp_path: Path) -> None:

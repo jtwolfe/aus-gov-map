@@ -16,6 +16,7 @@ python -m aus_gov_ingest run --source fixture
 python -m aus_gov_ingest run --source aph_transcript_file --dry-run
 python -m aus_gov_ingest run --source aph_transcript_file \
   --path fixtures/live/transcripts --no-graph
+# or from the repo root: make ingest-backfill-files
 
 # Live Estimates Officials (APH Hansard JSON API — no ParlInfo needed)
 INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --dry-run
@@ -61,13 +62,38 @@ Upserts are idempotent on `source_key` (hearings, documents, chunks, people slug
 
 ## Cron
 
-`python -m aus_gov_ingest cron` is the entrypoint stub. Wire it as:
+Suggested daily pair: **live Estimates** with `INGEST_FALLBACK_FIXTURE=0` (do not
+substitute invented Official), then **file fallback** over committed
+`/api/hansard/transcript` JSON (`AUS_GOV_TRANSCRIPT_PATH`):
 
 ```
-15 6 * * * cd /path/to/aus-gov-map/services/ingest && python -m aus_gov_ingest cron >> /var/log/aus-gov-ingest.log 2>&1
+15 6 * * * cd /path/to/aus-gov-map/services/ingest && \
+  INGEST_FALLBACK_FIXTURE=0 \
+  python -m aus_gov_ingest run --source estimates --incremental \
+  >> /var/log/aus-gov-ingest.log 2>&1
+
+30 6 * * * cd /path/to/aus-gov-map/services/ingest && \
+  AUS_GOV_TRANSCRIPT_PATH=/path/to/aus-gov-map/services/ingest/fixtures/live/transcripts \
+  python -m aus_gov_ingest run --source aph_transcript_file --incremental \
+  >> /var/log/aus-gov-ingest.log 2>&1
+```
+
+`python -m aus_gov_ingest cron` is the live incremental Estimates entrypoint
+(same as the first job). Export `INGEST_FALLBACK_FIXTURE=0` in that environment:
+
+```
+15 6 * * * cd /path/to/aus-gov-map/services/ingest && \
+  INGEST_FALLBACK_FIXTURE=0 \
+  python -m aus_gov_ingest cron >> /var/log/aus-gov-ingest.log 2>&1
 ```
 
 It records a row in `ingest_runs` and only inserts hearings whose `source_key` is new.
+
+Discover further Official IDs via Hansard Search `chi=5` (do not invent IDs):
+
+```
+python3 scripts/fetch_estimates_transcripts.py --dry-discover
+```
 
 ## Graph
 
