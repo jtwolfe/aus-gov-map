@@ -368,9 +368,10 @@ SELECT
     MIN(pr.start_date) AS first_start,
     MAX(COALESCE(pr.end_date, CURRENT_DATE)) AS last_end,
     AVG(
-        EXTRACT(EPOCH FROM (
-            COALESCE(pr.end_date, CURRENT_DATE) - COALESCE(pr.start_date, COALESCE(pr.end_date, CURRENT_DATE))
-        )) / 86400.0
+        (
+            COALESCE(pr.end_date, CURRENT_DATE)
+            - COALESCE(pr.start_date, COALESCE(pr.end_date, CURRENT_DATE))
+        )::double precision
     ) AS avg_tenure_days
 FROM person_roles pr
 LEFT JOIN roles r ON r.id = pr.role_id
