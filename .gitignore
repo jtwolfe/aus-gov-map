@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# next
+apps/web/.next/
+apps/web/out/
+
+# env & secrets
+.env
+.env.local
+.env.*.local
+
+# build
+dist/
+build/
+*.tsbuildinfo
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# docker bind mounts (if used)
+data/postgres/
+data/neo4j/
+*.log

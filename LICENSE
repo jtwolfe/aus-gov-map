@@ -1,0 +1,46 @@
+MIT License
+
+Copyright (c) 2026 aus-gov-map contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-------------------------------------------------------------------------------
+
+DATA AND THIRD-PARTY CONTENT
+
+This license covers the source code in this repository only.
+
+Parliamentary records (including Senate Hansard, committee transcripts,
+Estimates programs, questions on notice, and tabled documents) are typically
+© Commonwealth of Australia. Many Hansard and related parliamentary materials
+are published under Creative Commons Attribution-NonCommercial-NoDerivs
+(CC BY-NC-ND) or equivalent parliamentary terms.
+
+You must:
+
+  * attribute the Commonwealth / Parliament of Australia as the source of
+    official records;
+  * treat reuse of official Hansard as research / non-commercial unless you
+    have confirmed a more permissive licence for a specific item;
+  * not present fixture or sample text in this repository as official Hansard.
+
+Fixture text shipped under data/fixtures/ is invented sample dialogue for
+offline development. It is not a parliamentary transcript.
+
+See README.md for attribution wording and source links.

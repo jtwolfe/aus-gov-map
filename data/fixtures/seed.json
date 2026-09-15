@@ -1,0 +1,252 @@
+{
+  "generated_for": "aus-gov-map Stage 1 fixture seed",
+  "license_note": "Invented sample text for offline development. Not official Hansard. Official parliamentary records are © Commonwealth of Australia and are typically CC BY-NC-ND — attribute; research / non-commercial framing.",
+  "committees": [
+    {
+      "id": "11111111-1111-4111-8111-111111111001",
+      "slug": "finance-public-administration",
+      "name": "Finance and Public Administration",
+      "chamber": "Senate",
+      "kind": "legislation",
+      "aph_url": "https://www.aph.gov.au/Parliamentary_Business/Committees/Senate/Finance_and_Public_Administration"
+    },
+    {
+      "id": "11111111-1111-4111-8111-111111111002",
+      "slug": "legal-constitutional-affairs",
+      "name": "Legal and Constitutional Affairs",
+      "chamber": "Senate",
+      "kind": "legislation",
+      "aph_url": "https://www.aph.gov.au/Parliamentary_Business/Committees/Senate/Legal_and_Constitutional_Affairs"
+    },
+    {
+      "id": "11111111-1111-4111-8111-111111111003",
+      "slug": "rural-regional-affairs-transport",
+      "name": "Rural and Regional Affairs and Transport",
+      "chamber": "Senate",
+      "kind": "legislation",
+      "aph_url": "https://www.aph.gov.au/Parliamentary_Business/Committees/Senate/Rural_and_Regional_Affairs_and_Transport"
+    }
+  ],
+  "people": [
+    {
+      "id": "33333333-3333-4333-8333-333333333001",
+      "slug": "katy-gallagher",
+      "name": "Senator the Hon Katy Gallagher",
+      "role_title": "Minister for Finance",
+      "party": "Australian Labor Party",
+      "portfolio": "Finance",
+      "organisation": "Australian Senate",
+      "aph_url": "https://www.aph.gov.au/Senators_and_Members",
+      "bio": "Minister representing the Finance portfolio at Senate Estimates."
+    },
+    {
+      "id": "33333333-3333-4333-8333-333333333002",
+      "slug": "james-paterson",
+      "name": "Senator James Paterson",
+      "role_title": "Senator",
+      "party": "Liberal Party of Australia",
+      "portfolio": null,
+      "organisation": "Australian Senate",
+      "aph_url": "https://www.aph.gov.au/Senators_and_Members",
+      "bio": "Opposition senator appearing on Finance and Public Administration estimates."
+    },
+    {
+      "id": "33333333-3333-4333-8333-333333333003",
+      "slug": "deborah-oneill",
+      "name": "Senator Deborah O'Neill",
+      "role_title": "Chair",
+      "party": "Australian Labor Party",
+      "portfolio": null,
+      "organisation": "Senate Finance and Public Administration Legislation Committee",
+      "aph_url": "https://www.aph.gov.au/Senators_and_Members",
+      "bio": "Chair of the Finance and Public Administration Legislation Committee."
+    },
+    {
+      "id": "33333333-3333-4333-8333-333333333004",
+      "slug": "paul-scarr",
+      "name": "Senator Paul Scarr",
+      "role_title": "Senator",
+      "party": "Liberal National Party",
+      "portfolio": null,
+      "organisation": "Australian Senate",
+      "aph_url": "https://www.aph.gov.au/Senators_and_Members",
+      "bio": "Senator appearing on Legal and Constitutional Affairs estimates."
+    },
+    {
+      "id": "33333333-3333-4333-8333-333333333005",
+      "slug": "glyn-davis",
+      "name": "Professor Glyn Davis AC",
+      "role_title": "Secretary",
+      "party": null,
+      "portfolio": "Prime Minister and Cabinet",
+      "organisation": "Department of the Prime Minister and Cabinet",
+      "aph_url": null,
+      "bio": "Departmental secretary appearing as an official witness."
+    },
+    {
+      "id": "33333333-3333-4333-8333-333333333006",
+      "slug": "katherine-jones",
+      "name": "Katherine Jones PSM",
+      "role_title": "Secretary",
+      "party": null,
+      "portfolio": "Attorney-General's",
+      "organisation": "Attorney-General's Department",
+      "aph_url": null,
+      "bio": "Departmental secretary appearing as an official witness."
+    },
+    {
+      "id": "33333333-3333-4333-8333-333333333007",
+      "slug": "bridget-mckenzie",
+      "name": "Senator the Hon Bridget McKenzie",
+      "role_title": "Senator",
+      "party": "The Nationals",
+      "portfolio": null,
+      "organisation": "Australian Senate",
+      "aph_url": "https://www.aph.gov.au/Senators_and_Members",
+      "bio": "Senator appearing on Rural and Regional Affairs and Transport."
+    }
+  ],
+  "hearings": [
+    {
+      "id": "22222222-2222-4222-8222-222222222001",
+      "slug": "fpa-supp-estimates-2025-10-07",
+      "committee_id": "11111111-1111-4111-8111-111111111001",
+      "title": "Supplementary Budget Estimates 2025–26 — Finance and Public Administration",
+      "hearing_type": "estimates",
+      "portfolio": "Prime Minister and Cabinet; Finance",
+      "held_on": "2025-10-07",
+      "location": "Parliament House, Canberra",
+      "source": "estimates",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Senate_estimates/fpa/2025-26_Supplementary_Budget_estimates",
+      "source_key": "estimates:fpa:2025-10-07",
+      "status": "published",
+      "summary": "Senate Estimates examination of PM&C and Finance, including APS capability, procurement, and FOI processing.",
+      "topic_slugs": ["aps-capability", "procurement", "foi"],
+      "people": [
+        { "person_id": "33333333-3333-4333-8333-333333333003", "role": "chair" },
+        { "person_id": "33333333-3333-4333-8333-333333333001", "role": "minister" },
+        { "person_id": "33333333-3333-4333-8333-333333333002", "role": "senator" },
+        { "person_id": "33333333-3333-4333-8333-333333333005", "role": "official" }
+      ]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222002",
+      "slug": "lca-budget-estimates-2025-03-27",
+      "committee_id": "11111111-1111-4111-8111-111111111002",
+      "title": "Budget Estimates 2025–26 — Legal and Constitutional Affairs",
+      "hearing_type": "estimates",
+      "portfolio": "Home Affairs; Attorney-General's",
+      "held_on": "2025-03-27",
+      "location": "Parliament House, Canberra",
+      "source": "estimates",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Senate_estimates/legcon/2025-26_Budget_estimates",
+      "source_key": "estimates:legcon:2025-03-27",
+      "status": "published",
+      "summary": "Estimates for Home Affairs and Attorney-General's, covering FOI, integrity frameworks, and legislative drafting capacity.",
+      "topic_slugs": ["foi", "integrity"],
+      "people": [
+        { "person_id": "33333333-3333-4333-8333-333333333004", "role": "senator" },
+        { "person_id": "33333333-3333-4333-8333-333333333006", "role": "official" }
+      ]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222003",
+      "slug": "rrat-regional-aviation-2024-11-18",
+      "committee_id": "11111111-1111-4111-8111-111111111003",
+      "title": "Inquiry hearing — Regional aviation access",
+      "hearing_type": "committee",
+      "portfolio": "Infrastructure, Transport, Regional Development",
+      "held_on": "2024-11-18",
+      "location": "Parliament House, Canberra",
+      "source": "senate_committee",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Committees/Senate/Rural_and_Regional_Affairs_and_Transport",
+      "source_key": "senate_committee:rrat:regional-aviation:2024-11-18",
+      "status": "published",
+      "summary": "Committee hearing on regional aviation access, community service obligations, and aerodrome funding.",
+      "topic_slugs": ["regional-aviation"],
+      "people": [
+        { "person_id": "33333333-3333-4333-8333-333333333007", "role": "senator" },
+        { "person_id": "33333333-3333-4333-8333-333333333004", "role": "senator" }
+      ]
+    }
+  ],
+  "topics": [
+    { "id": "44444444-4444-4444-8444-444444444001", "slug": "aps-capability", "name": "APS capability" },
+    { "id": "44444444-4444-4444-8444-444444444002", "slug": "procurement", "name": "Procurement" },
+    { "id": "44444444-4444-4444-8444-444444444003", "slug": "foi", "name": "Freedom of information" },
+    { "id": "44444444-4444-4444-8444-444444444004", "slug": "integrity", "name": "Integrity" },
+    { "id": "44444444-4444-4444-8444-444444444005", "slug": "regional-aviation", "name": "Regional aviation" }
+  ],
+  "documents": [
+    {
+      "id": "55555555-5555-4555-8555-555555555001",
+      "hearing_id": "22222222-2222-4222-8222-222222222001",
+      "title": "Sample Official — FPA Supplementary Estimates 7 October 2025",
+      "doc_type": "hansard",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard",
+      "source_key": "doc:fpa-supp-estimates-2025-10-07:hansard-sample",
+      "published_at": "2025-10-07",
+      "license_note": "Fixture sample — not official Hansard. Official records © Commonwealth of Australia, typically CC BY-NC-ND.",
+      "content_text": "CHAIR: The committee will now examine the Department of the Prime Minister and Cabinet. Minister, welcome.\n\nSenator GALLAGHER: Thank you, Chair. The government is happy to take questions on the public service workforce and the Finance portfolio.\n\nSenator PATERSON: Secretary, I want to start with APS capability. How many SES roles are currently vacant across the portfolio, and what is the department doing about institutional knowledge as people leave?\n\nProf. DAVIS: Senator, we publish workforce metrics in the annual report. Vacancy rates move with machinery-of-government changes. We have a graduate program and a mobility scheme aimed at retaining specialist capability, particularly in procurement and evaluation.\n\nSenator PATERSON: On procurement: the audit findings on panel arrangements suggested inconsistent documentation. Has PM&C issued new guidance to agencies?\n\nProf. DAVIS: We have. Finance leads the Commonwealth Procurement Rules. PM&C has circulated a reminder on conflict-of-interest declarations and record-keeping for limited tenders.\n\nSenator GALLAGHER: If I may, the government has also funded additional training through the APS Academy on complex procurement.\n\nSenator PATERSON: Freedom of information — the OAIC continues to report delays. What is the median time to finalise an FOI request in PM&C this financial year?\n\nProf. DAVIS: I will take the precise median on notice. We have reduced the backlog relative to last year, but complex requests involving cabinet-related material still take longer.\n\nCHAIR: The committee will break and resume with Finance."
+    },
+    {
+      "id": "55555555-5555-4555-8555-555555555002",
+      "hearing_id": "22222222-2222-4222-8222-222222222002",
+      "title": "Sample Official — LCA Budget Estimates 27 March 2025",
+      "doc_type": "hansard",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard",
+      "source_key": "doc:lca-budget-estimates-2025-03-27:hansard-sample",
+      "published_at": "2025-03-27",
+      "license_note": "Fixture sample — not official Hansard. Official records © Commonwealth of Australia, typically CC BY-NC-ND.",
+      "content_text": "Senator SCARR: Secretary, can you walk the committee through FOI processing times in the Attorney-General's portfolio and whether the integrity framework reviews have changed how exemptions are claimed?\n\nMs JONES: Senator, FOI is administered in line with the Act. We have invested in case-management so that routine requests are not sitting behind more complex matters. Integrity reviews have reinforced that exemptions must be applied provision by provision, not as a blanket.\n\nSenator SCARR: On legislative drafting capacity — the Office of Parliamentary Counsel has flagged workload pressure. Is that affecting the timing of integrity-related bills?\n\nMs JONES: Drafting priority is a matter for government. The department provides instructions and works with OPC on sequencing. We are not aware of a statutory deadline being missed for want of drafters, but the pipeline is full.\n\nSenator SCARR: Thank you. I will place a question on notice about the number of FOI decisions set aside on review."
+    },
+    {
+      "id": "55555555-5555-4555-8555-555555555003",
+      "hearing_id": "22222222-2222-4222-8222-222222222003",
+      "title": "Sample Official — RRAT regional aviation 18 November 2024",
+      "doc_type": "hansard",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard",
+      "source_key": "doc:rrat-regional-aviation-2024-11-18:hansard-sample",
+      "published_at": "2024-11-18",
+      "license_note": "Fixture sample — not official Hansard. Official records © Commonwealth of Australia, typically CC BY-NC-ND.",
+      "content_text": "Senator McKENZIE: The committee is interested in regional aviation access. Communities tell us that when a regular public transport service drops a frequency, the whole town feels it — GPs, freight, and family connections.\n\nSenator SCARR: Could the department set out how community service obligation subsidies are allocated, and whether aerodrome upgrades are keeping pace with safety standards?\n\nWITNESS: The regional aviation access program supports regulated routes where the market will not. We review frequencies annually. Aerodrome funding is a mix of Commonwealth, state, and local contributions; several remote strips are on a works program this year.\n\nSenator McKENZIE: We will take further evidence on the interaction between fuel costs and thin routes."
+    }
+  ],
+  "boards": [
+    {
+      "id": "66666666-6666-4666-8666-666666666001",
+      "slug": "aps-capability",
+      "title": "APS capability & integrity",
+      "description": "Stage 1 pinboard stub — hearings and people to revisit on public service capability, procurement, and FOI."
+    },
+    {
+      "id": "66666666-6666-4666-8666-666666666002",
+      "slug": "estimates-watch",
+      "title": "Estimates watchlist",
+      "description": "Stage 1 pinboard stub — a place to pin upcoming or recent Estimates appearances."
+    }
+  ],
+  "pins": [
+    {
+      "id": "77777777-7777-4777-8777-777777777001",
+      "board_id": "66666666-6666-4666-8666-666666666001",
+      "pin_type": "hearing",
+      "target_id": "22222222-2222-4222-8222-222222222001",
+      "note": "APS capability and procurement exchange."
+    },
+    {
+      "id": "77777777-7777-4777-8777-777777777002",
+      "board_id": "66666666-6666-4666-8666-666666666001",
+      "pin_type": "person",
+      "target_id": "33333333-3333-4333-8333-333333333005",
+      "note": "Official witness on workforce metrics."
+    },
+    {
+      "id": "77777777-7777-4777-8777-777777777003",
+      "board_id": "66666666-6666-4666-8666-666666666002",
+      "pin_type": "hearing",
+      "target_id": "22222222-2222-4222-8222-222222222002",
+      "note": "FOI and integrity at LCA estimates."
+    }
+  ]
+}
