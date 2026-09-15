@@ -11,6 +11,9 @@ export function SiteFooter() {
           not a transcript.
         </p>
         <div className="flex gap-5">
+          <Link href="/accountability" className="hover:text-navy">
+            Accountability
+          </Link>
           <Link href="/about" className="hover:text-navy">
             Attribution
           </Link>

@@ -5,10 +5,10 @@ DATABASE_URL ?= postgresql://ausgov:ausgov@localhost:5432/ausgov
 TRANSCRIPT_DIR := services/ingest/fixtures/live/transcripts
 
 help:
-	@echo "aus-gov-map Stage 1.1"
+	@echo "aus-gov-map Stage 2"
 	@echo "  make db-up                  Start Postgres+pgvector (and print DATABASE_URL)"
 	@echo "  make up                     Start Postgres+pgvector and Neo4j"
-	@echo "  make db-apply               Apply analytics views, handbook stubs, demo board"
+	@echo "  make db-apply               Apply analytics, handbook, accountability, demo board"
 	@echo "  make ingest-live-files      Persist committed APH Official JSON into Postgres"
 	@echo "  make ingest-backfill-files  Dry-run Official JSON under $(TRANSCRIPT_DIR)"
 	@echo "  make web-dev                Next.js dev server (prefers DATABASE_URL)"
@@ -27,7 +27,7 @@ db-up:
 	@echo "Postgres is starting. Point the web app and ingest at:"
 	@echo "  DATABASE_URL=$(DATABASE_URL)"
 	@echo "Copy .env.example → .env or export that URL before make web-dev / ingest-live-files."
-	@echo "Existing volumes keep data; new volumes load infra/postgres/001–006."
+	@echo "Existing volumes keep data; new volumes load infra/postgres/001–007."
 
 down:
 	docker compose down

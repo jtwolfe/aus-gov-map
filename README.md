@@ -2,7 +2,7 @@
 
 A continuously updated map of **Australian Commonwealth public data**.
 
-Stage 1 covers **Senate committees and Estimates hearings**: search the record, open a hearing or a person, and follow who sat with whom. Stage 1.1 prefers live Postgres, persists pinboards, and adds starter Insights queries.
+Stage 1 covers **Senate committees and Estimates hearings**: search the record, open a hearing or a person, and follow who sat with whom. Stage 1.1 prefers live Postgres, persists pinboards, and adds starter Insights queries. Stage 2 adds the **Accountability Foundation** — a sourced decision / duty map (roles, instruments, scrutiny, outcomes) with empty-safe lenses. It does not assign guilt.
 
 This repository is a working scaffold — not a production service and not a historical backfill.
 
@@ -30,8 +30,9 @@ This repository is a working scaffold — not a production service and not a his
 | --- | --- |
 | `apps/web` | Next.js + TypeScript reading room |
 | `services/ingest` | Modular Python ingest + CLI |
-| `infra/postgres` | Extensions, schema, seed SQL |
-| `infra/neo4j` | Constraints / indexes + graph model |
+| `infra/postgres` | Extensions, schema, seed SQL, Stage 2 accountability tables |
+| `infra/neo4j` | Constraints / indexes + Stage 1 + duty-map graph |
+| `docs/accountability-map.md` | Stage 2 architecture (layers, edges, non-goals, sources, metrics) |
 | `data/fixtures` | Offline seed (hearings, people, sample Official) |
 
 ## How to run
@@ -45,14 +46,14 @@ make db-up          # Postgres only — prints DATABASE_URL
 make up             # Postgres + Neo4j
 ```
 
-That starts **Postgres 16 + pgvector** (`localhost:5432`) and optionally **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Incremental Stage 1.1 files (`004`–`006`) also run on a fresh volume. Neo4j constraints are applied by `neo4j-init`.
+That starts **Postgres 16 + pgvector** (`localhost:5432`) and optionally **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Incremental files (`004`–`007`) also run on a fresh volume. Neo4j constraints are applied by `neo4j-init`.
 
 ```
 DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov
 neo4j / ausgovmap
 ```
 
-Existing volumes do **not** re-run `infra/postgres/*.sql`. Apply analytics views, Handbook stubs, and the demo board with:
+Existing volumes do **not** re-run `infra/postgres/*.sql`. Apply analytics views, Handbook stubs, accountability tables, and the demo board with:
 
 ```bash
 make db-apply
@@ -175,13 +176,43 @@ If no matching chunks exist yet, ingest Officials (or the fixture) first, then r
 
 `/insights` runs the starter inefficiency queries (people across many Estimates hearings, densest recent committees, repeated topic / FOI-procurement mentions). SQL views: `infra/postgres/analytics/`. Cypher twins: `infra/neo4j/queries/`.
 
-## Stage 2 stub — Parliamentary Handbook
+## Accountability map (Stage 2)
 
-Empty ingest source `handbook` (no fake officials) plus tables in `infra/postgres/005_handbook.sql` for tenure, electorate, and roles linked to `people`. See comments in `services/ingest/src/aus_gov_ingest/sources/handbook.py` pointing at handbook.aph.gov.au.
+The product is becoming a **decision / duty map**: who held which office when (elected **and** public service), which instrument they were accountable or responsible for, and where that chain was later tested. Architecture: [`docs/accountability-map.md`](docs/accountability-map.md).
+
+**Non-goals:** no automated “guilt” labels; sourced chains only; Hansard is a citation, not ground truth; no invented officials.
+
+| Layer | Postgres | Ingest `--source` |
+| --- | --- | --- |
+| Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` |
+| Agencies | `agencies` | handbook / AAO (later) |
+| Instruments | `instruments`, `instrument_links` | `budget_measure`, `austender` |
+| Scrutiny | `scrutiny_items`, `qons`, `claims` | `qon`, Stage 1 hearings |
+| Outcomes | `outcomes` (stubs) | `anao` |
+
+Web: **Accountability** in the nav. Lenses (safe with zero rows):
+
+1. Role at date — `/accountability/role-at-date`
+2. Promise → receipt — `/accountability/promise-receipt`
+3. QoN debt — `/accountability/qon-debt`
+4. Chain completeness — `/accountability/chain-completeness`
+5. Instruments explorer — `/accountability/instruments`
+
+APIs under `/api/accountability/*` read the views in `infra/postgres/analytics/accountability_*.sql` when present.
+
+```bash
+make db-apply   # 007_accountability.sql + views on an existing volume
+python -m aus_gov_ingest run --source handbook --dry-run
+python -m aus_gov_ingest run --source qon --dry-run
+# Optional live Handbook OData probe (never invents people):
+HANDBOOK_LIVE=1 python -m aus_gov_ingest run --source handbook --limit 5 --dry-run
+```
+
+Stage 1 hearings plug in as dated scrutiny: `hearings.held_on` overlaps `person_roles`; chunk spans become `claims`. Appearance at Estimates is **not** a tenure.
 
 ## Graph model
 
-See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `Topic`, `Document`.
+See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `Topic`, `Document`. Stage 2 adds `Role`, `Agency`, `Instrument`, `ScrutinyItem` and edges `HELD_ROLE_DURING`, `ACCOUNTABLE_FOR`, `RESPONSIBLE_OFFICIAL`, `PROMISED_IN`, `TESTED_IN`, `VOTED_ON`, `FUNDED_BY`.
 
 ## Licensing and attribution
 
@@ -189,15 +220,15 @@ See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `T
 - **Official Hansard / committee / Estimates records** are typically © Commonwealth of Australia and often [CC BY-NC-ND](https://creativecommons.org/licenses/by-nc-nd/4.0/). Attribute the Parliament of Australia. This project is framed as **research / non-commercial**.
 - Fixture prose in `data/fixtures` is **invented sample Official**, not a parliamentary transcript.
 
-## Stage 2 / 3 (not in this scaffold)
+## Later (not in this foundation)
 
 - Full historical backfill of Hansard
-- Questions on notice answers at scale
+- Wiring QoN / ANAO / PBS / AusTender adapters to real extracts
 - OpenAustralia / TheyWorkForYou-AU XML
-- Bills, divisions, agency graphs
+- GrantConnect + legislation API + TheyVoteForYou divisions
 - Auth-backed shared boards
 - Production deploy
-- Wiring the Handbook adapter to a real extract
+- Promoting Handbook OData into `person_roles` / `handbook_*` upserts
 
 ## Tests
 

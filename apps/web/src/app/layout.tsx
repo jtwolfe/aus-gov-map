@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s · aus-gov-map",
   },
   description:
-    "A living map of Australian federal government public data. Stage 1: Senate committees and Estimates hearings.",
+    "A living map of Australian federal government public data. Stage 2: Senate Estimates plus a sourced decision / duty map.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

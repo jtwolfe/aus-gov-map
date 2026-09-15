@@ -15,6 +15,6 @@ export async function GET() {
     prefersDatabaseUrl: Boolean(process.env.DATABASE_URL),
     coverage,
     fixtureHearings: fixture.hearings.length,
-    stage: "1.1",
+    stage: "2",
   });
 }

@@ -20,8 +20,9 @@ export default async function HomePage() {
           A living map of federal public data
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
-          Stage 1 follows Senate committees and Estimates hearings: who sat,
-          what was said, and how people connect across the record. When{" "}
+          Stage 1 follows Senate committees and Estimates hearings. Stage 2
+          adds a sourced duty map — who held office when, and which
+          instrument they were accountable or responsible for. When{" "}
           <span className="font-mono">DATABASE_URL</span> is up, search and
           pages read live Postgres — not the offline fixture.
         </p>
@@ -66,6 +67,20 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="border border-rule bg-card px-5 py-6">
+        <p className="eyebrow">Duty map</p>
+        <h2 className="mt-2 font-serif text-2xl text-navy">
+          <Link href="/accountability" className="hover:text-ochre">
+            Accountability
+          </Link>
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+          Stage 2 traces sourced occupancies, instruments, and scrutiny.
+          Lenses stay empty until Handbook, QoN, ANAO, Budget, or AusTender
+          rows land — they do not invent conclusions.
+        </p>
+      </section>
+
       <section className="grid gap-6 border-t border-rule pt-10 md:grid-cols-3">
         {[
           {
@@ -81,7 +96,7 @@ export default async function HomePage() {
           {
             kicker: "03",
             title: "Read",
-            body: "This map is the reading room: search, dossiers, insights, and pinboards that persist in Postgres.",
+            body: "This map is the reading room: search, dossiers, Accountability lenses, insights, and pinboards that persist in Postgres.",
           },
         ].map((item) => (
           <div key={item.kicker}>

@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from aus_gov_ingest.sources.anao import AnaoSource
 from aus_gov_ingest.sources.aph_transcript_file import AphTranscriptFileSource
+from aus_gov_ingest.sources.austender import AustenderSource
 from aus_gov_ingest.sources.base import Source
+from aus_gov_ingest.sources.budget_measure import BudgetMeasureSource
 from aus_gov_ingest.sources.estimates import EstimatesSource
 from aus_gov_ingest.sources.fixture import FixtureSource
 from aus_gov_ingest.sources.handbook import HandbookSource
 from aus_gov_ingest.sources.openaustralia import OpenAustraliaSource
+from aus_gov_ingest.sources.qon import QonSource
 from aus_gov_ingest.sources.schedule import EstimatesScheduleSource
 from aus_gov_ingest.sources.senate_committee import SenateCommitteeSource
 
@@ -19,6 +23,10 @@ SOURCES: dict[str, type] = {
     "aph_transcript_file": AphTranscriptFileSource,
     "openaustralia": OpenAustraliaSource,
     "handbook": HandbookSource,
+    "qon": QonSource,
+    "anao": AnaoSource,
+    "budget_measure": BudgetMeasureSource,
+    "austender": AustenderSource,
 }
 
 
