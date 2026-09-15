@@ -1,0 +1,17 @@
+{
+  "name": "aus-gov-map",
+  "private": true,
+  "description": "Living map of Australian Commonwealth public data",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @aus-gov-map/web",
+    "build": "npm run build -w @aus-gov-map/web",
+    "start": "npm run start -w @aus-gov-map/web",
+    "lint": "npm run lint -w @aus-gov-map/web"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

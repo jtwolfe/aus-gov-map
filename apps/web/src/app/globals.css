@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-paper: #f3efe4;
+  --color-paper-2: #ebe4d4;
+  --color-ink: #1c1915;
+  --color-navy: #1a3a4a;
+  --color-eucalyptus: #2f5d46;
+  --color-ochre: #c56a2d;
+  --color-gold: #b0892e;
+  --color-muted: #6b6458;
+  --color-rule: #d4cbb8;
+  --color-card: #faf7f0;
+  --font-sans: "Public Sans", "Public Sans Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", "Source Serif 4 Fallback", ui-serif, Georgia, serif;
+  --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, monospace;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(176, 137, 46, 0.08), transparent 50%),
+    radial-gradient(900px 420px at 110% 0%, rgba(47, 93, 70, 0.07), transparent 45%),
+    var(--color-paper);
+}
+
+::selection {
+  background: rgba(197, 106, 45, 0.22);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.rule {
+  height: 1px;
+  background: var(--color-rule);
+}
+
+a.link {
+  color: var(--color-navy);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a.link:hover {
+  color: var(--color-ochre);
+}

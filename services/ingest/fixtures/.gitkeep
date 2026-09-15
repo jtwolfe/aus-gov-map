@@ -1,0 +1,2 @@
+# Canonical seed lives at data/fixtures/seed.json
+# (resolved automatically by aus_gov_ingest.config.Settings.fixture_path)
