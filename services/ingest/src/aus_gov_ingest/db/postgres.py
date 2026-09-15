@@ -30,6 +30,7 @@ from aus_gov_ingest.models import (
     TopicIn,
 )
 from aus_gov_ingest.people import canonical_slug, names_are_same_person, pick_display_name, slug as slugify
+from aus_gov_ingest.sources.util import stable_slug
 
 
 def _uuid(*parts: str) -> UUID:
@@ -1126,7 +1127,7 @@ class PostgresStore:
         hearing_id: UUID | None = None,
     ) -> UUID:
         iid = _uuid("instrument", item.source_key)
-        slug = slugify(item.source_key)[:80] or slugify(item.title)
+        slug = stable_slug(item.source_key, item.title)
         chunk_id = None
         if item.source_chunk_key:
             row = conn.execute(
@@ -1154,51 +1155,98 @@ class PostgresStore:
             "agency_name": item.agency_name,
             "portfolio": item.portfolio,
         }
-        conn.execute(
-            """
-            INSERT INTO instruments (
-                id, slug, instrument_type, title, identifiers, agency_id,
-                announced_on, commenced_on, ended_on, amount_aud,
-                source, source_url, source_key, summary, status, confidence
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (source_key) DO UPDATE SET
-                title = EXCLUDED.title,
-                summary = COALESCE(EXCLUDED.summary, instruments.summary),
-                status = EXCLUDED.status,
-                confidence = EXCLUDED.confidence,
-                identifiers = EXCLUDED.identifiers,
-                agency_id = COALESCE(EXCLUDED.agency_id, instruments.agency_id),
-                announced_on = COALESCE(EXCLUDED.announced_on, instruments.announced_on),
-                commenced_on = COALESCE(EXCLUDED.commenced_on, instruments.commenced_on),
-                ended_on = COALESCE(EXCLUDED.ended_on, instruments.ended_on),
-                amount_aud = COALESCE(EXCLUDED.amount_aud, instruments.amount_aud),
-                source = COALESCE(EXCLUDED.source, instruments.source),
-                source_url = COALESCE(EXCLUDED.source_url, instruments.source_url)
-            """,
-            (
-                iid,
-                slug,
-                instrument_type,
-                item.title,
-                Json(identifiers),
-                agency_id,
-                item.announced_on,
-                item.commenced_on,
-                item.ended_on,
-                item.amount_aud,
-                item.source or "instrument_propose",
-                item.source_url,
-                item.source_key,
-                item.evidence_text or item.notes,
-                item.status or "proposed",
-                item.confidence,
-            ),
+        payload = (
+            iid,
+            slug,
+            instrument_type,
+            item.title,
+            Json(identifiers),
+            agency_id,
+            item.announced_on,
+            item.commenced_on,
+            item.ended_on,
+            item.amount_aud,
+            item.source or "instrument_propose",
+            item.source_url,
+            item.source_key,
+            item.evidence_text or item.notes,
+            item.status or "proposed",
+            item.confidence,
         )
-        row = conn.execute(
+        existing = conn.execute(
             "SELECT id FROM instruments WHERE source_key = %s", (item.source_key,)
         ).fetchone()
-        instrument_id = row["id"] if row else iid
+        if existing:
+            conn.execute(
+                """
+                UPDATE instruments SET
+                    slug = %s,
+                    instrument_type = %s,
+                    title = %s,
+                    identifiers = %s,
+                    agency_id = COALESCE(%s, instruments.agency_id),
+                    announced_on = COALESCE(%s, instruments.announced_on),
+                    commenced_on = COALESCE(%s, instruments.commenced_on),
+                    ended_on = COALESCE(%s, instruments.ended_on),
+                    amount_aud = COALESCE(%s, instruments.amount_aud),
+                    source = COALESCE(%s, instruments.source),
+                    source_url = COALESCE(%s, instruments.source_url),
+                    summary = COALESCE(%s, instruments.summary),
+                    status = %s,
+                    confidence = %s,
+                    updated_at = now()
+                WHERE id = %s
+                """,
+                (
+                    slug,
+                    instrument_type,
+                    item.title,
+                    Json(identifiers),
+                    agency_id,
+                    item.announced_on,
+                    item.commenced_on,
+                    item.ended_on,
+                    item.amount_aud,
+                    item.source or "instrument_propose",
+                    item.source_url,
+                    item.evidence_text or item.notes,
+                    item.status or "proposed",
+                    item.confidence,
+                    existing["id"],
+                ),
+            )
+            instrument_id = existing["id"]
+        else:
+            conn.execute(
+                """
+                INSERT INTO instruments (
+                    id, slug, instrument_type, title, identifiers, agency_id,
+                    announced_on, commenced_on, ended_on, amount_aud,
+                    source, source_url, source_key, summary, status, confidence
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (slug) DO UPDATE SET
+                    title = EXCLUDED.title,
+                    summary = COALESCE(EXCLUDED.summary, instruments.summary),
+                    status = EXCLUDED.status,
+                    confidence = EXCLUDED.confidence,
+                    identifiers = EXCLUDED.identifiers,
+                    agency_id = COALESCE(EXCLUDED.agency_id, instruments.agency_id),
+                    announced_on = COALESCE(EXCLUDED.announced_on, instruments.announced_on),
+                    commenced_on = COALESCE(EXCLUDED.commenced_on, instruments.commenced_on),
+                    ended_on = COALESCE(EXCLUDED.ended_on, instruments.ended_on),
+                    amount_aud = COALESCE(EXCLUDED.amount_aud, instruments.amount_aud),
+                    source = COALESCE(EXCLUDED.source, instruments.source),
+                    source_url = COALESCE(EXCLUDED.source_url, instruments.source_url),
+                    source_key = EXCLUDED.source_key
+                """,
+                payload,
+            )
+            row = conn.execute(
+                "SELECT id FROM instruments WHERE source_key = %s OR slug = %s",
+                (item.source_key, slug),
+            ).fetchone()
+            instrument_id = row["id"] if row else iid
         if chunk_id:
             conn.execute(
                 """

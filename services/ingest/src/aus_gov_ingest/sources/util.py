@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import re
 from datetime import date, datetime, timezone
 from html import unescape
@@ -20,6 +21,20 @@ _SLUG = re.compile(r"[^a-z0-9]+")
 
 def slug(text: str) -> str:
     return _SLUG.sub("-", (text or "").lower()).strip("-")
+
+
+def stable_slug(*parts: str, max_len: int = 80) -> str:
+    """Readable slug plus a short hash so 80-char truncation does not collide.
+
+    ``instruments.slug`` is UNIQUE. Budget source_keys share a long prefix
+    (year + truncated title + ``department-of-``), so a raw ``slug[:80]``
+    collided on persist. Hash the full parts (source_key and title).
+    """
+    material = "\n".join(p for p in parts if p)
+    digest = hashlib.sha1(material.encode("utf-8")).hexdigest()[:10]
+    base = slug(parts[0] if parts else "") or slug(material) or "item"
+    prefix = base[: max_len - 11].rstrip("-") or "item"
+    return f"{prefix}-{digest}"
 
 
 def parse_date(text: str):

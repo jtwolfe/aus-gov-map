@@ -1,6 +1,7 @@
 from aus_gov_ingest.chunking import chunk_text
 from aus_gov_ingest.instruments import propose_instruments
 from aus_gov_ingest.pipeline import run_ingest
+from aus_gov_ingest.sources.util import slug, stable_slug
 from pathlib import Path
 
 EXCERPT = Path(__file__).resolve().parents[1] / "fixtures" / "transcript_fpa_28778_excerpt.json"
@@ -40,3 +41,27 @@ def test_instrument_propose_source_dry_run() -> None:
     # Excerpt is short; may or may not match bill regex — still a valid empty proposed set.
     assert result.meta["hearings_scanned"] == 1
     assert "proposed" in result.meta
+
+
+def test_stable_slug_avoids_budget_truncation_collision() -> None:
+    """Long budget source_keys used to share instruments.slug after [:80]."""
+    title = "Boosting Productivity – better selecting migrants and recognising their skills"
+    # Same shape as budget_measure.instrument_from_budget_row (title[:50] + agency[:20]).
+    employment = (
+        "budget:2026-27:boosting-productivity-better-selecting-migrants-an:"
+        "department-of-employ"
+    )
+    education = (
+        "budget:2026-27:boosting-productivity-better-selecting-migrants-an:"
+        "department-of-educat"
+    )
+    truncated = {slug(employment)[:80], slug(education)[:80]}
+    assert truncated == {
+        "budget-2026-27-boosting-productivity-better-selecting-migrants-an-department-of-"
+    }
+
+    left = stable_slug(employment, title)
+    right = stable_slug(education, title)
+    assert left != right
+    assert len(left) <= 80 and len(right) <= 80
+    assert left == stable_slug(employment, title)
