@@ -6,8 +6,11 @@ from aus_gov_ingest.models import SourceBatch
 class OpenAustraliaSource:
     """Hook for later: OpenAustralia / TheyWorkForYou-AU XML dumps.
 
-    See http://data.openaustralia.org.au/ — Hansard XML is useful once Stage 1
-    Estimates coverage is stable. This adapter is intentionally a no-op.
+    https://data.openaustralia.org.au/ serves chamber Hansard XML (Senate /
+    House debates) and is reachable without the APH WAF. It does **not**
+    cover Senate Estimates or committee Officials — those come from the
+    APH Hansard API used by the estimates / senate_committee adapters.
+    This adapter stays a no-op for Stage 1.
     """
 
     name = "openaustralia"
