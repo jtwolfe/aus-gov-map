@@ -103,6 +103,30 @@ export default async function InsightsPage() {
       </section>
 
       <section>
+        <p className="eyebrow">Accountability coverage</p>
+        <h2 className="mt-2 font-serif text-2xl text-navy">ANAO · contracts · measures</h2>
+        <p className="mt-2 text-sm text-muted">
+          Counts of sourced rows after{" "}
+          <span className="font-mono">ingest run --source anao|budget_measure|austender</span>.
+          Empty until those adapters persist. Not a league table.
+        </p>
+        <ul className="mt-4 divide-y divide-rule border-y border-rule">
+          <li className="flex flex-wrap items-baseline justify-between gap-2 py-3">
+            <p className="font-serif text-lg text-navy">ANAO scrutiny items</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted">{insights.anaoItems}</p>
+          </li>
+          <li className="flex flex-wrap items-baseline justify-between gap-2 py-3">
+            <p className="font-serif text-lg text-navy">AusTender contracts</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted">{insights.contracts}</p>
+          </li>
+          <li className="flex flex-wrap items-baseline justify-between gap-2 py-3">
+            <p className="font-serif text-lg text-navy">Budget measures / PBS programs</p>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted">{insights.measures}</p>
+          </li>
+        </ul>
+      </section>
+
+      <section>
         <p className="eyebrow">Questions on Notice</p>
         <h2 className="mt-2 font-serif text-2xl text-navy">Counts by portfolio</h2>
         <p className="mt-2 text-sm text-muted">

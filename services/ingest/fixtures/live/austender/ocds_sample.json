@@ -1,0 +1,434 @@
+{
+  "uri": "https://api.tenders.gov.au/ocds/findByDates/contractPublished/2026-08-01T00:00:00Z/2026-08-08T00:00:00Z",
+  "publisher": {
+    "name": "Department of Finance"
+  },
+  "version": "1.1",
+  "license": "https://creativecommons.org/licenses/by/3.0/au/",
+  "releases": [
+    {
+      "ocid": "prod-5382ae4f823041049dff99249956bea4",
+      "id": "prod-5382ae4f823041049dff99249956bea4-fb505b0fd16433f7b2076a0e3a84b130",
+      "date": "2026-08-07T06:42:32Z",
+      "initiationType": "tender",
+      "language": "EN",
+      "parties": [
+        {
+          "id": "af4ece4497263e52af6a191a7f8b86cc",
+          "name": "AUSTRALIA POST A/C 8287642",
+          "additionalIdentifiers": [
+            {
+              "id": "28864970579",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {
+            "streetAddress": "",
+            "locality": "STRAWBERRY HILLS (EFTE)",
+            "region": "NSW",
+            "postalCode": "2012",
+            "countryName": "AUSTRALIA"
+          },
+          "contactPoint": {
+            "name": "PROCUREMENT",
+            "email": "ATOPROCUREMENTANDLEASING@ATO.GOV.AU",
+            "telephone": "",
+            "branch": "NATIONAL OFFICE",
+            "division": "ATO FINANCE"
+          },
+          "roles": [
+            "supplier"
+          ]
+        },
+        {
+          "id": "0ecb56b8a126ec0b29360eb1ca72f846",
+          "name": "Australian Taxation Office",
+          "roles": [
+            "procuringEntity"
+          ],
+          "additionalIdentifiers": [
+            {
+              "id": "51824753556",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {
+            "streetAddress": "12-22  Woniora Rd",
+            "locality": "Hurstville",
+            "region": "NSW",
+            "postalCode": "2220"
+          },
+          "contactPoint": {
+            "email": "tenders@finance.gov.au"
+          }
+        }
+      ],
+      "awards": [
+        {
+          "id": "CN4267605-bddf3ee4e2d04bb296642dd3f579961c",
+          "suppliers": [
+            {
+              "id": "af4ece4497263e52af6a191a7f8b86cc",
+              "name": "AUSTRALIA POST A/C 8287642"
+            }
+          ],
+          "status": "active",
+          "date": "2026-08-07T06:42:32Z"
+        }
+      ],
+      "contracts": [
+        {
+          "id": "CN4267605",
+          "awardID": "CN4267605-bddf3ee4e2d04bb296642dd3f579961c",
+          "dateSigned": "2026-08-07T06:42:32Z",
+          "description": "Provision of Postage Services",
+          "title": "5600004861",
+          "items": [
+            {
+              "id": "78102200-bddf3ee4e2d04bb296642dd3f579961c",
+              "classification": {
+                "scheme": "UNSPSC",
+                "id": "78102200"
+              }
+            }
+          ],
+          "period": {
+            "startDate": "2026-06-30T14:00:00Z",
+            "endDate": "2027-06-29T14:00:00Z"
+          },
+          "value": {
+            "currency": "AUD",
+            "amount": "42157396.50"
+          },
+          "status": "active"
+        }
+      ],
+      "tag": [
+        "contract"
+      ],
+      "tender": {
+        "id": "prod-5382ae4f823041049dff99249956bea4",
+        "procurementMethod": "limited",
+        "procurementMethodDetails": "Limited tender",
+        "limitedTenderExempt": "1",
+        "exemptionCode": "GE",
+        "exemption": "App A: 2. From another Commonwealth, state, territory or local government entity."
+      }
+    },
+    {
+      "ocid": "prod-23fe5aefe7874bd3a93a5d23eb317c23",
+      "id": "prod-23fe5aefe7874bd3a93a5d23eb317c23-510aa87850183708a46e82456e2d0a0a",
+      "date": "2026-08-07T06:28:04Z",
+      "initiationType": "tender",
+      "language": "EN",
+      "parties": [
+        {
+          "id": "458791d6813040209905f07c42c0768d",
+          "name": "THE EVENT PLANNING GROUP PTY LTD [001]",
+          "additionalIdentifiers": [
+            {
+              "id": "73101711755",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {
+            "streetAddress": "",
+            "locality": "Fortitude Valley",
+            "region": "QLD",
+            "postalCode": "4006",
+            "countryName": "Australia"
+          },
+          "contactPoint": {
+            "name": "DCCEEW Procurement Team",
+            "email": "procurement@dcceew.gov.au",
+            "telephone": "",
+            "branch": "",
+            "division": ""
+          },
+          "roles": [
+            "supplier"
+          ]
+        },
+        {
+          "id": "be6d1d84a3834335a2b39b6d25e6805a",
+          "name": "Department of Climate Change, Energy, the Environment and Water",
+          "roles": [
+            "procuringEntity"
+          ],
+          "additionalIdentifiers": [
+            {
+              "id": "63573932849",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {},
+          "contactPoint": {
+            "email": "tenders@finance.gov.au"
+          }
+        }
+      ],
+      "awards": [
+        {
+          "id": "CN4267531-4a5641f6ec1943178e1b26dfcca2d65c",
+          "suppliers": [
+            {
+              "id": "458791d6813040209905f07c42c0768d",
+              "name": "THE EVENT PLANNING GROUP PTY LTD [001]"
+            }
+          ],
+          "status": "active",
+          "date": "2026-08-07T06:28:04Z"
+        }
+      ],
+      "contracts": [
+        {
+          "id": "CN4267531",
+          "awardID": "CN4267531-4a5641f6ec1943178e1b26dfcca2d65c",
+          "dateSigned": "2026-08-07T06:28:04Z",
+          "description": "Delivery Services",
+          "title": "REF12212",
+          "items": [
+            {
+              "id": "80141607-4a5641f6ec1943178e1b26dfcca2d65c",
+              "classification": {
+                "scheme": "UNSPSC",
+                "id": "80141607"
+              }
+            }
+          ],
+          "period": {
+            "startDate": "2026-06-25T14:00:00Z",
+            "endDate": "2026-11-01T13:00:00Z"
+          },
+          "value": {
+            "currency": "AUD",
+            "amount": "17202668.65"
+          },
+          "status": "active"
+        }
+      ],
+      "tag": [
+        "contract"
+      ],
+      "tender": {
+        "id": "prod-23fe5aefe7874bd3a93a5d23eb317c23",
+        "procurementMethod": "open",
+        "procurementMethodDetails": "Open tender"
+      }
+    },
+    {
+      "ocid": "prod-6071868bef194411b38682d0f7229a8d",
+      "id": "prod-6071868bef194411b38682d0f7229a8d-426ca6fb4fa83e1b88e3aecf376ca104",
+      "date": "2026-09-11T06:32:51Z",
+      "initiationType": "tender",
+      "language": "EN",
+      "parties": [
+        {
+          "id": "48ca9947a156487a028379dfa93fffca",
+          "name": "DATA #3 LIMITED",
+          "additionalIdentifiers": [
+            {
+              "id": "31010545267",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {
+            "streetAddress": "",
+            "locality": "INDOOROOPILLY (EFTE)",
+            "region": "QLD",
+            "postalCode": "4068",
+            "countryName": "AUSTRALIA"
+          },
+          "contactPoint": {
+            "name": "PROCUREMENT",
+            "email": "ATOPROCUREMENTANDLEASING@ATO.GOV.AU",
+            "telephone": "",
+            "branch": "NATIONAL OFFICE",
+            "division": "ATO FINANCE"
+          },
+          "roles": [
+            "supplier"
+          ]
+        },
+        {
+          "id": "0ecb56b8a126ec0b29360eb1ca72f846",
+          "name": "Australian Taxation Office",
+          "roles": [
+            "procuringEntity"
+          ],
+          "additionalIdentifiers": [
+            {
+              "id": "51824753556",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {
+            "streetAddress": "12-22  Woniora Rd",
+            "locality": "Hurstville",
+            "region": "NSW",
+            "postalCode": "2220"
+          },
+          "contactPoint": {
+            "email": "tenders@finance.gov.au"
+          }
+        }
+      ],
+      "awards": [
+        {
+          "id": "CN4267614-761b59b9174b46c6b81c4cdc8d16db0f",
+          "suppliers": [
+            {
+              "id": "48ca9947a156487a028379dfa93fffca",
+              "name": "DATA #3 LIMITED"
+            }
+          ],
+          "status": "active",
+          "date": "2026-08-07T06:42:34Z"
+        }
+      ],
+      "contracts": [
+        {
+          "id": "CN4267614",
+          "awardID": "CN4267614-761b59b9174b46c6b81c4cdc8d16db0f",
+          "dateSigned": "2026-08-07T06:42:34Z",
+          "description": "Provision of Microsoft (VSA6) Azure Cloud Infrastructure as a Service (IaaS) and Platform as a Service (PaaS)",
+          "title": "5600004828",
+          "items": [
+            {
+              "id": "43200000-b8081ab9ec7b44ff8e514fa633bd2485",
+              "classification": {
+                "scheme": "UNSPSC",
+                "id": "43200000"
+              }
+            }
+          ],
+          "period": {
+            "startDate": "2026-06-30T14:00:00Z",
+            "endDate": "2027-06-29T14:00:00Z"
+          },
+          "value": {
+            "currency": "AUD",
+            "amount": "14299976.11"
+          },
+          "status": "active",
+          "amendments": [
+            {
+              "id": "CN4267614-A1",
+              "releaseID": "prod-6071868bef194411b38682d0f7229a8d-426ca6fb4fa83e1b88e3aecf376ca104",
+              "amendsReleaseID": "prod-6071868bef194411b38682d0f7229a8d-4edd69a51ffe3aa089f18d2a490fad7a"
+            }
+          ]
+        }
+      ],
+      "tag": [
+        "contractAmendment"
+      ],
+      "tender": {
+        "id": "prod-6071868bef194411b38682d0f7229a8d",
+        "procurementMethod": "open",
+        "procurementMethodDetails": "Open tender"
+      }
+    },
+    {
+      "ocid": "prod-df76f3b4d3514ad3bbef070da83e61a9",
+      "id": "prod-df76f3b4d3514ad3bbef070da83e61a9-c3f873cfb71c32a2a6c1949529d552a3",
+      "date": "2026-08-07T06:28:04Z",
+      "initiationType": "tender",
+      "language": "EN",
+      "parties": [
+        {
+          "id": "e396b84086364dad84843701fd4f2bab",
+          "name": "PACIFIC BROADCAST PTY LTD [048]",
+          "additionalIdentifiers": [
+            {
+              "id": "47097539458",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {
+            "streetAddress": "",
+            "locality": "Ringwood",
+            "region": "VIC",
+            "postalCode": "3134",
+            "countryName": "Australia"
+          },
+          "contactPoint": {
+            "name": "DCCEEW Procurement Team",
+            "email": "procurement@dcceew.gov.au",
+            "telephone": "",
+            "branch": "",
+            "division": ""
+          },
+          "roles": [
+            "supplier"
+          ]
+        },
+        {
+          "id": "be6d1d84a3834335a2b39b6d25e6805a",
+          "name": "Department of Climate Change, Energy, the Environment and Water",
+          "roles": [
+            "procuringEntity"
+          ],
+          "additionalIdentifiers": [
+            {
+              "id": "63573932849",
+              "scheme": "AU-ABN"
+            }
+          ],
+          "address": {},
+          "contactPoint": {
+            "email": "tenders@finance.gov.au"
+          }
+        }
+      ],
+      "awards": [
+        {
+          "id": "CN4267529-28cef365fc46471a9480cbc38e1f6f71",
+          "suppliers": [
+            {
+              "id": "e396b84086364dad84843701fd4f2bab",
+              "name": "PACIFIC BROADCAST PTY LTD [048]"
+            }
+          ],
+          "status": "active",
+          "date": "2026-08-07T06:28:04Z"
+        }
+      ],
+      "contracts": [
+        {
+          "id": "CN4267529",
+          "awardID": "CN4267529-28cef365fc46471a9480cbc38e1f6f71",
+          "dateSigned": "2026-08-07T06:28:04Z",
+          "description": "Broadcast",
+          "title": "REF12264",
+          "items": [
+            {
+              "id": "83110000-28cef365fc46471a9480cbc38e1f6f71",
+              "classification": {
+                "scheme": "UNSPSC",
+                "id": "83110000"
+              }
+            }
+          ],
+          "period": {
+            "startDate": "2026-07-26T14:00:00Z",
+            "endDate": "2026-11-29T13:00:00Z"
+          },
+          "value": {
+            "currency": "AUD",
+            "amount": "2045092.58"
+          },
+          "status": "active"
+        }
+      ],
+      "tag": [
+        "contract"
+      ],
+      "tender": {
+        "id": "prod-df76f3b4d3514ad3bbef070da83e61a9",
+        "procurementMethod": "open",
+        "procurementMethodDetails": "Open tender"
+      }
+    }
+  ]
+}

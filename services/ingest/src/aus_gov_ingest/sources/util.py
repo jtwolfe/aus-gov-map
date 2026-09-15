@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from datetime import date, datetime, timezone
 from html import unescape
+from pathlib import Path
 
 _DATE_LONG = re.compile(
     r"(?P<d>\d{1,2})\s+(?P<mon>January|February|March|April|May|June|July|"
@@ -80,3 +81,47 @@ def parse_flexible_date(value, *, open_if_today: bool = False) -> date | None:
         # Handbook often stamps "still serving" as today's date.
         return None
     return parsed
+
+
+def fixture_live_dir(*parts: str) -> Path:
+    """Return ``fixtures/live[/parts]`` walking up from this package."""
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        candidate = parent / "fixtures" / "live"
+        if candidate.is_dir():
+            out = candidate.joinpath(*parts) if parts else candidate
+            return out
+    return here.parents[3] / "fixtures" / "live" / Path(*parts)
+
+
+def parse_amount(value) -> float | None:
+    """Parse a published dollar figure. Returns None for nfp / .. / blank."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    raw = str(value).strip().lower().replace(",", "").replace("$", "")
+    if raw in {"-", "–", "—", "nfp", "..", "*", "na", "n/a"}:
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
+
+
+def decode_bytes(data: bytes) -> str:
+    for encoding in ("utf-8", "utf-8-sig", "cp1252", "latin-1"):
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return data.decode("utf-8", errors="replace")
+
+
+_SIGNAL_RANK = {"adverse": 4, "unmet": 3, "partial": 2, "unknown": 1, "met": 0}
+
+
+def worse_signal(current: str, candidate: str) -> str:
+    if _SIGNAL_RANK.get(candidate, 0) > _SIGNAL_RANK.get(current, 0):
+        return candidate
+    return current

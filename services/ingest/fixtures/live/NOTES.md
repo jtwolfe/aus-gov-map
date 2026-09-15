@@ -153,3 +153,27 @@ python -m aus_gov_ingest run --source instrument_propose \
 
 Handbook does **not** include APS secretaries. OpenAustralia has **no** Estimates QoN feed.
 EQON bulk ZIP downloads require My Parliament sign-in; ingest uses the public search API.
+
+## ANAO / Budget / AusTender (first-pass adapters)
+
+```bash
+# Dry-run (fixture path always works; omit --path to try live then fall back)
+python -m aus_gov_ingest run --source anao --path fixtures/live/anao --limit 5 --dry-run
+python -m aus_gov_ingest run --source budget_measure --path fixtures/live/budget --limit 8 --dry-run
+python -m aus_gov_ingest run --source austender --path fixtures/live/austender --limit 4 --dry-run
+
+# Persist when Postgres is up — omit --dry-run
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source anao --path fixtures/live/anao --limit 5 --no-graph
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source budget_measure --path fixtures/live/budget --limit 8 --no-graph
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source austender --path fixtures/live/austender --limit 4 --no-graph
+```
+
+Recorded dry-runs: `dry_run_anao.json`, `dry_run_budget_measure.json`, `dry_run_austender.json`.
+
+Live transports (this environment): AusTender OCDS and data.gov.au / budget.gov.au BP2 DOCX succeed; anao.gov.au often times out or WAF-blocks datacentre IPs — fixture fallback is expected.
+
+ANAO outcomes are created only when the fixture excerpt or report page contains parseable finding language (`partly effective`, `not effective`, `fully effective`). Agreement language is recorded in notes when present; it is not treated as a verdict.
+

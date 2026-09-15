@@ -1,0 +1,54 @@
+{
+  "citation": "https://budget.gov.au/content/bp2/index.htm — Budget Paper No. 2 2026–27 measures DOCX",
+  "source_url": "https://budget.gov.au/content/bp2/download/bp2_02_receipt_payment.docx",
+  "measures": [
+    {
+      "title": "Securing the Future of Agricultural Trade",
+      "kind": "measure",
+      "portfolio": "Agriculture, Fisheries And Forestry",
+      "agency_name": "Department of Agriculture, Fisheries and Forestry",
+      "year": "2026-27",
+      "year_amounts": {"2026-27": -9.6},
+      "source_document": "Budget Paper No. 2 2026-27",
+      "source_table": "Receipt / payment measures",
+      "source_url": "https://budget.gov.au/content/bp2/download/bp2_02_receipt_payment.docx",
+      "citation": "BP2 2026–27 Part 1 receipt measures — Securing the Future of Agricultural Trade"
+    },
+    {
+      "title": "Water Reform – continuing funding",
+      "kind": "measure",
+      "portfolio": "Climate Change, Energy, The Environment And Water",
+      "agency_name": "Department of Climate Change, Energy, the Environment and Water",
+      "year": "2026-27",
+      "year_amounts": {"2026-27": 1.4, "2027-28": 0.8, "2028-29": 1.2, "2029-30": 1.6},
+      "source_document": "Budget Paper No. 2 2026-27",
+      "source_table": "Receipt / payment measures",
+      "source_url": "https://budget.gov.au/content/bp2/download/bp2_02_receipt_payment.docx",
+      "citation": "BP2 2026–27 Part 1 receipt measures — Water Reform – continuing funding"
+    },
+    {
+      "title": "National Student Ombudsman – cost recovery",
+      "kind": "measure",
+      "portfolio": "Education",
+      "agency_name": "Department of Education",
+      "year": "2026-27",
+      "year_amounts": {"2027-28": 10.9, "2028-29": 11.1, "2029-30": 11.2},
+      "source_document": "Budget Paper No. 2 2026-27",
+      "source_table": "Receipt / payment measures",
+      "source_url": "https://budget.gov.au/content/bp2/download/bp2_02_receipt_payment.docx",
+      "citation": "BP2 2026–27 Part 1 receipt measures — National Student Ombudsman – cost recovery"
+    },
+    {
+      "title": "Boosting Productivity – abolishing more nuisance tariffs",
+      "kind": "measure",
+      "portfolio": "Home Affairs",
+      "agency_name": "Department of Home Affairs",
+      "year": "2026-27",
+      "year_amounts": {"2026-27": -20.0, "2027-28": -20.0, "2028-29": -15.0, "2029-30": -15.0},
+      "source_document": "Budget Paper No. 2 2026-27",
+      "source_table": "Receipt / payment measures",
+      "source_url": "https://budget.gov.au/content/bp2/index.htm",
+      "citation": "BP2 2026–27 — Boosting Productivity – abolishing more nuisance tariffs"
+    }
+  ]
+}

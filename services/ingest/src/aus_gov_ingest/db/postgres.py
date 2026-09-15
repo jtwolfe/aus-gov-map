@@ -22,9 +22,11 @@ from aus_gov_ingest.models import (
     HearingIn,
     HearingSegmentIn,
     InstrumentIn,
+    OutcomeIn,
     PersonIn,
     PinIn,
     QuestionOnNoticeIn,
+    ScrutinyItemIn,
     TopicIn,
 )
 from aus_gov_ingest.people import canonical_slug, names_are_same_person, pick_display_name, slug as slugify
@@ -124,6 +126,32 @@ class PostgresStore:
         with self.connect() as conn:
             try:
                 rows = conn.execute("SELECT source_key FROM qons").fetchall()
+            except Exception:
+                return set()
+        return {row["source_key"] for row in rows}
+
+    def existing_scrutiny_keys(self, item_type: str | None = None) -> set[str]:
+        sql = "SELECT source_key FROM scrutiny_items WHERE source_key IS NOT NULL"
+        params: tuple[Any, ...] = ()
+        if item_type:
+            sql += " AND item_type = %s"
+            params = (item_type,)
+        with self.connect() as conn:
+            try:
+                rows = conn.execute(sql, params).fetchall()
+            except Exception:
+                return set()
+        return {row["source_key"] for row in rows}
+
+    def existing_instrument_keys(self, source: str | None = None) -> set[str]:
+        sql = "SELECT source_key FROM instruments WHERE source_key IS NOT NULL"
+        params: tuple[Any, ...] = ()
+        if source:
+            sql += " AND source = %s"
+            params = (source,)
+        with self.connect() as conn:
+            try:
+                rows = conn.execute(sql, params).fetchall()
             except Exception:
                 return set()
         return {row["source_key"] for row in rows}
@@ -503,7 +531,7 @@ class PostgresStore:
                 item.short_code,
                 item.portfolio,
                 item.kind,
-                "seed",
+                item.source or "seed",
                 item.source_url,
             ),
         )
@@ -966,30 +994,13 @@ class PostgresStore:
         hearing_id: UUID | None = None,
     ) -> UUID:
         qid = _uuid("qon", item.source_key)
-        agency_id = None
-        if item.agency_slug or item.agency_name:
-            if item.agency_slug:
-                row = conn.execute(
-                    "SELECT id FROM agencies WHERE slug = %s", (item.agency_slug,)
-                ).fetchone()
-                agency_id = row["id"] if row else None
-            if agency_id is None and item.agency_name:
-                row = conn.execute(
-                    "SELECT id FROM agencies WHERE name ILIKE %s LIMIT 1",
-                    (item.agency_name,),
-                ).fetchone()
-                agency_id = row["id"] if row else None
-            if agency_id is None:
-                agency_id = self.upsert_agency(
-                    conn,
-                    AgencyIn(
-                        slug=item.agency_slug or slugify(item.agency_name or "agency"),
-                        name=item.agency_name or item.agency_slug or "Unknown agency",
-                        short_code=None,
-                        portfolio=item.portfolio,
-                        kind="agency",
-                    ),
-                )
+        agency_id = self.resolve_agency(
+            conn,
+            slug=item.agency_slug,
+            name=item.agency_name,
+            portfolio=item.portfolio,
+            source="eqon",
+        )
         identifiers = {
             **(item.metadata or {}),
             "portfolio_question_number": item.portfolio_question_number,
@@ -1066,6 +1077,47 @@ class PostgresStore:
         )
         return qid
 
+    def resolve_agency(
+        self,
+        conn: Connection,
+        *,
+        slug: str | None = None,
+        name: str | None = None,
+        portfolio: str | None = None,
+        source: str | None = None,
+        source_url: str | None = None,
+        create: bool = True,
+    ) -> UUID | None:
+        if slug:
+            row = conn.execute("SELECT id FROM agencies WHERE slug = %s", (slug,)).fetchone()
+            if row:
+                return row["id"]
+        if name:
+            row = conn.execute(
+                "SELECT id FROM agencies WHERE name ILIKE %s LIMIT 1", (name,)
+            ).fetchone()
+            if row:
+                return row["id"]
+            row = conn.execute(
+                "SELECT id FROM agencies WHERE short_name ILIKE %s LIMIT 1", (name,)
+            ).fetchone()
+            if row:
+                return row["id"]
+        if not create or not (slug or name):
+            return None
+        return self.upsert_agency(
+            conn,
+            AgencyIn(
+                slug=slug or slugify(name or "agency"),
+                name=name or slug or "Unknown agency",
+                short_code=None,
+                portfolio=portfolio,
+                kind="agency",
+                source=source,
+                source_url=source_url,
+            ),
+        )
+
     def upsert_instrument(
         self,
         conn: Connection,
@@ -1084,24 +1136,45 @@ class PostgresStore:
         instrument_type = item.kind if item.kind in {
             "program", "measure", "bill", "contract", "grant", "policy", "other",
         } else "other"
+        agency_id = self.resolve_agency(
+            conn,
+            slug=item.agency_slug,
+            name=item.agency_name,
+            portfolio=item.portfolio,
+            source=item.source or "instrument",
+            source_url=item.source_url,
+            create=bool(item.agency_name or item.agency_slug),
+        )
         identifiers = {
             **(item.metadata or {}),
+            **(item.identifiers or {}),
             "source_chunk_key": item.source_chunk_key,
             "notes": item.notes,
+            "supplier": item.supplier_name,
+            "agency_name": item.agency_name,
+            "portfolio": item.portfolio,
         }
         conn.execute(
             """
             INSERT INTO instruments (
-                id, slug, instrument_type, title, identifiers, source, source_url,
-                source_key, summary, status, confidence
+                id, slug, instrument_type, title, identifiers, agency_id,
+                announced_on, commenced_on, ended_on, amount_aud,
+                source, source_url, source_key, summary, status, confidence
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (source_key) DO UPDATE SET
                 title = EXCLUDED.title,
                 summary = COALESCE(EXCLUDED.summary, instruments.summary),
                 status = EXCLUDED.status,
                 confidence = EXCLUDED.confidence,
-                identifiers = EXCLUDED.identifiers
+                identifiers = EXCLUDED.identifiers,
+                agency_id = COALESCE(EXCLUDED.agency_id, instruments.agency_id),
+                announced_on = COALESCE(EXCLUDED.announced_on, instruments.announced_on),
+                commenced_on = COALESCE(EXCLUDED.commenced_on, instruments.commenced_on),
+                ended_on = COALESCE(EXCLUDED.ended_on, instruments.ended_on),
+                amount_aud = COALESCE(EXCLUDED.amount_aud, instruments.amount_aud),
+                source = COALESCE(EXCLUDED.source, instruments.source),
+                source_url = COALESCE(EXCLUDED.source_url, instruments.source_url)
             """,
             (
                 iid,
@@ -1109,10 +1182,15 @@ class PostgresStore:
                 instrument_type,
                 item.title,
                 Json(identifiers),
-                "instrument_propose",
-                None,
+                agency_id,
+                item.announced_on,
+                item.commenced_on,
+                item.ended_on,
+                item.amount_aud,
+                item.source or "instrument_propose",
+                item.source_url,
                 item.source_key,
-                item.evidence_text,
+                item.evidence_text or item.notes,
                 item.status or "proposed",
                 item.confidence,
             ),
@@ -1138,11 +1216,188 @@ class PostgresStore:
                     hearing_id,
                     chunk_id,
                     "mentioned",
-                    "instrument_propose",
+                    item.source or "instrument_propose",
                     item.notes,
                 ),
             )
+        if agency_id:
+            conn.execute(
+                """
+                INSERT INTO instrument_links (
+                    instrument_id, target_kind, target_id, agency_id,
+                    link_kind, source, notes
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (instrument_id, target_kind, target_id, link_kind) DO NOTHING
+                """,
+                (
+                    instrument_id,
+                    "agency",
+                    agency_id,
+                    agency_id,
+                    "mentioned",
+                    item.source or "instrument",
+                    item.agency_name,
+                ),
+            )
         return instrument_id
+
+    def upsert_scrutiny_item(self, conn: Connection, item: ScrutinyItemIn) -> UUID:
+        sid = _uuid("scrutiny", item.source_key)
+        slug = slugify(item.source_key)[:80] or slugify(item.title)
+        agency_id = self.resolve_agency(
+            conn,
+            slug=item.agency_slug,
+            name=item.agency_name,
+            portfolio=item.portfolio,
+            source=item.source,
+            source_url=item.source_url,
+            create=bool(item.agency_name or item.agency_slug),
+        )
+        identifiers = {
+            **(item.identifiers or {}),
+            "agency_name": item.agency_name,
+            "portfolio": item.portfolio,
+            "confidence": item.confidence,
+            "agency_id": str(agency_id) if agency_id else None,
+        }
+        item_type = item.item_type if item.item_type in {
+            "qon", "anao", "inquiry_report", "division", "hearing_segment", "other",
+        } else "other"
+        conn.execute(
+            """
+            INSERT INTO scrutiny_items (
+                id, slug, item_type, title, identifiers, published_on,
+                source, source_url, source_key, summary
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (source_key) DO UPDATE SET
+                title = EXCLUDED.title,
+                summary = COALESCE(EXCLUDED.summary, scrutiny_items.summary),
+                published_on = COALESCE(EXCLUDED.published_on, scrutiny_items.published_on),
+                identifiers = EXCLUDED.identifiers,
+                source_url = COALESCE(EXCLUDED.source_url, scrutiny_items.source_url)
+            """,
+            (
+                sid,
+                slug,
+                item_type,
+                item.title,
+                Json(identifiers),
+                item.published_on,
+                item.source,
+                item.source_url,
+                item.source_key,
+                item.summary,
+            ),
+        )
+        row = conn.execute(
+            "SELECT id FROM scrutiny_items WHERE source_key = %s", (item.source_key,)
+        ).fetchone()
+        return row["id"] if row else sid
+
+    def upsert_outcome(
+        self,
+        conn: Connection,
+        item: OutcomeIn,
+        *,
+        instrument_id: UUID | None = None,
+        scrutiny_item_id: UUID | None = None,
+    ) -> UUID:
+        oid = _uuid("outcome", item.source_key)
+        agency_id = self.resolve_agency(
+            conn,
+            slug=item.agency_slug,
+            name=item.agency_name,
+            source=item.source,
+            source_url=item.source_url,
+            create=False,
+        )
+        signal = item.signal if item.signal in {
+            "met", "unmet", "partial", "adverse", "unknown",
+        } else "unknown"
+        try:
+            conn.execute(
+                """
+                INSERT INTO outcomes (
+                    id, outcome_type, instrument_id, signal, occurred_on,
+                    source, source_url, notes, confidence, agency_id,
+                    scrutiny_item_id, source_key, identifiers
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (source_key) DO UPDATE SET
+                    signal = EXCLUDED.signal,
+                    notes = COALESCE(EXCLUDED.notes, outcomes.notes),
+                    confidence = EXCLUDED.confidence,
+                    instrument_id = COALESCE(EXCLUDED.instrument_id, outcomes.instrument_id),
+                    agency_id = COALESCE(EXCLUDED.agency_id, outcomes.agency_id),
+                    scrutiny_item_id = COALESCE(EXCLUDED.scrutiny_item_id, outcomes.scrutiny_item_id)
+                """,
+                (
+                    oid,
+                    item.outcome_type,
+                    instrument_id,
+                    signal,
+                    item.occurred_on,
+                    item.source,
+                    item.source_url,
+                    item.notes,
+                    item.confidence,
+                    agency_id,
+                    scrutiny_item_id,
+                    item.source_key,
+                    Json(item.identifiers or {}),
+                ),
+            )
+        except Exception:
+            # 009 columns missing — write the 007 core row only.
+            conn.execute(
+                """
+                INSERT INTO outcomes (
+                    id, outcome_type, instrument_id, signal, occurred_on,
+                    source, source_url, notes
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    oid,
+                    item.outcome_type,
+                    instrument_id,
+                    signal,
+                    item.occurred_on,
+                    item.source,
+                    item.source_url,
+                    item.notes,
+                ),
+            )
+        return oid
+
+    def link_tested_in(
+        self,
+        conn: Connection,
+        *,
+        instrument_id: UUID,
+        scrutiny_item_id: UUID,
+        source: str | None,
+    ) -> None:
+        conn.execute(
+            """
+            INSERT INTO instrument_links (
+                instrument_id, target_kind, target_id, scrutiny_item_id,
+                link_kind, source
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (instrument_id, target_kind, target_id, link_kind) DO NOTHING
+            """,
+            (
+                instrument_id,
+                "scrutiny",
+                scrutiny_item_id,
+                scrutiny_item_id,
+                "tested_in",
+                source,
+            ),
+        )
 
     def resolve_appearance(self, conn: Connection, link: AppearanceIn) -> UUID | None:
         if link.person_id:

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountabilityNav, LensNeeded } from "@/components/accountability-lens";
+import { loadAccountabilitySummary } from "@/lib/accountability";
 
 export const metadata = { title: "Accountability" };
 export const dynamic = "force-dynamic";
@@ -37,7 +38,8 @@ const LENSES = [
   },
 ];
 
-export default function AccountabilityPage() {
+export default async function AccountabilityPage() {
+  const summary = await loadAccountabilitySummary();
   return (
     <div className="space-y-10">
       <header className="max-w-3xl">
@@ -60,6 +62,34 @@ export default function AccountabilityPage() {
 
       <AccountabilityNav current="/accountability" />
 
+      <section className="border border-rule bg-card px-5 py-4">
+        <p className="eyebrow">Store counts</p>
+        <p className="mt-2 text-sm text-muted">
+          Sourced row counts in the current Postgres volume. Zero is correct until
+          the matching ingest source has persisted. These are coverage numbers,
+          not findings.
+        </p>
+        <dl className="mt-3 grid gap-3 sm:grid-cols-3 text-sm">
+          <div>
+            <dt className="text-xs uppercase tracking-[0.12em] text-muted">ANAO items</dt>
+            <dd className="font-serif text-2xl text-navy">{summary.anaoItems}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-[0.12em] text-muted">Contracts</dt>
+            <dd className="font-serif text-2xl text-navy">{summary.contracts}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-[0.12em] text-muted">Measures / programs</dt>
+            <dd className="font-serif text-2xl text-navy">{summary.measures}</dd>
+          </div>
+        </dl>
+        <p className="mt-2 text-xs text-muted">
+          Source · <span className="font-mono">{summary.source}</span>
+          {" · "}QoN {summary.questions}
+          {" · "}proposed instruments {summary.instrumentsProposed}
+        </p>
+      </section>
+
       <section className="grid gap-5 md:grid-cols-2">
         {LENSES.map((lens) => (
           <article key={lens.href} className="border border-rule bg-card p-5">
@@ -76,10 +106,10 @@ export default function AccountabilityPage() {
 
       <LensNeeded
         needed={{
-          note: "Lenses read Postgres views when 007_accountability.sql and 008_hearing_segments.sql have been applied. Handbook, QoN, agencies, and instrument_propose now write into that model. ANAO / PBS / AusTender stay empty stubs. Sparse data is correct; nothing invents officials or findings.",
+          note: "Lenses read Postgres views when 007–009 have been applied. Handbook, QoN, agencies, instrument_propose, ANAO, Budget/PBS, and AusTender now write into that model. Sparse data is correct; nothing invents officials or findings.",
           apply: "make db-apply",
           sources: ["handbook", "qon", "agencies", "instrument_propose", "anao", "budget_measure", "austender"],
-          tables: ["person_roles", "instruments", "qons", "claims", "scrutiny_items"],
+          tables: ["person_roles", "instruments", "qons", "claims", "scrutiny_items", "outcomes"],
         }}
       />
     </div>

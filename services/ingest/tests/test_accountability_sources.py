@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from aus_gov_ingest.sources import SOURCES, get_source
+
+LIVE = Path(__file__).resolve().parents[1] / "fixtures" / "live"
 
 
 def test_accountability_sources_are_registered() -> None:
@@ -14,16 +18,25 @@ def test_accountability_sources_are_registered() -> None:
         assert name in SOURCES
 
 
-def test_stub_sources_return_empty_with_endpoints() -> None:
+def test_first_pass_adapters_return_rows_from_fixtures() -> None:
+    paths = {
+        "anao": LIVE / "anao",
+        "budget_measure": LIVE / "budget",
+        "austender": LIVE / "austender",
+    }
     for name in ("anao", "budget_measure", "austender"):
-        batch = get_source(name).fetch(limit=3)
+        src = get_source(name, path=str(paths[name]))
+        batch = src.fetch(limit=3)
         assert batch.source == name
-        assert batch.hearings == []
-        assert batch.people == []
-        assert batch.meta["status"] == "not_implemented"
+        assert batch.meta.get("status") in {"ok", "empty"}
         assert batch.meta["endpoints"]
-        assert "No invented" in batch.meta["note"] or "invent" in batch.meta["note"].lower()
         assert batch.meta["schema"]
+        note = (batch.meta.get("note") or "").lower()
+        assert "invent" in note
+        if name == "anao":
+            assert batch.scrutiny_items
+        else:
+            assert batch.instruments
 
 
 def test_qon_is_implemented() -> None:

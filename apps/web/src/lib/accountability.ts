@@ -357,9 +357,9 @@ export async function loadChainCompleteness() {
 
 export async function loadInstruments(q: string | null) {
   const hint = needed(
-    "The instruments explorer lists programs, measures, bills, contracts, grants, and policies once those adapters write rows. Search is title ILIKE only.",
+    "The instruments explorer lists programs, measures, bills, contracts, grants, and policies once those adapters write rows. Search is title ILIKE only. budget_measure and austender now persist sourced rows; instrument_propose stays proposed-only.",
     {
-      sources: ["budget_measure", "austender"],
+      sources: ["budget_measure", "austender", "instrument_propose", "anao"],
       tables: ["instruments", "agencies"],
     },
   );
@@ -534,6 +534,9 @@ export type AccountabilitySummary = {
   questions: number;
   instrumentsProposed: number;
   hearingSegments: number;
+  anaoItems: number;
+  contracts: number;
+  measures: number;
   qonByPortfolio: QonPortfolioCount[];
 };
 
@@ -545,6 +548,9 @@ export async function loadAccountabilitySummary(): Promise<AccountabilitySummary
     questions: 0,
     instrumentsProposed: 0,
     hearingSegments: 0,
+    anaoItems: 0,
+    contracts: 0,
+    measures: 0,
     qonByPortfolio: [],
   };
   if (!(await postgresAvailable())) {
@@ -558,7 +564,10 @@ export async function loadAccountabilitySummary(): Promise<AccountabilitySummary
           (SELECT COUNT(*)::int FROM handbook_entries) AS handbook_entries,
           (SELECT COUNT(*)::int FROM qons) AS questions,
           (SELECT COUNT(*)::int FROM instruments WHERE COALESCE(status, '') = 'proposed') AS instruments_proposed,
-          (SELECT COUNT(*)::int FROM hearing_segments) AS hearing_segments
+          (SELECT COUNT(*)::int FROM hearing_segments) AS hearing_segments,
+          (SELECT COUNT(*)::int FROM scrutiny_items WHERE item_type = 'anao') AS anao_items,
+          (SELECT COUNT(*)::int FROM instruments WHERE instrument_type = 'contract') AS contracts,
+          (SELECT COUNT(*)::int FROM instruments WHERE instrument_type IN ('measure', 'program') AND COALESCE(status, '') <> 'proposed') AS measures
       `).catch(async () =>
         query<Record<string, unknown>>(`
           SELECT
@@ -566,7 +575,10 @@ export async function loadAccountabilitySummary(): Promise<AccountabilitySummary
             (SELECT COUNT(*)::int FROM handbook_entries) AS handbook_entries,
             (SELECT COUNT(*)::int FROM qons) AS questions,
             (SELECT COUNT(*)::int FROM instruments) AS instruments_proposed,
-            0::int AS hearing_segments
+            0::int AS hearing_segments,
+            (SELECT COUNT(*)::int FROM scrutiny_items WHERE item_type = 'anao') AS anao_items,
+            (SELECT COUNT(*)::int FROM instruments WHERE instrument_type = 'contract') AS contracts,
+            (SELECT COUNT(*)::int FROM instruments WHERE instrument_type IN ('measure', 'program')) AS measures
         `),
       ),
       loadQon(1),
@@ -579,6 +591,9 @@ export async function loadAccountabilitySummary(): Promise<AccountabilitySummary
       questions: Number(row.questions ?? 0),
       instrumentsProposed: Number(row.instruments_proposed ?? 0),
       hearingSegments: Number(row.hearing_segments ?? 0),
+      anaoItems: Number(row.anao_items ?? 0),
+      contracts: Number(row.contracts ?? 0),
+      measures: Number(row.measures ?? 0),
       qonByPortfolio: qon.byPortfolio,
     };
   } catch {

@@ -35,6 +35,20 @@ python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
 python -m aus_gov_ingest run --source qon --limit 10 --dry-run
 python -m aus_gov_ingest run --source agencies --dry-run
 python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
+python -m aus_gov_ingest run --source anao --limit 5 --dry-run
+python -m aus_gov_ingest run --source budget_measure --limit 10 --dry-run
+python -m aus_gov_ingest run --source austender --limit 10 --dry-run
+```
+
+Persist the same passes when Postgres is up (omit `--dry-run`):
+
+```bash
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source anao --limit 10 --no-graph
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source budget_measure --limit 20 --no-graph
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source austender --limit 15 --no-graph
 ```
 
 `ingest` and `aus-gov-ingest` are the same console script after install.
@@ -53,9 +67,9 @@ python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
 | `qon` | Senate Estimates EQON search (`/api/qon/getestimatesdata`) or `fixtures/live/qon/` into foundation `qons`. Status: open / answered / overdue / unknown. |
 | `agencies` | Official department / agency stubs (`fixtures/live/agencies.json`) upserted into foundation `agencies`. |
 | `instrument_propose` | Regex candidates from Officials (bills, programs, contract/grant mentions). **Proposed only** (`instruments.status`). |
-| `anao` | Auditor-General stub — empty scrutiny / outcomes. No invented findings |
-| `budget_measure` | Budget / PBS stub — empty instruments. No invented amounts |
-| `austender` | AusTender CN stub — empty contracts. GrantConnect documented as sibling |
+| `anao` | ANAO work / performance-audit index → `scrutiny_items` (type anao). Outcomes only when finding language is parseable. Fixture fallback: `fixtures/live/anao/`. |
+| `budget_measure` | BP2 measures DOCX + data.gov.au PBS program-expense CSV → `instruments` (measure / program). PDF Budget Papers are follow-up. Fixture: `fixtures/live/budget/`. |
+| `austender` | AusTender OCDS API (recent / high-value, `--limit`) → `instruments` (type contract). Agency name-match. Fixture: `fixtures/live/austender/`. |
 
 APH Azure Front Door **403s bot-like User-Agents**. The client sends a browser-like UA, `Accept` / `Accept-Language`, and keeps session cookies. `parlinfo.aph.gov.au` (XML/PDF/`toc_unixml`) still returns an Azure WAF **JS challenge** from typical datacentre IPs — ingest does **not** follow those redirects. The working structured source is `https://www.aph.gov.au/api/hansard/transcript?id=committees/estimate/{id}/0000`.
 
@@ -125,7 +139,7 @@ python -m aus_gov_ingest apply-schema
 python -m aus_gov_ingest seed-demo-board
 ```
 
-That creates analytics views, Handbook tables, Stage 2 accountability tables (`007` + `008` hearing segments), a unique pins index, and the FOI/procurement demo board.
+That creates analytics views, Handbook tables, Stage 2 accountability tables (`007` + `008` + `009` adapter columns), a unique pins index, and the FOI/procurement demo board.
 
 ## Graph
 

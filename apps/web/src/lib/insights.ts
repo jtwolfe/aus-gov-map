@@ -1,4 +1,4 @@
-import { loadQon, type QonPortfolioCount } from "./accountability";
+import { loadAccountabilitySummary, loadQon, type QonPortfolioCount } from "./accountability";
 import { loadFixtures } from "./fixtures";
 import { postgresAvailable, query } from "./db";
 
@@ -35,6 +35,9 @@ export type InsightsPayload = {
   committeeActivity: InsightCommittee[];
   repeatedMentions: InsightMention[];
   qonByPortfolio: QonPortfolioCount[];
+  anaoItems: number;
+  contracts: number;
+  measures: number;
 };
 
 function dateOnly(value: unknown): string | null {
@@ -140,6 +143,9 @@ function fromFixtures(): InsightsPayload {
       (a, b) => b.hearingCount - a.hearingCount,
     ),
     qonByPortfolio: [],
+    anaoItems: 0,
+    contracts: 0,
+    measures: 0,
   };
 }
 
@@ -228,12 +234,13 @@ export async function loadInsights(): Promise<InsightsPayload> {
     LIMIT 16
   `;
 
-  const [people, committees, topics, texts, qon] = await Promise.all([
+  const [people, committees, topics, texts, qon, summary] = await Promise.all([
     query<Record<string, unknown>>(peopleSql),
     query<Record<string, unknown>>(committeeSql),
     query<Record<string, unknown>>(topicSql).catch(() => []),
     query<Record<string, unknown>>(textSql).catch(() => []),
     loadQon(1).catch(() => ({ byPortfolio: [] as QonPortfolioCount[] })),
+    loadAccountabilitySummary().catch(() => null),
   ]);
 
   const mentions: InsightMention[] = [
@@ -273,5 +280,8 @@ export async function loadInsights(): Promise<InsightsPayload> {
     })),
     repeatedMentions: mentions,
     qonByPortfolio: qon.byPortfolio,
+    anaoItems: summary?.anaoItems ?? 0,
+    contracts: summary?.contracts ?? 0,
+    measures: summary?.measures ?? 0,
   };
 }

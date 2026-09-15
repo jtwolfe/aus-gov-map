@@ -31,7 +31,9 @@ def _primary_count(source_name: str, batch: SourceBatch) -> int:
         return len(batch.handbook_entries) or len(batch.people)
     if source_name == "qon":
         return len(batch.questions)
-    if source_name == "instrument_propose":
+    if source_name == "anao":
+        return len(batch.scrutiny_items)
+    if source_name in {"instrument_propose", "budget_measure", "austender"}:
         return len(batch.instruments)
     if source_name == "agencies":
         return len(batch.agencies)
@@ -61,6 +63,8 @@ def _dry_run_meta(batch: SourceBatch, *, embedder_name: str) -> dict[str, Any]:
         "agencies": len(batch.agencies),
         "questions": len(batch.questions),
         "instruments": len(batch.instruments),
+        "scrutiny_items": len(batch.scrutiny_items),
+        "outcomes": len(batch.outcomes),
         "segments": n_segments,
         "estimated_chunks": n_chunks,
         "chunks_with_speaker": speaker_chunks,
@@ -104,6 +108,10 @@ def run_ingest(
             known = store.existing_handbook_keys()
         elif source_name == "qon":
             known = store.existing_qon_keys()
+        elif source_name == "anao":
+            known = store.existing_scrutiny_keys(item_type="anao")
+        elif source_name in {"budget_measure", "austender"}:
+            known = store.existing_instrument_keys(source=source_name)
 
     run_id = store.start_run(
         source_name,
@@ -226,12 +234,43 @@ def _persist(
             store.upsert_question(conn, question, hearing_id=hid)
             upserted += 1
 
+        instrument_ids: dict[str, UUID] = {}
         for instrument in batch.instruments:
             hid = None
             if instrument.hearing_source_key:
                 hid = hearing_ids.get(instrument.hearing_source_key)
-            store.upsert_instrument(conn, instrument, hearing_id=hid)
+            iid = store.upsert_instrument(conn, instrument, hearing_id=hid)
+            instrument_ids[instrument.source_key] = iid
             upserted += 1
+
+        scrutiny_ids: dict[str, UUID] = {}
+        for item in batch.scrutiny_items:
+            sid = store.upsert_scrutiny_item(conn, item)
+            scrutiny_ids[item.source_key] = sid
+            upserted += 1
+
+        for outcome in batch.outcomes:
+            iid = (
+                instrument_ids.get(outcome.instrument_source_key)
+                if outcome.instrument_source_key
+                else None
+            )
+            sid = (
+                scrutiny_ids.get(outcome.scrutiny_source_key)
+                if outcome.scrutiny_source_key
+                else None
+            )
+            store.upsert_outcome(
+                conn, outcome, instrument_id=iid, scrutiny_item_id=sid
+            )
+            upserted += 1
+            if iid and sid:
+                store.link_tested_in(
+                    conn,
+                    instrument_id=iid,
+                    scrutiny_item_id=sid,
+                    source=outcome.source or batch.source,
+                )
 
         conn.commit()
     return upserted, chunks_written

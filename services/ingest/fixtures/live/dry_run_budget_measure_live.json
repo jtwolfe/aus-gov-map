@@ -1,0 +1,50 @@
+{
+  "source": "budget_measure",
+  "fetched": 8,
+  "upserted": 0,
+  "chunks": 0,
+  "status": "dry_run",
+  "error": null,
+  "meta": {
+    "dry_run": true,
+    "embedder": "hash",
+    "titles": [],
+    "held_on": [],
+    "with_transcript": 0,
+    "people_sample": [],
+    "handbook_entries": 0,
+    "handbook_roles": 0,
+    "handbook_tenure": 0,
+    "agencies": 0,
+    "questions": 0,
+    "instruments": 8,
+    "scrutiny_items": 0,
+    "outcomes": 0,
+    "segments": 0,
+    "estimated_chunks": 0,
+    "chunks_with_speaker": 0,
+    "status": "ok",
+    "home": "https://budget.gov.au",
+    "transport": "budget_structured",
+    "license_note": "\u00a9 Commonwealth of Australia. Budget Papers / Portfolio Budget Statements. Typically CC BY. Attribute the Australian Government.",
+    "limit": 8,
+    "skipped_existing": 0,
+    "errors": [],
+    "by_kind": {
+      "measure": 8
+    },
+    "endpoints": {
+      "budget": "https://budget.gov.au",
+      "bp2": "https://budget.gov.au/content/bp2/index.htm",
+      "bp2_docx": "https://budget.gov.au/content/bp2/download/bp2_02_receipt_payment.docx",
+      "pbs": "https://www.finance.gov.au/publications/portfolio-budget-statements",
+      "treasury_budget": "https://treasury.gov.au/publication",
+      "data_gov": "https://data.gov.au/data/organization/department-of-the-treasury",
+      "pbs_package": "https://data.gov.au/data/api/3/action/package_show?id=budget-2025-2026-and-portfolio-budget-statements-pbs-tables-and-data",
+      "pbs_csv": "https://data.gov.au/data/dataset/4f025f38-0c70-45e2-8106-4c29a5e48637/resource/7cc8640f-b5d4-41de-a665-3197739b965f/download/2025-26-pbs-program-expense-line-items-final-2025-03-26.csv"
+    },
+    "schema": "infra/postgres/007_accountability.sql (instruments)",
+    "follow_up": "Full Budget Paper PDF parsing (BP2 PDF tables, entity PBS PDFs) is not in this pass. Structured HTML/CSV/JSON/DOCX only.",
+    "note": "PBS program-expense CSV and/or BP2 measures DOCX into instruments (type measure|program). Amounts as published; no invented figures."
+  }
+}

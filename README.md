@@ -186,9 +186,9 @@ The product is becoming a **decision / duty map**: who held which office when (e
 | --- | --- | --- |
 | Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` (live OData + fixture fallback) |
 | Agencies | `agencies` | `agencies` (official-name stubs) |
-| Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); later `budget_measure`, `austender` |
-| Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments` | `qon` (EQON), Stage 1 hearings |
-| Outcomes | `outcomes` (stubs) | `anao` (stub) |
+| Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); `budget_measure` (BP2 / PBS); `austender` (OCDS) |
+| Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments` | `qon` (EQON), `anao` (work index), Stage 1 hearings |
+| Outcomes | `outcomes` (sourced signals only) | `anao` (parseable finding language only) |
 
 Web: **Accountability** in the nav. Lenses (safe with zero rows):
 
@@ -201,14 +201,18 @@ Web: **Accountability** in the nav. Lenses (safe with zero rows):
 APIs under `/api/accountability/*` read the views in `infra/postgres/analytics/accountability_*.sql` when present. `GET /api/qon` lists foundation `qons`.
 
 ```bash
-make db-apply   # 007_accountability.sql + 008_hearing_segments.sql + views
+make db-apply   # 007_accountability.sql + 008 + 009 + views
 cd services/ingest
 python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
 python -m aus_gov_ingest run --source qon --limit 10 --dry-run
 python -m aus_gov_ingest run --source agencies --dry-run
 python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
-# or while ingesting Officials:
-python -m aus_gov_ingest run --source aph_transcript_file --limit 1 --dry-run --propose-instruments
+python -m aus_gov_ingest run --source anao --limit 5 --dry-run
+python -m aus_gov_ingest run --source budget_measure --limit 10 --dry-run
+python -m aus_gov_ingest run --source austender --limit 10 --dry-run
+# persist (omit --dry-run) when DATABASE_URL reaches Postgres:
+# DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+#   python -m aus_gov_ingest run --source anao --limit 10 --no-graph
 ```
 
 Estimates Official ingest also writes `hearing_segments` (portfolio / agency headers, speaker turns, taken-on-notice markers). Instrument candidates from text are **proposed only**. APS secretaries are not in the Handbook. Appearance at Estimates is **not** a tenure.
@@ -226,7 +230,7 @@ See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `T
 ## Later (not in this foundation)
 
 - Full historical backfill of Hansard
-- Wiring ANAO / PBS / AusTender adapters to real extracts
+- Full Budget Paper PDF table extraction (this pass uses BP2 DOCX + PBS CSV)
 - Questions on notice answers at scale (EQON has 176k+ rows; ingest is capped)
 - OpenAustralia / TheyWorkForYou-AU XML
 - GrantConnect + legislation API + TheyVoteForYou divisions
