@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PinButton } from "@/components/pin-button";
+import { SourceBadge } from "@/components/source-badge";
 import { getPerson } from "@/lib/data";
 import { formatDate, roleLabel, typeLabel } from "@/lib/format";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -22,23 +25,7 @@ export default async function PersonPage({
   const { slug } = await params;
   const result = await getPerson(slug);
   if (!result) notFound();
-  const { person, appearances } = result;
-
-  const coAppear = new Map<string, { slug: string; name: string; count: number }>();
-  for (const { hearing } of appearances) {
-    for (const other of hearing.people) {
-      if (other.person.id === person.id) continue;
-      const current = coAppear.get(other.person.id);
-      if (current) current.count += 1;
-      else {
-        coAppear.set(other.person.id, {
-          slug: other.person.slug,
-          name: other.person.name,
-          count: 1,
-        });
-      }
-    }
-  }
+  const { person, appearances, satWith } = result;
 
   return (
     <article className="space-y-10">
@@ -49,6 +36,13 @@ export default async function PersonPage({
           {[person.party, person.organisation, person.portfolio].filter(Boolean).join(" · ")}
         </p>
         {person.bio ? <p className="mt-4 leading-relaxed">{person.bio}</p> : null}
+        {person.aphUrl ? (
+          <p className="mt-3">
+            <a href={person.aphUrl} className="link" rel="noreferrer">
+              APH profile
+            </a>
+          </p>
+        ) : null}
         <div className="mt-5">
           <PinButton
             pinType="person"
@@ -60,12 +54,14 @@ export default async function PersonPage({
       </header>
 
       <section>
-        <p className="eyebrow">Appearances</p>
+        <p className="eyebrow">Appearances timeline</p>
         <h2 className="mt-2 font-serif text-2xl text-navy">Hearings</h2>
-        <ul className="mt-4 divide-y divide-rule border-y border-rule">
+        <ol className="mt-4 border-l border-rule pl-5">
           {appearances.map(({ hearing, role }) => (
-            <li key={hearing.id} className="py-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-muted">
+            <li key={`${hearing.id}-${role}`} className="relative py-4">
+              <span className="absolute -left-[25px] top-6 h-2 w-2 rounded-full bg-navy" />
+              <p className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted">
+                <SourceBadge sourceKey={hearing.sourceKey} />
                 {typeLabel(hearing.hearingType)} · {formatDate(hearing.heldOn)} · {roleLabel(role)}
               </p>
               <Link
@@ -75,29 +71,35 @@ export default async function PersonPage({
                 {hearing.title}
               </Link>
               <p className="mt-1 text-sm text-muted">{hearing.committee?.name}</p>
+              {hearing.sourceUrl ? (
+                <p className="mt-1 text-xs">
+                  <a href={hearing.sourceUrl} className="link" rel="noreferrer">
+                    source_url
+                  </a>
+                </p>
+              ) : null}
             </li>
           ))}
-        </ul>
+        </ol>
       </section>
 
-      {coAppear.size ? (
+      {satWith.length ? (
         <section>
-          <p className="eyebrow">Cross-reference</p>
+          <p className="eyebrow">Co-attendance</p>
           <h2 className="mt-2 font-serif text-2xl text-navy">Sat with</h2>
           <ul className="mt-3 space-y-2 text-sm">
-            {[...coAppear.values()]
-              .sort((a, b) => b.count - a.count)
-              .map((row) => (
-                <li key={row.slug}>
-                  <Link href={`/people/${row.slug}`} className="link">
-                    {row.name}
-                  </Link>
-                  <span className="text-muted">
-                    {" "}
-                    · {row.count} shared hearing{row.count === 1 ? "" : "s"}
-                  </span>
-                </li>
-              ))}
+            {satWith.map((row) => (
+              <li key={row.slug}>
+                <Link href={`/people/${row.slug}`} className="link">
+                  {row.name}
+                </Link>
+                <span className="text-muted">
+                  {" "}
+                  · {row.count} shared hearing{row.count === 1 ? "" : "s"}
+                  {row.lastHeldOn ? ` · last ${formatDate(row.lastHeldOn)}` : ""}
+                </span>
+              </li>
+            ))}
           </ul>
         </section>
       ) : null}

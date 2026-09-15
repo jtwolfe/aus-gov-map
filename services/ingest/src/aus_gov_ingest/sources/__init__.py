@@ -6,6 +6,7 @@ from aus_gov_ingest.sources.aph_transcript_file import AphTranscriptFileSource
 from aus_gov_ingest.sources.base import Source
 from aus_gov_ingest.sources.estimates import EstimatesSource
 from aus_gov_ingest.sources.fixture import FixtureSource
+from aus_gov_ingest.sources.handbook import HandbookSource
 from aus_gov_ingest.sources.openaustralia import OpenAustraliaSource
 from aus_gov_ingest.sources.schedule import EstimatesScheduleSource
 from aus_gov_ingest.sources.senate_committee import SenateCommitteeSource
@@ -17,6 +18,7 @@ SOURCES: dict[str, type] = {
     "senate_committee": SenateCommitteeSource,
     "aph_transcript_file": AphTranscriptFileSource,
     "openaustralia": OpenAustraliaSource,
+    "handbook": HandbookSource,
 }
 
 

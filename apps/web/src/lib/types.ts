@@ -79,6 +79,7 @@ export type Hearing = {
   people: Appearance[];
   topics: Topic[];
   documents: Document[];
+  chunks?: Chunk[];
 };
 
 export type Board = {
@@ -97,7 +98,7 @@ export type Pin = {
 };
 
 export type SearchHit = {
-  kind: "hearing" | "person" | "chunk";
+  kind: "hearing" | "person" | "chunk" | "document";
   id: string;
   slug?: string;
   title: string;
@@ -106,8 +107,35 @@ export type SearchHit = {
   href: string;
   score: number;
   mode: "keyword" | "semantic";
+  sourceKey?: string;
+  hearingType?: string;
 };
 
 export type SearchMode = "keyword" | "semantic" | "combined";
 
+export type SearchFilters = {
+  committee?: string;
+  person?: string;
+  hearingType?: "estimates" | "other" | "all";
+  from?: string;
+  to?: string;
+};
+
 export type DataSource = "postgres" | "fixture";
+
+export type CoverageStats = {
+  source: DataSource;
+  hearings: number;
+  people: number;
+  chunks: number;
+  liveHearings: number;
+  sampleHearings: number;
+  committees: number;
+};
+
+export type CoAttendance = {
+  slug: string;
+  name: string;
+  count: number;
+  lastHeldOn: string | null;
+};

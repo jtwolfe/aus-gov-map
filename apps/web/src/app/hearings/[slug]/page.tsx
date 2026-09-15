@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Attribution } from "@/components/attribution";
 import { PinButton } from "@/components/pin-button";
+import { SourceBadge } from "@/components/source-badge";
 import { getHearing, loadCatalog, relatedPeople } from "@/lib/data";
 import { formatDate, roleLabel, typeLabel } from "@/lib/format";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -25,11 +29,14 @@ export default async function HearingPage({
   const { hearing } = result;
   const catalog = await loadCatalog();
   const cousins = relatedPeople(hearing, catalog);
+  const chunks = hearing.chunks ?? [];
+  const longOfficial = hearing.documents.some((d) => !d.contentText);
 
   return (
     <article className="space-y-10">
       <header className="max-w-3xl">
-        <p className="eyebrow">
+        <p className="flex flex-wrap items-center gap-2 eyebrow">
+          <SourceBadge sourceKey={hearing.sourceKey} />
           {typeLabel(hearing.hearingType)} · {formatDate(hearing.heldOn)}
         </p>
         <h1 className="mt-3 font-serif text-4xl leading-tight text-ink">{hearing.title}</h1>
@@ -51,7 +58,7 @@ export default async function HearingPage({
             <dt className="eyebrow">Source</dt>
             <dd className="mt-1">
               {hearing.sourceUrl ? (
-                <a href={hearing.sourceUrl} className="link">
+                <a href={hearing.sourceUrl} className="link" rel="noreferrer">
                   {hearing.source}
                 </a>
               ) : (
@@ -60,6 +67,13 @@ export default async function HearingPage({
             </dd>
           </div>
         </dl>
+        <div className="mt-6">
+          <Attribution
+            sourceKey={hearing.sourceKey}
+            sourceUrl={hearing.sourceUrl}
+            licenseNote={hearing.documents[0]?.licenseNote}
+          />
+        </div>
         <div className="mt-6 flex flex-wrap gap-2">
           {hearing.topics.map((topic) => (
             <span
@@ -102,9 +116,43 @@ export default async function HearingPage({
         </ul>
       </section>
 
-      <section id="excerpt">
-        <p className="eyebrow">The record</p>
-        <h2 className="mt-2 font-serif text-2xl text-navy">Documents</h2>
+      {chunks.length ? (
+        <section id="excerpt">
+          <p className="eyebrow">The record</p>
+          <h2 className="mt-2 font-serif text-2xl text-navy">Excerpts</h2>
+          <p className="mt-2 text-sm text-muted">
+            {longOfficial
+              ? "Full Official text is on the APH source page — excerpts below are the ingested chunks."
+              : "Ingested chunks from the Official / sample document."}
+          </p>
+          <div className="mt-4 space-y-4">
+            {chunks.map((chunk) => (
+              <div
+                id={`chunk-${chunk.id}`}
+                key={chunk.id}
+                className="border border-rule bg-card p-5"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="eyebrow">{chunk.speakerName ?? "Official"}</p>
+                  <PinButton
+                    pinType="chunk"
+                    targetId={chunk.id}
+                    href={`/hearings/${hearing.slug}#chunk-${chunk.id}`}
+                    label={`${hearing.title} · ${chunk.speakerName ?? "excerpt"}`}
+                  />
+                </div>
+                <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed text-ink">
+                  {chunk.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section>
+        <p className="eyebrow">Documents</p>
+        <h2 className="mt-2 font-serif text-2xl text-navy">Officials</h2>
         <div className="mt-4 space-y-6">
           {hearing.documents.map((doc) => (
             <div key={doc.id} className="border border-rule bg-card p-5">
@@ -112,15 +160,28 @@ export default async function HearingPage({
                 <h3 className="font-serif text-lg text-navy">{doc.title}</h3>
                 <span className="eyebrow">{doc.docType}</span>
               </div>
-              <p className="mt-2 text-xs text-muted">{doc.licenseNote}</p>
-              <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-ink">
-                {(doc.contentText ?? "")
-                  .split(/\n\s*\n/)
-                  .filter(Boolean)
-                  .map((para) => (
-                    <p key={para.slice(0, 24)}>{para}</p>
-                  ))}
-              </div>
+              <p className="mt-2 font-mono text-xs text-muted">{doc.sourceKey}</p>
+              {doc.sourceUrl ? (
+                <p className="mt-2">
+                  <a href={doc.sourceUrl} className="link" rel="noreferrer">
+                    Open source_url
+                  </a>
+                </p>
+              ) : null}
+              {doc.contentText ? (
+                <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-ink">
+                  {doc.contentText
+                    .split(/\n\s*\n/)
+                    .filter(Boolean)
+                    .map((para) => (
+                      <p key={para.slice(0, 24)}>{para}</p>
+                    ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-muted">
+                  Long Official stored in Postgres — use excerpts above or the APH link.
+                </p>
+              )}
             </div>
           ))}
         </div>

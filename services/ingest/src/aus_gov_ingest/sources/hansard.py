@@ -11,6 +11,12 @@ from bs4 import BeautifulSoup
 
 from aus_gov_ingest.http import AphClient
 from aus_gov_ingest.models import AppearanceIn, CommitteeIn, DocumentIn, HearingIn, PersonIn
+from aus_gov_ingest.people import (
+    canonical_slug,
+    infer_role,
+    should_skip_person,
+    split_name_and_role,
+)
 from aus_gov_ingest.sources.util import parse_date, slug
 
 APH_ORIGIN = "https://www.aph.gov.au"
@@ -30,8 +36,13 @@ _BID = re.compile(
     re.I,
 )
 _ATTEND = re.compile(
-    r"^(?P<title>Senator(?:\s+the\s+Hon)?|The\s+Hon|Prof(?:essor)?|Dr|Ms|Mr|Mrs)\s+"
-    r"(?P<name>[^,]+?)(?:,\s*(?P<role>.+))?$",
+    r"^(?P<title>Senator(?:\s+the\s+Hon(?:ourable)?)?|The\s+Hon(?:ourable)?|"
+    r"Prof(?:essor|\.)?|Dr\.?|Ms\.?|Mr\.?|Mrs\.?|Miss)\s+"
+    r"(?P<name>.+)$",
+    re.I,
+)
+_CHAIR_INLINE = re.compile(
+    r"^(?P<label>CHAIR|DEPUTY\s+CHAIR|ACTING\s+CHAIR)\s*\((?P<inner>[^)]+)\)",
     re.I,
 )
 
@@ -177,41 +188,70 @@ def _people_from_official(text: str) -> list[AppearanceIn]:
         after = text.split("In Attendance", 1)[1]
         block = after.split("Committee met", 1)[0]
     for raw_line in block.splitlines():
-        line = raw_line.strip()
-        match = _ATTEND.match(line)
-        if not match:
+        line = " ".join(raw_line.split())
+        if not line:
             continue
-        title = match.group("title").strip()
-        name = " ".join(match.group("name").split())
-        role_title = (match.group("role") or "").strip() or None
-        full = f"{title} {name}".strip()
-        person_slug = slug(full)[:80]
+        chair = _CHAIR_INLINE.match(line)
+        if chair:
+            line = chair.group("inner").strip()
+            forced_role = "chair"
+        else:
+            forced_role = None
+        match = _ATTEND.match(line)
+        if match:
+            title = match.group("title").strip()
+            rest = match.group("name").strip()
+            name_part, role_title = split_name_and_role(rest)
+            display = f"{title} {name_part}".strip()
+        else:
+            name_part, role_title = split_name_and_role(line)
+            if should_skip_person(name_part):
+                continue
+            # Unprefixed lines are only kept when they look like "Name, Agency title"
+            if not role_title:
+                continue
+            title = None
+            display = name_part
+        if should_skip_person(display):
+            continue
+        person_slug = canonical_slug(display)
         if not person_slug or person_slug in seen:
             continue
         seen.add(person_slug)
-        lowered = f"{title} {role_title or ''}".lower()
-        role = "appeared"
-        if "chair" in lowered:
-            role = "chair"
-        elif "senator" in lowered or title.lower().startswith("senator"):
-            role = "senator"
-        elif "minister" in lowered:
-            role = "minister"
-        else:
-            role = "official"
+        role = forced_role or infer_role(title, role_title)
         appearances.append(
             AppearanceIn(
                 person=PersonIn(
                     slug=person_slug,
-                    name=full,
+                    name=display,
                     role_title=role_title,
                     organisation=None,
                 ),
                 person_slug=person_slug,
-                role=role,
+                role=role,  # type: ignore[arg-type]
             )
         )
         if len(appearances) >= 24:
+            break
+    if len(appearances) < 24:
+        for raw_line in text.splitlines():
+            chair = _CHAIR_INLINE.match(" ".join(raw_line.split()))
+            if not chair:
+                continue
+            inner = chair.group("inner").strip()
+            match = _ATTEND.match(inner)
+            display = inner if not match else f"{match.group('title').strip()} {split_name_and_role(match.group('name'))[0]}".strip()
+            person_slug = canonical_slug(display)
+            if not person_slug or person_slug in seen or should_skip_person(display):
+                continue
+            seen.add(person_slug)
+            appearances.append(
+                AppearanceIn(
+                    person=PersonIn(slug=person_slug, name=display, role_title="Chair"),
+                    person_slug=person_slug,
+                    role="chair",
+                )
+            )
             break
     return appearances
 

@@ -20,10 +20,30 @@ from aus_gov_ingest.models import (
     PinIn,
     TopicIn,
 )
+from aus_gov_ingest.people import canonical_slug, names_are_same_person, pick_display_name
 
 
 def _uuid(*parts: str) -> UUID:
     return uuid5(NAMESPACE_URL, "aus-gov-map:" + "|".join(parts))
+
+
+def _split_sql(sql_text: str) -> list[str]:
+    statements: list[str] = []
+    buf: list[str] = []
+    for raw_line in sql_text.splitlines():
+        stripped = raw_line.strip()
+        if stripped.startswith("\\"):
+            continue
+        buf.append(raw_line)
+        if stripped.endswith(";"):
+            stmt = "\n".join(buf).strip()
+            if stmt:
+                statements.append(stmt)
+            buf = []
+    tail = "\n".join(buf).strip()
+    if tail:
+        statements.append(tail)
+    return statements
 
 
 class PostgresStore:
@@ -100,8 +120,66 @@ class PostgresStore:
         row = conn.execute("SELECT id FROM committees WHERE slug = %s", (item.slug,)).fetchone()
         return row["id"] if row else cid
 
+    def find_person_merge(self, conn: Connection, item: PersonIn) -> dict | None:
+        wanted = canonical_slug(item.name) or item.slug
+        row = conn.execute(
+            "SELECT id, slug, name FROM people WHERE slug = %s OR slug = %s",
+            (item.slug, wanted),
+        ).fetchone()
+        if row:
+            return row
+        tokens = [t for t in wanted.split("-") if t]
+        if not tokens:
+            return None
+        last = tokens[-1]
+        candidates = conn.execute(
+            """
+            SELECT id, slug, name FROM people
+            WHERE slug LIKE %s OR name ILIKE %s
+            """,
+            (f"%{last}%", f"%{last}%"),
+        ).fetchall()
+        matches = [
+            c
+            for c in candidates
+            if names_are_same_person(c["name"], item.name)
+            or names_are_same_person(c["slug"].replace("-", " "), item.name)
+        ]
+        if len(matches) == 1:
+            return matches[0]
+        return None
+
     def upsert_person(self, conn: Connection, item: PersonIn) -> UUID:
-        pid = item.id or _uuid("person", item.slug)
+        merge = self.find_person_merge(conn, item)
+        if merge:
+            display = pick_display_name(merge["name"], item.name)
+            conn.execute(
+                """
+                UPDATE people SET
+                    name = %s,
+                    role_title = COALESCE(%s, role_title),
+                    party = COALESCE(%s, party),
+                    portfolio = COALESCE(%s, portfolio),
+                    organisation = COALESCE(%s, organisation),
+                    aph_url = COALESCE(%s, aph_url),
+                    bio = COALESCE(%s, bio)
+                WHERE id = %s
+                """,
+                (
+                    display,
+                    item.role_title,
+                    item.party,
+                    item.portfolio,
+                    item.organisation,
+                    item.aph_url,
+                    item.bio,
+                    merge["id"],
+                ),
+            )
+            return merge["id"]
+
+        slug = canonical_slug(item.name) or item.slug
+        pid = item.id or _uuid("person", slug)
         conn.execute(
             """
             INSERT INTO people (id, slug, name, role_title, party, portfolio, organisation, aph_url, bio)
@@ -117,7 +195,7 @@ class PostgresStore:
             """,
             (
                 pid,
-                item.slug,
+                slug,
                 item.name,
                 item.role_title,
                 item.party,
@@ -127,8 +205,54 @@ class PostgresStore:
                 item.bio,
             ),
         )
-        row = conn.execute("SELECT id FROM people WHERE slug = %s", (item.slug,)).fetchone()
+        row = conn.execute("SELECT id FROM people WHERE slug = %s", (slug,)).fetchone()
         return row["id"] if row else pid
+
+    def apply_sql(self, sql_text: str) -> int:
+        """Run a SQL file that may contain multiple statements (no psql meta)."""
+        statements = _split_sql(sql_text)
+        ran = 0
+        with self.connect() as conn:
+            for stmt in statements:
+                conn.execute(stmt)
+                ran += 1
+            conn.commit()
+        return ran
+
+    def merge_duplicate_people(self) -> dict[str, int]:
+        """Collapse people that share a canonical core name."""
+        moved = 0
+        deleted = 0
+        with self.connect() as conn:
+            rows = conn.execute("SELECT id, slug, name FROM people ORDER BY created_at, name").fetchall()
+            groups: dict[str, list[dict]] = {}
+            for row in rows:
+                key = canonical_slug(row["name"]) or row["slug"]
+                groups.setdefault(key, []).append(row)
+            for members in groups.values():
+                if len(members) < 2:
+                    continue
+                survivor = members[0]
+                for extra in members[1:]:
+                    if not names_are_same_person(survivor["name"], extra["name"]):
+                        continue
+                    conn.execute(
+                        """
+                        INSERT INTO hearing_people (hearing_id, person_id, role)
+                        SELECT hearing_id, %s, role FROM hearing_people WHERE person_id = %s
+                        ON CONFLICT DO NOTHING
+                        """,
+                        (survivor["id"], extra["id"]),
+                    )
+                    moved += conn.execute(
+                        "SELECT COUNT(*) AS n FROM hearing_people WHERE person_id = %s",
+                        (extra["id"],),
+                    ).fetchone()["n"]
+                    conn.execute("DELETE FROM hearing_people WHERE person_id = %s", (extra["id"],))
+                    conn.execute("DELETE FROM people WHERE id = %s", (extra["id"],))
+                    deleted += 1
+            conn.commit()
+        return {"merged_away": deleted, "appearance_rows_seen": moved}
 
     def upsert_topic(self, conn: Connection, item: TopicIn) -> UUID:
         tid = item.id or _uuid("topic", item.slug)

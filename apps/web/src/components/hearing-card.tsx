@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SourceBadge } from "@/components/source-badge";
 import { formatDate, typeLabel } from "@/lib/format";
 import type { Hearing } from "@/lib/types";
 
@@ -6,6 +7,7 @@ export function HearingCard({ hearing }: { hearing: Hearing }) {
   return (
     <article className="group border-l-2 border-navy bg-card px-5 py-4 shadow-[0_1px_0_rgba(28,25,21,0.04)]">
       <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted">
+        <SourceBadge sourceKey={hearing.sourceKey} />
         <span className="text-ochre">{typeLabel(hearing.hearingType)}</span>
         <span>·</span>
         <span>{formatDate(hearing.heldOn)}</span>
