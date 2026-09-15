@@ -1,0 +1,45 @@
+{
+  "source": "estimates",
+  "fetched": 3,
+  "status": "dry_run",
+  "transport": "aph_hansard_api",
+  "command": "INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --dry-run",
+  "hearings": [
+    {
+      "title": "Community Affairs Legislation Committee - 05/06/2026 - Estimates",
+      "held_on": "2026-06-05",
+      "source_key": "hansard:committees/estimate/29629",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard/Hansard_Display?bid=committees/estimate/29629/&sid=0000",
+      "official_chars": 508028,
+      "people_sample": [
+        "Senator McAllister",
+        "Mr Blair Comley PSM",
+        "Professor Michael Kidd"
+      ]
+    },
+    {
+      "title": "Economics Legislation Committee - 05/06/2026 - Estimates",
+      "held_on": "2026-06-05",
+      "source_key": "hansard:committees/estimate/29625",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard/Hansard_Display?bid=committees/estimate/29625/&sid=0000",
+      "official_chars": 430514,
+      "people_sample": [
+        "Senator Ayres",
+        "Senator Gallagher",
+        "Ms Sarah Court"
+      ]
+    },
+    {
+      "title": "Education and Employment Legislation Committee - 05/06/2026 - Estimates",
+      "held_on": "2026-06-05",
+      "source_key": "hansard:committees/estimate/29617",
+      "source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard/Hansard_Display?bid=committees/estimate/29617/&sid=0000",
+      "official_chars": 335688,
+      "people_sample": [
+        "Senator Walsh",
+        "Mr Tony Cook PSM",
+        "Ms Jasmina Joldić PSM"
+      ]
+    }
+  ]
+}

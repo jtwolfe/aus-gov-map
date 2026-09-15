@@ -1,0 +1,19 @@
+{
+  "source": "senate_committee",
+  "fetched": 2,
+  "status": "dry_run",
+  "transport": "aph_hansard_api",
+  "command": "INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source senate_committee --limit 2 --dry-run",
+  "hearings": [
+    {
+      "title": "Community Affairs Legislation Committee - 11/09/2026 - Private Health Insurance Amendment (Modernising the Private Health Insurance Rebate) Bill 2026",
+      "held_on": "2026-09-11",
+      "source_key": "hansard:committees/commsen/29898"
+    },
+    {
+      "title": "Community Affairs Legislation Committee - 04/09/2026 - Private Health Insurance Amendment (Modernising the Private Health Insurance Rebate) Bill 2026",
+      "held_on": "2026-09-04",
+      "source_key": "hansard:committees/commsen/29897"
+    }
+  ]
+}
