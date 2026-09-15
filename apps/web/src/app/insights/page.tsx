@@ -21,8 +21,8 @@ export default async function InsightsPage() {
         </p>
         <p className="mt-2 text-xs text-muted">
           Source · <span className="font-mono">{insights.source}</span>
-          {insights.source === "unavailable"
-            ? " — start Postgres (`make db-up`) to run these."
+          {insights.source === "fixture"
+            ? " — computed from the bundled seed. Start Postgres (`make db-up`) for live views."
             : ""}
         </p>
       </header>

@@ -1,3 +1,4 @@
+import { loadFixtures } from "./fixtures";
 import { postgresAvailable, query } from "./db";
 
 export type InsightPerson = {
@@ -28,7 +29,7 @@ export type InsightMention = {
 };
 
 export type InsightsPayload = {
-  source: "postgres" | "unavailable";
+  source: "postgres" | "fixture";
   peopleAcrossEstimates: InsightPerson[];
   committeeActivity: InsightCommittee[];
   repeatedMentions: InsightMention[];
@@ -52,14 +53,96 @@ async function viewsExist(): Promise<boolean> {
   return (rows[0]?.n ?? 0) >= 3;
 }
 
+function fromFixtures(): InsightsPayload {
+  const seed = loadFixtures();
+  const estimatesByPerson = new Map<string, InsightPerson>();
+  for (const hearing of seed.hearings) {
+    if (hearing.hearingType !== "estimates") continue;
+    for (const appearance of hearing.people) {
+      const current = estimatesByPerson.get(appearance.person.id);
+      if (!current) {
+        estimatesByPerson.set(appearance.person.id, {
+          slug: appearance.person.slug,
+          name: appearance.person.name,
+          roleTitle: appearance.person.roleTitle,
+          organisation: appearance.person.organisation,
+          estimatesHearings: 1,
+          firstSeen: hearing.heldOn,
+          lastSeen: hearing.heldOn,
+        });
+      } else {
+        current.estimatesHearings += 1;
+        if ((hearing.heldOn ?? "") < (current.firstSeen ?? "9999")) current.firstSeen = hearing.heldOn;
+        if ((hearing.heldOn ?? "") > (current.lastSeen ?? "")) current.lastSeen = hearing.heldOn;
+      }
+    }
+  }
+  const committeeActivity: InsightCommittee[] = seed.committees.map((committee) => {
+    const hearings = seed.hearings.filter((h) => h.committee?.id === committee.id);
+    return {
+      slug: committee.slug,
+      name: committee.name,
+      chamber: committee.chamber,
+      hearingCount: hearings.length,
+      recentHearings: hearings.length,
+      estimatesCount: hearings.filter((h) => h.hearingType === "estimates").length,
+      lastHearing: hearings.map((h) => h.heldOn).sort().at(-1) ?? null,
+    };
+  });
+  const topicCounts = new Map<string, InsightMention>();
+  for (const hearing of seed.hearings) {
+    for (const topic of hearing.topics) {
+      const current = topicCounts.get(topic.slug);
+      if (!current) {
+        topicCounts.set(topic.slug, {
+          label: topic.name,
+          kind: "topic",
+          hearingCount: 1,
+          lastSeen: hearing.heldOn,
+        });
+      } else {
+        current.hearingCount += 1;
+        if ((hearing.heldOn ?? "") > (current.lastSeen ?? "")) current.lastSeen = hearing.heldOn;
+      }
+    }
+  }
+  const needles = ["FOI", "freedom of information", "procurement", "integrity", "grants"];
+  const textMentions: InsightMention[] = needles
+    .map((needle) => {
+      const hits = new Set(
+        seed.chunks
+          .filter((c) => c.content.toLowerCase().includes(needle.toLowerCase()))
+          .map((c) => c.hearingId),
+      );
+      const last = seed.hearings
+        .filter((h) => hits.has(h.id))
+        .map((h) => h.heldOn)
+        .sort()
+        .at(-1) ?? null;
+      return {
+        label: needle,
+        kind: "text" as const,
+        hearingCount: hits.size,
+        lastSeen: last,
+      };
+    })
+    .filter((row) => row.hearingCount > 0);
+
+  return {
+    source: "fixture",
+    peopleAcrossEstimates: [...estimatesByPerson.values()].sort(
+      (a, b) => b.estimatesHearings - a.estimatesHearings,
+    ),
+    committeeActivity: committeeActivity.sort((a, b) => b.hearingCount - a.hearingCount),
+    repeatedMentions: [...topicCounts.values(), ...textMentions].sort(
+      (a, b) => b.hearingCount - a.hearingCount,
+    ),
+  };
+}
+
 export async function loadInsights(): Promise<InsightsPayload> {
   if (!(await postgresAvailable())) {
-    return {
-      source: "unavailable",
-      peopleAcrossEstimates: [],
-      committeeActivity: [],
-      repeatedMentions: [],
-    };
+    return fromFixtures();
   }
 
   const useViews = await viewsExist();
