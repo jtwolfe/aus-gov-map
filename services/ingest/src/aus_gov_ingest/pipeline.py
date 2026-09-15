@@ -32,8 +32,9 @@ def run_ingest(
     write_graph: bool = True,
     database_url: str | None = None,
     dry_run: bool = False,
+    source_path: str | None = None,
 ) -> RunResult:
-    source = get_source(source_name)
+    source = get_source(source_name, path=source_path)
     embedder = get_embedder()
     if dry_run:
         batch = source.fetch(limit=limit, incremental_keys=None)
@@ -58,7 +59,11 @@ def run_ingest(
     known: set[str] | None = None
     if incremental:
         known = store.existing_source_keys(
-            source="estimates" if source_name in {"estimates", "estimates_schedule"} else None
+            source=(
+                "estimates"
+                if source_name in {"estimates", "estimates_schedule", "aph_transcript_file"}
+                else None
+            )
         )
 
     run_id = store.start_run(
