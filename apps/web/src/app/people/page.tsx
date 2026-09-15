@@ -2,6 +2,7 @@ import { PersonCard } from "@/components/person-card";
 import { loadCatalog } from "@/lib/data";
 
 export const metadata = { title: "People" };
+export const dynamic = "force-dynamic";
 
 export default async function PeoplePage() {
   const catalog = await loadCatalog();
@@ -18,8 +19,9 @@ export default async function PeoplePage() {
         <p className="eyebrow">Senators, ministers, officials</p>
         <h1 className="mt-2 font-serif text-4xl text-ink">People</h1>
         <p className="mt-3 max-w-2xl text-muted">
-          Appearances are the edges of the Stage 1 graph. Open a person to see
-          every hearing they sit on in this seed.
+          Appearances are the edges of the Stage 1 graph. Open a person for a
+          timeline of hearings and who they sat with. Duplicate names from
+          ingest are merged when the core name (honorifics stripped) matches.
         </p>
       </header>
       <div className="grid gap-3 sm:grid-cols-2">

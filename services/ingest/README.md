@@ -43,6 +43,7 @@ python -m aus_gov_ingest cron
 | `estimates_schedule` | Same as `estimates`, tagged for cron / “what's new” |
 | `senate_committee` | APH Hansard Search (`chi=6`, `commsen`) + transcript API; Senate index HTML as listing fallback |
 | `openaustralia` | Hook only — chamber XML at data.openaustralia.org.au does not include Estimates |
+| `handbook` | Stage 2 stub — [Parliamentary Handbook](https://handbook.aph.gov.au); empty batch, no invented officials. Schema: `infra/postgres/005_handbook.sql` |
 
 APH Azure Front Door **403s bot-like User-Agents**. The client sends a browser-like UA, `Accept` / `Accept-Language`, and keeps session cookies. `parlinfo.aph.gov.au` (XML/PDF/`toc_unixml`) still returns an Azure WAF **JS challenge** from typical datacentre IPs — ingest does **not** follow those redirects. The working structured source is `https://www.aph.gov.au/api/hansard/transcript?id=committees/estimate/{id}/0000`.
 
@@ -94,6 +95,25 @@ Discover further Official IDs via Hansard Search `chi=5` (do not invent IDs):
 ```
 python3 scripts/fetch_estimates_transcripts.py --dry-discover
 ```
+
+## Person merge
+
+Speaker lines like `Senator the Hon …`, `Ms …, Secretary`, and `CHAIR (Senator Pratt)` are normalised to a core-name slug (`james-paterson`, `jaala-hinchcliffe`). `upsert_person` merges when the last name matches and one token set is a subset of the other — it will not collapse two different Smiths. Re-run on an existing database:
+
+```bash
+python -m aus_gov_ingest merge-people
+```
+
+## Incremental schema (existing volumes)
+
+Docker only applies `infra/postgres/*.sql` on first init. For an already-running volume:
+
+```bash
+python -m aus_gov_ingest apply-schema
+python -m aus_gov_ingest seed-demo-board
+```
+
+That creates analytics views, Handbook stub tables, a unique pins index, and the FOI/procurement demo board.
 
 ## Graph
 

@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { CoverageStrip } from "@/components/coverage-strip";
 import { HearingCard } from "@/components/hearing-card";
 import { PersonCard } from "@/components/person-card";
 import { SearchForm } from "@/components/search-form";
-import { loadCatalog } from "@/lib/data";
+import { getCoverage, loadCatalog } from "@/lib/data";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const catalog = await loadCatalog();
+  const [catalog, coverage] = await Promise.all([loadCatalog(), getCoverage()]);
   const hearings = catalog.hearings.slice(0, 3);
   const people = catalog.people.slice(0, 6);
 
@@ -18,17 +21,16 @@ export default async function HomePage() {
         </h1>
         <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">
           Stage 1 follows Senate committees and Estimates hearings: who sat,
-          what was said, and how people connect across the record. Keyword
-          search works on the seed today; vector search is wired for ingest.
+          what was said, and how people connect across the record. When{" "}
+          <span className="font-mono">DATABASE_URL</span> is up, search and
+          pages read live Postgres — not the offline fixture.
         </p>
         <div className="mt-8">
-          <SearchForm />
+          <SearchForm committees={catalog.committees} />
         </div>
-        <p className="mt-3 text-xs text-muted">
-          Serving from <span className="font-mono">{catalog.source}</span>
-          {catalog.source === "fixture" ? " — Docker Postgres is optional." : ""}.
-        </p>
       </section>
+
+      <CoverageStrip coverage={coverage} />
 
       <section>
         <div className="mb-5 flex items-end justify-between">
@@ -79,7 +81,7 @@ export default async function HomePage() {
           {
             kicker: "03",
             title: "Read",
-            body: "This map is the reading room: search, dossiers, and pinboard stubs for later research workflows.",
+            body: "This map is the reading room: search, dossiers, insights, and pinboards that persist in Postgres.",
           },
         ].map((item) => (
           <div key={item.kicker}>

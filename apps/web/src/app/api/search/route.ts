@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { searchCatalog } from "@/lib/search";
+import { filtersFromSearchParams, searchCatalog } from "@/lib/search";
 import type { SearchMode } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -9,6 +11,6 @@ export async function GET(request: Request) {
   const mode = (["keyword", "semantic", "combined"].includes(rawMode)
     ? rawMode
     : "combined") as SearchMode;
-  const result = await searchCatalog(q, mode);
+  const result = await searchCatalog(q, mode, filtersFromSearchParams(searchParams));
   return NextResponse.json(result);
 }

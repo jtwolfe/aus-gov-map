@@ -37,11 +37,28 @@ export default function AboutPage() {
           </a>
         </li>
         <li>
+          <a className="link" href="https://handbook.aph.gov.au">
+            Parliamentary Handbook
+          </a>{" "}
+          (Stage 2 stub — tenure / electorate / roles, no invented rows)
+        </li>
+        <li>
           <a className="link" href="http://data.openaustralia.org.au/">
             OpenAustralia data (XML hook, later)
           </a>
         </li>
       </ul>
+      <h2 className="font-serif text-2xl text-navy">Current coverage</h2>
+      <p className="leading-relaxed text-muted">
+        The home page coverage strip counts hearings, people, and chunks from
+        Postgres when <span className="font-mono">DATABASE_URL</span> is up.
+        Live Officials use <span className="font-mono">hansard:</span> source
+        keys; the bundled seed does not. After{" "}
+        <span className="font-mono">make db-up</span> and{" "}
+        <span className="font-mono">make ingest-live-files</span>, expect the
+        three committed Estimates Officials (29617 / 29625 / 29629) plus the
+        fixture hearings if you also ran <span className="font-mono">make seed</span>.
+      </p>
     </article>
   );
 }

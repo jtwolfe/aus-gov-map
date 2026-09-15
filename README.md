@@ -2,7 +2,7 @@
 
 A continuously updated map of **Australian Commonwealth public data**.
 
-Stage 1 covers **Senate committees and Estimates hearings**: search the record, open a hearing or a person, and follow who sat with whom.
+Stage 1 covers **Senate committees and Estimates hearings**: search the record, open a hearing or a person, and follow who sat with whom. Stage 1.1 prefers live Postgres, persists pinboards, and adds starter Insights queries.
 
 This repository is a working scaffold — not a production service and not a historical backfill.
 
@@ -14,15 +14,16 @@ This repository is a working scaffold — not a production service and not a his
    Estimates sched. │  fetch → parse  │            hearings, documents,
    (OpenAustralia)  │  chunk → embed  │            chunks + vector,
                     └────────┬────────┘            people, ingest_runs,
-                             │                     boards / pins (stubs)
+                             │                     boards / pins
                              └──upsert──► Neo4j
                                           Person ─APPEARED_AT→ Hearing
                                           Hearing ─HELD_BY→ Committee
                                           Hearing ─DISCUSSES→ Topic
                                           Document ─TRANSCRIPT_OF→ Hearing
 
-   Next.js (App Router) ──read──► Postgres if DATABASE_URL is up
+   Next.js (App Router) ──read──► Postgres whenever DATABASE_URL reaches a live server
                          ──else─► data/fixtures/seed.json
+                         ──write─► boards / pins (API; not localStorage on the happy path)
 ```
 
 | Path | Role |
@@ -39,27 +40,49 @@ This repository is a working scaffold — not a production service and not a his
 
 ```bash
 cp .env.example .env
-docker compose up -d
+make db-up          # Postgres only — prints DATABASE_URL
+# or:
+make up             # Postgres + Neo4j
 ```
 
-That starts **Postgres 16 + pgvector** (`localhost:5432`) and **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Neo4j constraints are applied by `neo4j-init`.
+That starts **Postgres 16 + pgvector** (`localhost:5432`) and optionally **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Incremental Stage 1.1 files (`004`–`006`) also run on a fresh volume. Neo4j constraints are applied by `neo4j-init`.
 
 ```
-postgres://ausgov:ausgov@localhost:5432/ausgov
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov
 neo4j / ausgovmap
 ```
 
-### 2. Web app (works offline)
+Existing volumes do **not** re-run `infra/postgres/*.sql`. Apply analytics views, Handbook stubs, and the demo board with:
 
 ```bash
-cd apps/web
-npm install
-npm run dev
+make db-apply
+```
+
+### 2. Web app (prefers Postgres)
+
+```bash
+make web-dev
+# equivalent:
+# cd apps/web && DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov npm run dev
 ```
 
 Open http://localhost:3000
 
-If `DATABASE_URL` is unset or Postgres is down, the UI serves `data/fixtures/seed.json`. Search, hearing pages, person pages, and board stubs all work against that seed.
+The App Router **prefers `DATABASE_URL`** whenever Postgres answers. Search, hearing pages, person pages, Insights, and boards then read live rows (including `hansard:` Officials). If the URL is unset or the server is down, the UI serves `data/fixtures/seed.json`.
+
+### Current coverage
+
+The home page strip counts **hearings / people / chunks** from the active store, and splits **live Hansard** (`source_key` starting `hansard:`) vs **sample fixture**. After a typical local ingest you should see the three invented fixture hearings plus the committed Estimates Officials under `services/ingest/fixtures/live/transcripts` (21 Hansard JSON files, including `29617` / `29625` / `29629`).
+
+```bash
+# How to refresh that picture
+make db-up
+make seed                 # optional invented Officials
+make ingest-live-files    # committed APH JSON → Postgres
+make web-dev              # coverage strip reads DATABASE_URL
+```
+
+`GET /api/health` also returns those counts.
 
 ### 3. Ingest CLI
 
@@ -77,10 +100,13 @@ python -m aus_gov_ingest run --source fixture
 
 # Officials from committed APH transcript JSON (offline; no APH fetch)
 python -m aus_gov_ingest run --source aph_transcript_file --dry-run
-# same dry-run from the repo root:
+# same dry-run from the repo root (21 Official JSON files):
 make ingest-backfill-files
-DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
-  python -m aus_gov_ingest run --source aph_transcript_file --no-graph
+# persist into Postgres + seed the FOI/procurement demo board:
+make ingest-live-files
+# equivalent:
+# DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+#   python -m aus_gov_ingest run --source aph_transcript_file --no-graph
 
 # Live Estimates Officials (APH Hansard JSON API)
 INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --dry-run
@@ -126,9 +152,32 @@ docker compose --profile app up --build
 
 ## Search
 
-- **Keyword** — titles, summaries, people, transcript excerpts (`tsvector` / `pg_trgm` when Postgres is up; lexical fallback on the fixture).
-- **Semantic** — pgvector cosine path once ingest has written embeddings. Default embedder is a deterministic hashed bag-of-tokens (no API key). Swap with `EMBEDDING_PROVIDER=openai` or `sentence-transformers`.
+- **Keyword** — Postgres full-text over hearings, documents, chunks, and people (`websearch_to_tsquery` + `ILIKE`). Fixture mode uses the same lexical fallback.
+- **Filters** — committee, date range, person name, Estimates vs other. They apply to the hearing a hit belongs to.
+- **Semantic** — pgvector cosine against chunk embeddings when they exist. The web app hashes the query with the same bag-of-tokens embedder as ingest (`EMBEDDING_PROVIDER=hash`). Swap ingest to `openai` or `sentence-transformers` if you re-embed.
 - Combined is the default in the UI.
+- Hearing and person pages show a **Live Hansard** vs **Sample fixture** badge, Commonwealth / CC BY-NC-ND attribution, and `source_url`.
+
+## Boards and pins
+
+When Postgres is up, **create a board**, **pin** a hearing / person / chunk, **list** boards, and **open** a board — all via `/api/boards` and `/api/pins`. localStorage is only a fallback if the database is down.
+
+Seed a demo board from FOI / procurement-ish chunk hits (prefers live `hansard:` rows):
+
+```bash
+make db-apply
+# or: python -m aus_gov_ingest seed-demo-board
+```
+
+If no matching chunks exist yet, ingest Officials (or the fixture) first, then re-run `seed-demo-board`.
+
+## Insights
+
+`/insights` runs the starter inefficiency queries (people across many Estimates hearings, densest recent committees, repeated topic / FOI-procurement mentions). SQL views: `infra/postgres/analytics/`. Cypher twins: `infra/neo4j/queries/`.
+
+## Stage 2 stub — Parliamentary Handbook
+
+Empty ingest source `handbook` (no fake officials) plus tables in `infra/postgres/005_handbook.sql` for tenure, electorate, and roles linked to `people`. See comments in `services/ingest/src/aus_gov_ingest/sources/handbook.py` pointing at handbook.aph.gov.au.
 
 ## Graph model
 
@@ -148,10 +197,15 @@ See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `T
 - Bills, divisions, agency graphs
 - Auth-backed shared boards
 - Production deploy
+- Wiring the Handbook adapter to a real extract
 
 ## Tests
 
 ```bash
 cd services/ingest && python3 -m pytest
 cd apps/web && npm run lint && npm run build
+# Search + pins (offline always; Postgres/API when env is set)
+python3 scripts/verify_search_pins.py
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov python3 scripts/verify_search_pins.py
+WEB_URL=http://localhost:3000 python3 scripts/verify_search_pins.py
 ```

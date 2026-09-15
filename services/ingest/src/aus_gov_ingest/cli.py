@@ -98,6 +98,68 @@ def sources_cmd() -> None:
         click.echo(name)
 
 
+@cli.command("apply-schema")
+def apply_schema_cmd() -> None:
+    """Apply incremental SQL: analytics views, handbook stubs, demo board."""
+    from pathlib import Path
+
+    from aus_gov_ingest.config import settings
+    from aus_gov_ingest.db.postgres import PostgresStore
+
+    root = Path(__file__).resolve()
+    sql_dir = None
+    for parent in root.parents:
+        candidate = parent / "infra" / "postgres"
+        if candidate.is_dir():
+            sql_dir = candidate
+            break
+    if sql_dir is None:
+        raise SystemExit("Could not find infra/postgres")
+    files = sorted(
+        p
+        for p in sql_dir.glob("*.sql")
+        if p.name[:3].isdigit() and int(p.name[:3]) >= 4
+    )
+    files += sorted((sql_dir / "analytics").glob("*.sql")) if (sql_dir / "analytics").is_dir() else []
+    store = PostgresStore(dsn=settings.database_url)
+    applied = []
+    for path in files:
+        n = store.apply_sql(path.read_text())
+        applied.append({"path": str(path), "statements": n})
+    click.echo(json.dumps({"applied": applied}, indent=2))
+
+
+@cli.command("merge-people")
+def merge_people_cmd() -> None:
+    """Collapse duplicate people whose core names match after honorifics."""
+    from aus_gov_ingest.db.postgres import PostgresStore
+
+    store = PostgresStore()
+    click.echo(json.dumps(store.merge_duplicate_people(), indent=2))
+
+
+@cli.command("seed-demo-board")
+def seed_demo_board_cmd() -> None:
+    """Pin FOI/procurement chunk hits onto the demo board (idempotent)."""
+    from pathlib import Path
+
+    from aus_gov_ingest.config import settings
+    from aus_gov_ingest.db.postgres import PostgresStore
+
+    root = Path(__file__).resolve()
+    sql_path = None
+    for parent in root.parents:
+        candidate = parent / "infra" / "postgres" / "006_demo_board.sql"
+        if candidate.is_file():
+            sql_path = candidate
+            break
+    if sql_path is None:
+        raise SystemExit("Could not find infra/postgres/006_demo_board.sql")
+    store = PostgresStore(dsn=settings.database_url)
+    n = store.apply_sql(sql_path.read_text())
+    click.echo(json.dumps({"ok": True, "sql": str(sql_path), "statements": n}, indent=2))
+
+
 def main(argv: list[str] | None = None) -> None:
     cli.main(args=argv, prog_name="ingest")
 
