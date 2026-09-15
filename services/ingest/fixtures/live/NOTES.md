@@ -35,6 +35,9 @@ DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 `--path` accepts a directory of `*.json` or a single transcript file.
 `AUS_GOV_TRANSCRIPT_PATH` overrides the default directory.
 
+Offline dry-run from these files (`dry_run_aph_transcript_file.json`) matches the
+live Estimates Official char counts (29629 ≈ 508k, 29625 ≈ 431k, 29617 ≈ 336k).
+
 ## Fetch matrix
 
 Proven from this environment (cloud VM, datacentre IP):
