@@ -184,11 +184,11 @@ The product is becoming a **decision / duty map**: who held which office when (e
 
 | Layer | Postgres | Ingest `--source` |
 | --- | --- | --- |
-| Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` |
-| Agencies | `agencies` | handbook / AAO (later) |
-| Instruments | `instruments`, `instrument_links` | `budget_measure`, `austender` |
-| Scrutiny | `scrutiny_items`, `qons`, `claims` | `qon`, Stage 1 hearings |
-| Outcomes | `outcomes` (stubs) | `anao` |
+| Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` (live OData + fixture fallback) |
+| Agencies | `agencies` | `agencies` (official-name stubs) |
+| Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); later `budget_measure`, `austender` |
+| Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments` | `qon` (EQON), Stage 1 hearings |
+| Outcomes | `outcomes` (stubs) | `anao` (stub) |
 
 Web: **Accountability** in the nav. Lenses (safe with zero rows):
 
@@ -198,17 +198,20 @@ Web: **Accountability** in the nav. Lenses (safe with zero rows):
 4. Chain completeness — `/accountability/chain-completeness`
 5. Instruments explorer — `/accountability/instruments`
 
-APIs under `/api/accountability/*` read the views in `infra/postgres/analytics/accountability_*.sql` when present.
+APIs under `/api/accountability/*` read the views in `infra/postgres/analytics/accountability_*.sql` when present. `GET /api/qon` lists foundation `qons`.
 
 ```bash
-make db-apply   # 007_accountability.sql + views on an existing volume
-python -m aus_gov_ingest run --source handbook --dry-run
-python -m aus_gov_ingest run --source qon --dry-run
-# Optional live Handbook OData probe (never invents people):
-HANDBOOK_LIVE=1 python -m aus_gov_ingest run --source handbook --limit 5 --dry-run
+make db-apply   # 007_accountability.sql + 008_hearing_segments.sql + views
+cd services/ingest
+python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
+python -m aus_gov_ingest run --source qon --limit 10 --dry-run
+python -m aus_gov_ingest run --source agencies --dry-run
+python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
+# or while ingesting Officials:
+python -m aus_gov_ingest run --source aph_transcript_file --limit 1 --dry-run --propose-instruments
 ```
 
-Stage 1 hearings plug in as dated scrutiny: `hearings.held_on` overlaps `person_roles`; chunk spans become `claims`. Appearance at Estimates is **not** a tenure.
+Estimates Official ingest also writes `hearing_segments` (portfolio / agency headers, speaker turns, taken-on-notice markers). Instrument candidates from text are **proposed only**. APS secretaries are not in the Handbook. Appearance at Estimates is **not** a tenure.
 
 ## Graph model
 
@@ -223,12 +226,14 @@ See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `T
 ## Later (not in this foundation)
 
 - Full historical backfill of Hansard
-- Wiring QoN / ANAO / PBS / AusTender adapters to real extracts
+- Wiring ANAO / PBS / AusTender adapters to real extracts
+- Questions on notice answers at scale (EQON has 176k+ rows; ingest is capped)
 - OpenAustralia / TheyWorkForYou-AU XML
 - GrantConnect + legislation API + TheyVoteForYou divisions
+- Asserted bills / instruments (this repo only proposes candidates from text)
+- APS secretary biographies
 - Auth-backed shared boards
 - Production deploy
-- Promoting Handbook OData into `person_roles` / `handbook_*` upserts
 
 ## Tests
 

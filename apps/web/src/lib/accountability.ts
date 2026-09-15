@@ -399,3 +399,189 @@ export const LENSES = [
   { href: "/accountability/chain-completeness", label: "Chain completeness" },
   { href: "/accountability/instruments", label: "Instruments" },
 ];
+
+export type QonStatus = "open" | "answered" | "overdue" | "refused" | "unknown";
+
+export type QonRow = {
+  sourceKey: string;
+  qonNumber: string | null;
+  portfolioQuestionNumber: string | null;
+  portfolio: string | null;
+  agencyName: string | null;
+  askedBy: string | null;
+  askedOn: string | null;
+  dueOn: string | null;
+  answeredOn: string | null;
+  status: QonStatus;
+  sourceUrl: string | null;
+  committeeName: string | null;
+  estimatesRound: string | null;
+  questionRef: string | null;
+  answerRef: string | null;
+};
+
+export type QonPortfolioCount = {
+  portfolio: string;
+  questionCount: number;
+  openCount: number;
+  answeredCount: number;
+  overdueCount: number;
+  unknownCount: number;
+  refusedCount: number;
+};
+
+export async function loadQon(limit = 40): Promise<{
+  source: "postgres" | "unavailable";
+  questions: QonRow[];
+  byPortfolio: QonPortfolioCount[];
+}> {
+  if (!(await postgresAvailable())) {
+    return { source: "unavailable", questions: [], byPortfolio: [] };
+  }
+  try {
+    const [rows, counts] = await Promise.all([
+      query<Record<string, unknown>>(
+        `
+        SELECT q.source_key, q.number AS qon_number, q.portfolio,
+               a.name AS agency_name, q.asking_member, q.asked_on, q.due_on,
+               q.answered_on, q.status, q.source_url, q.question_ref, q.answer_ref,
+               q.identifiers
+        FROM qons q
+        LEFT JOIN agencies a ON a.id = q.answering_agency_id
+        ORDER BY q.asked_on DESC NULLS LAST, q.number
+        LIMIT $1
+        `,
+        [limit],
+      ).catch(async () =>
+        query<Record<string, unknown>>(
+          `
+          SELECT q.source_key, q.number AS qon_number, q.portfolio,
+                 a.name AS agency_name, q.asking_member, q.asked_on, q.due_on,
+                 q.answered_on, q.status, q.source_url, q.question_ref, q.answer_ref
+          FROM qons q
+          LEFT JOIN agencies a ON a.id = q.answering_agency_id
+          ORDER BY q.asked_on DESC NULLS LAST, q.number
+          LIMIT $1
+          `,
+          [limit],
+        ),
+      ),
+      query<Record<string, unknown>>(`
+        SELECT portfolio,
+               qon_count AS question_count,
+               openish_count AS open_count,
+               answered_count,
+               overdue_count,
+               refused_count
+        FROM v_accountability_qon_debt
+        ORDER BY overdue_count DESC, openish_count DESC, portfolio
+      `).catch(async () =>
+        query<Record<string, unknown>>(`
+          SELECT COALESCE(q.portfolio, '(unspecified portfolio)') AS portfolio,
+                 COUNT(*)::int AS question_count,
+                 COUNT(*) FILTER (WHERE q.status IN ('open', 'unknown'))::int AS open_count,
+                 COUNT(*) FILTER (WHERE q.status = 'answered')::int AS answered_count,
+                 COUNT(*) FILTER (WHERE q.status = 'overdue')::int AS overdue_count,
+                 COUNT(*) FILTER (WHERE q.status = 'refused')::int AS refused_count
+          FROM qons q
+          GROUP BY 1
+          ORDER BY question_count DESC, portfolio
+        `),
+      ),
+    ]);
+    return {
+      source: "postgres",
+      questions: rows.map((row) => {
+        const identifiers = (row.identifiers as Record<string, unknown> | null) || {};
+        return {
+          sourceKey: String(row.source_key),
+          qonNumber: (row.qon_number as string | null) ?? null,
+          portfolioQuestionNumber:
+            (identifiers.portfolio_question_number as string | null) ?? null,
+          portfolio: (row.portfolio as string | null) ?? null,
+          agencyName: (row.agency_name as string | null) ?? null,
+          askedBy: (row.asking_member as string | null) ?? null,
+          askedOn: dateOnly(row.asked_on),
+          dueOn: dateOnly(row.due_on),
+          answeredOn: dateOnly(row.answered_on),
+          status: (row.status as QonStatus) || "unknown",
+          sourceUrl: (row.source_url as string | null) ?? null,
+          committeeName: (identifiers.committee_name as string | null) ?? null,
+          estimatesRound: (identifiers.estimates_round as string | null) ?? null,
+          questionRef: (row.question_ref as string | null) ?? null,
+          answerRef: (row.answer_ref as string | null) ?? null,
+        };
+      }),
+      byPortfolio: counts.map((row) => ({
+        portfolio: String(row.portfolio),
+        questionCount: Number(row.question_count ?? 0),
+        openCount: Number(row.open_count ?? 0),
+        answeredCount: Number(row.answered_count ?? 0),
+        overdueCount: Number(row.overdue_count ?? 0),
+        unknownCount: Number(row.unknown_count ?? 0),
+        refusedCount: Number(row.refused_count ?? 0),
+      })),
+    };
+  } catch {
+    return { source: "unavailable", questions: [], byPortfolio: [] };
+  }
+}
+
+export type AccountabilitySummary = {
+  source: "postgres" | "unavailable";
+  agencies: number;
+  handbookEntries: number;
+  questions: number;
+  instrumentsProposed: number;
+  hearingSegments: number;
+  qonByPortfolio: QonPortfolioCount[];
+};
+
+export async function loadAccountabilitySummary(): Promise<AccountabilitySummary> {
+  const empty: AccountabilitySummary = {
+    source: "unavailable",
+    agencies: 0,
+    handbookEntries: 0,
+    questions: 0,
+    instrumentsProposed: 0,
+    hearingSegments: 0,
+    qonByPortfolio: [],
+  };
+  if (!(await postgresAvailable())) {
+    return empty;
+  }
+  try {
+    const [counts, qon] = await Promise.all([
+      query<Record<string, unknown>>(`
+        SELECT
+          (SELECT COUNT(*)::int FROM agencies) AS agencies,
+          (SELECT COUNT(*)::int FROM handbook_entries) AS handbook_entries,
+          (SELECT COUNT(*)::int FROM qons) AS questions,
+          (SELECT COUNT(*)::int FROM instruments WHERE COALESCE(status, '') = 'proposed') AS instruments_proposed,
+          (SELECT COUNT(*)::int FROM hearing_segments) AS hearing_segments
+      `).catch(async () =>
+        query<Record<string, unknown>>(`
+          SELECT
+            (SELECT COUNT(*)::int FROM agencies) AS agencies,
+            (SELECT COUNT(*)::int FROM handbook_entries) AS handbook_entries,
+            (SELECT COUNT(*)::int FROM qons) AS questions,
+            (SELECT COUNT(*)::int FROM instruments) AS instruments_proposed,
+            0::int AS hearing_segments
+        `),
+      ),
+      loadQon(1),
+    ]);
+    const row = counts[0] || {};
+    return {
+      source: "postgres",
+      agencies: Number(row.agencies ?? 0),
+      handbookEntries: Number(row.handbook_entries ?? 0),
+      questions: Number(row.questions ?? 0),
+      instrumentsProposed: Number(row.instruments_proposed ?? 0),
+      hearingSegments: Number(row.hearing_segments ?? 0),
+      qonByPortfolio: qon.byPortfolio,
+    };
+  } catch {
+    return empty;
+  }
+}

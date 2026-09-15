@@ -1,0 +1,43 @@
+{
+  "Id": 199764,
+  "Number": 96,
+  "PortfolioQuestionNumber": "SE25-0096",
+  "AskedDate": "2025-10-08T00:00:00",
+  "AnsweredDate": "2025-12-09T00:00:00",
+  "DueDate": "2025-11-28T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Claire",
+      "Initials": "C.",
+      "Surname": "Chandler",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Home Affairs",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Legal and Constitutional Affairs",
+  "CommitteeId": 6,
+  "Portfolio": "Home Affairs",
+  "PortfolioId": 20,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "Senator CHANDLER: How many Nauruan visas has the Australian government applied for under the MOU dealing with the NZYQ cohort?<br>Ms Sharp: I will need to take that question on notice. The reason for that is that it's really going very much to an operational matter for the department, in terms of the rate and cadence at which visas are being applied for and <br>dealt with.<br>Senator CHANDLER: I would have thought the department would have had a pretty good guess that this topic was going to come up at estimates. Can I also have on notice what dates those visas were applied for. Would <br>it be fair to assume that you've applied for a visa for this entire cohort at this point in time or for only part of that cohort?<br>Ms Sharp: Senator-<br>Senator CHANDLER: Can you at least confirm for me roughly what percentage it might be?<br>Ms Sharp: We're working in a planned way to address this. We need to do this in a way that will be sustainable for both systems-the Australian system and the Nauruan system-and, in that regard, it wouldn't be <br>correct to assume we've applied for all of the visas in one go.<br>Senator CHANDLER: So you haven't applied for all of the visas for this cohort yet, despite the fact they're incredibly dangerous individuals that we need to get off our streets.<br>Ms Foster: I think what Ms Sharp was saying before was not that she did not know the answer but that she was precluded from giving the answer so that she could protect the operational and safety aspects of the work we <br>do, as we are detaining people who have had visas issued.<br>Senator CHANDLER: But, from the sounds of it, as the evidence of the department here tonight, the entire cohort has not yet been dealt with in terms of visa applications.<br>Ms Sharp: That's correct. The entire cohort has not yet been dealt with.<br>Senator CHANDLER: I'm assuming you're not also not going to be able to tell me how many individuals have been granted visas under the MOU.<br>Ms Sharp: That's right. We'll take that on notice to consider the operational impact of providing that information.<br>Senator CHANDLER: Are you able to tell me whether any individuals in the NZYQ cohort have left Australia for that Nauru yet?<br>Ms Sharp: No.<br>Senator CHANDLER: Sorry, you're not able to tell me?<br>Ms Sharp: I'd take that on notice in the same way.<br>Senator CHANDLER: Again, if you're taking it on notice, it would be useful to know when those individuals left this country. Is there a limit to how \u2026",
+  "BroadTopic": "NZYQ cohort transferred to Nauru",
+  "AnswerText": "Please see the attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 185687,
+  "ProofHansardPage": "111-112",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=6&estimatesroundid=28&portfolioid=20&number=96",
+  "_download_url": "https://www.aph.gov.au/api/qon/downloadestimatesquestions/EstimatesQuestion-CommitteeId6-EstimatesRoundId28-PortfolioId20-QuestionNumber96"
+}

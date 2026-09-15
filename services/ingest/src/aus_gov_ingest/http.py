@@ -136,3 +136,54 @@ class AphClient:
         response = self.get(url, **kwargs)
         response.raise_for_status()
         return response.json()
+
+    def post(
+        self,
+        url: str,
+        *,
+        data: dict[str, str] | None = None,
+        json_body: Any | None = None,
+        headers: dict[str, str] | None = None,
+        referer: str | None = None,
+        content_type: str | None = None,
+    ) -> httpx.Response:
+        extra = dict(headers or {})
+        if referer:
+            extra["Referer"] = referer
+        if content_type:
+            extra["Content-Type"] = content_type
+        last_error: Exception | None = None
+        for attempt in range(self.max_retries):
+            ua = self.user_agents[min(attempt, len(self.user_agents) - 1)]
+            request_headers = {**BROWSER_HEADERS, "User-Agent": ua, **extra}
+            self._throttle()
+            try:
+                if json_body is not None:
+                    response = self._client.post(url, headers=request_headers, json=json_body)
+                else:
+                    response = self._client.post(url, headers=request_headers, data=data)
+                self._last_request_at = time.monotonic()
+            except httpx.HTTPError as exc:
+                last_error = exc
+                time.sleep(min(2**attempt, 8))
+                continue
+            if response.status_code == 403 and attempt + 1 < self.max_retries:
+                time.sleep(min(1.5 * (attempt + 1), 6))
+                continue
+            if response.status_code in {429, 500, 502, 503, 504} and attempt + 1 < self.max_retries:
+                time.sleep(min(2**attempt, 8))
+                continue
+            return response
+        if last_error:
+            raise last_error
+        raise RuntimeError(f"Failed to POST {url}")
+
+    def post_form(self, url: str, data: dict[str, str], **kwargs: Any) -> Any:
+        extra = dict(kwargs.get("headers") or {})
+        extra.setdefault("Accept", "application/json, text/javascript, */*;q=0.8")
+        extra.setdefault("X-Requested-With", "XMLHttpRequest")
+        kwargs["headers"] = extra
+        kwargs.setdefault("content_type", "application/x-www-form-urlencoded")
+        response = self.post(url, data=data, **kwargs)
+        response.raise_for_status()
+        return response.json()

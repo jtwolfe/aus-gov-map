@@ -76,9 +76,9 @@ export default function AccountabilityPage() {
 
       <LensNeeded
         needed={{
-          note: "Lenses read Postgres views when 007_accountability.sql has been applied. Sparse data is correct. Ingest adapters handbook, qon, anao, budget_measure, and austender are registered; they do not invent officials or findings.",
+          note: "Lenses read Postgres views when 007_accountability.sql and 008_hearing_segments.sql have been applied. Handbook, QoN, agencies, and instrument_propose now write into that model. ANAO / PBS / AusTender stay empty stubs. Sparse data is correct; nothing invents officials or findings.",
           apply: "make db-apply",
-          sources: ["handbook", "qon", "anao", "budget_measure", "austender"],
+          sources: ["handbook", "qon", "agencies", "instrument_propose", "anao", "budget_measure", "austender"],
           tables: ["person_roles", "instruments", "qons", "claims", "scrutiny_items"],
         }}
       />

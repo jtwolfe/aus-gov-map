@@ -1,0 +1,34 @@
+{
+  "source": "instrument_propose",
+  "fetched": 8,
+  "upserted": 0,
+  "chunks": 0,
+  "status": "dry_run",
+  "error": null,
+  "meta": {
+    "dry_run": true,
+    "embedder": "hash",
+    "titles": [],
+    "held_on": [],
+    "with_transcript": 0,
+    "people": [],
+    "handbook_entries": 0,
+    "handbook_roles": 0,
+    "handbook_tenure": 0,
+    "agencies": 0,
+    "questions": 0,
+    "instruments": 8,
+    "segments": 0,
+    "estimated_chunks": 0,
+    "chunks_with_speaker": 0,
+    "status": "proposed_only",
+    "path": "fixtures/live/transcripts/28778.json",
+    "hearings_scanned": 1,
+    "proposed": 8,
+    "by_kind": {
+      "program": 6,
+      "contract": 2
+    },
+    "note": "Candidates only. Low confidence. Linked to chunk source_key when Officials have been ingested. Human review required."
+  }
+}

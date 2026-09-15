@@ -5,7 +5,18 @@ from dataclasses import dataclass
 
 
 _SPEAKER = re.compile(
-    r"^(?P<speaker>CHAIR|WITNESS|Prof\.?\s+\w+|Ms\.?\s+\w+|Mr\.?\s+\w+|Senator(?:\s+the\s+Hon)?\s+[\w']+):\s*",
+    r"^(?P<speaker>"
+    r"CHAIR(?:\s*\([^)]+\))?"
+    r"|DEPUTY\s+CHAIR(?:\s*\([^)]+\))?"
+    r"|ACTING\s+CHAIR(?:\s*\([^)]+\))?"
+    r"|WITNESS"
+    r"|Prof(?:essor|\.)?\s+[\w'-]+"
+    r"|Dr\.?\s+[\w'-]+"
+    r"|Ms\.?\s+[\w'-]+"
+    r"|Mr\.?\s+[\w'-]+"
+    r"|Mrs\.?\s+[\w'-]+"
+    r"|Senator(?:\s+the\s+Hon(?:ourable)?)?\s+[\w'-]+"
+    r"):\s*",
     re.IGNORECASE,
 )
 
@@ -16,6 +27,27 @@ class Chunk:
     content: str
     speaker_name: str | None
     token_count: int
+    portfolio: str | None = None
+    agency: str | None = None
+    taken_on_notice: bool = False
+
+
+def extract_speaker(text: str) -> str | None:
+    """Return a speaker label from the start of an Official line, if any."""
+    if not text:
+        return None
+    first = text.split("\n", 1)[0]
+    match = _SPEAKER.match(first)
+    if match:
+        return re.sub(r"\s+", " ", match.group("speaker")).strip()
+    if ":" in first:
+        label = first.split(":", 1)[0].strip()
+        if 1 < len(label) <= 80 and not label.lower().startswith("http"):
+            # Avoid treating ordinary sentences as speakers.
+            if _SPEAKER.match(label + ": ") or label.isupper() or label[:1].isupper():
+                if len(label.split()) <= 8:
+                    return label
+    return None
 
 
 def chunk_text(text: str, max_chars: int = 900, overlap: int = 80) -> list[Chunk]:
@@ -36,17 +68,11 @@ def chunk_text(text: str, max_chars: int = 900, overlap: int = 80) -> list[Chunk
 
     chunks: list[Chunk] = []
     for idx, content in enumerate(packed):
-        speaker = None
-        match = _SPEAKER.match(content)
-        if match:
-            speaker = re.sub(r"\s+", " ", match.group("speaker")).strip()
-        elif ":" in content.split("\n", 1)[0]:
-            speaker = content.split(":", 1)[0].strip()[:80]
         chunks.append(
             Chunk(
                 index=idx,
                 content=content,
-                speaker_name=speaker,
+                speaker_name=extract_speaker(content),
                 token_count=max(1, len(content.split())),
             )
         )

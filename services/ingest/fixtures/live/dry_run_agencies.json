@@ -1,0 +1,31 @@
+{
+  "source": "agencies",
+  "fetched": 25,
+  "upserted": 0,
+  "chunks": 0,
+  "status": "dry_run",
+  "error": null,
+  "meta": {
+    "dry_run": true,
+    "embedder": "hash",
+    "titles": [],
+    "held_on": [],
+    "with_transcript": 0,
+    "people": [],
+    "handbook_entries": 0,
+    "handbook_roles": 0,
+    "handbook_tenure": 0,
+    "agencies": 25,
+    "questions": 0,
+    "instruments": 0,
+    "segments": 0,
+    "estimated_chunks": 0,
+    "chunks_with_speaker": 0,
+    "status": "ok",
+    "path": "fixtures/live/agencies.json",
+    "source_url": "https://www.directory.gov.au/reports/australian-government-organisations-register",
+    "note": "Secretaries and other APS SES are not listed here. Parliamentary Handbook covers parliamentarians only.",
+    "license_note": "Official Commonwealth department and parliamentary department names. Sources: Directory.gov.au / Administrative Arrangements. Not a complete AGOR dump.",
+    "gaps": "Secretaries / SES are not seeded. Parliamentary Handbook is parliamentarians only; use directory.gov.au or an APS source."
+  }
+}

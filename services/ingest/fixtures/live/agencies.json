@@ -1,0 +1,32 @@
+{
+  "license_note": "Official Commonwealth department and parliamentary department names. Sources: Directory.gov.au / Administrative Arrangements. Not a complete AGOR dump.",
+  "source_url": "https://www.directory.gov.au/reports/australian-government-organisations-register",
+  "note": "Secretaries and other APS SES are not listed here. Parliamentary Handbook covers parliamentarians only.",
+  "agencies": [
+    {"slug": "attorney-generals", "name": "Attorney-General's Department", "short_code": "AG", "portfolio": "Attorney-General's", "kind": "department", "source_url": "https://www.ag.gov.au/"},
+    {"slug": "agriculture-fisheries-forestry", "name": "Department of Agriculture, Fisheries and Forestry", "short_code": "DAFF", "portfolio": "Agriculture, Fisheries and Forestry", "kind": "department", "source_url": "https://www.agriculture.gov.au/"},
+    {"slug": "climate-change-energy-environment-water", "name": "Department of Climate Change, Energy, the Environment and Water", "short_code": "DCCEEW", "portfolio": "Climate Change, Energy, the Environment and Water", "kind": "department", "source_url": "https://www.dcceew.gov.au/"},
+    {"slug": "defence", "name": "Department of Defence", "short_code": "Defence", "portfolio": "Defence", "kind": "department", "source_url": "https://www.defence.gov.au/"},
+    {"slug": "education", "name": "Department of Education", "short_code": "Education", "portfolio": "Education", "kind": "department", "source_url": "https://www.education.gov.au/"},
+    {"slug": "employment-workplace-relations", "name": "Department of Employment and Workplace Relations", "short_code": "DEWR", "portfolio": "Employment and Workplace Relations", "kind": "department", "source_url": "https://www.dewr.gov.au/"},
+    {"slug": "finance", "name": "Department of Finance", "short_code": "Finance", "portfolio": "Finance", "kind": "department", "source_url": "https://www.finance.gov.au/"},
+    {"slug": "foreign-affairs-trade", "name": "Department of Foreign Affairs and Trade", "short_code": "DFAT", "portfolio": "Foreign Affairs and Trade", "kind": "department", "source_url": "https://www.dfat.gov.au/"},
+    {"slug": "health-disability-ageing", "name": "Department of Health, Disability and Ageing", "short_code": "Health", "portfolio": "Health, Disability and Ageing", "kind": "department", "source_url": "https://www.health.gov.au/"},
+    {"slug": "home-affairs", "name": "Department of Home Affairs", "short_code": "Home Affairs", "portfolio": "Home Affairs", "kind": "department", "source_url": "https://www.homeaffairs.gov.au/"},
+    {"slug": "industry-science-resources", "name": "Department of Industry, Science and Resources", "short_code": "DISR", "portfolio": "Industry, Science and Resources", "kind": "department", "source_url": "https://www.industry.gov.au/"},
+    {"slug": "infrastructure-transport-rd-comms-arts", "name": "Department of Infrastructure, Transport, Regional Development, Communications and the Arts", "short_code": "DITRDCA", "portfolio": "Infrastructure, Transport, Regional Development, Communications, Sport and the Arts", "kind": "department", "source_url": "https://www.infrastructure.gov.au/"},
+    {"slug": "prime-minister-cabinet", "name": "Department of the Prime Minister and Cabinet", "short_code": "PM&C", "portfolio": "Prime Minister and Cabinet", "kind": "department", "source_url": "https://www.pmc.gov.au/"},
+    {"slug": "social-services", "name": "Department of Social Services", "short_code": "DSS", "portfolio": "Social Services", "kind": "department", "source_url": "https://www.dss.gov.au/"},
+    {"slug": "treasury", "name": "Department of the Treasury", "short_code": "Treasury", "portfolio": "Treasury", "kind": "department", "source_url": "https://treasury.gov.au/"},
+    {"slug": "veterans-affairs", "name": "Department of Veterans' Affairs", "short_code": "DVA", "portfolio": "Veterans' Affairs", "kind": "department", "source_url": "https://www.dva.gov.au/"},
+    {"slug": "parliamentary-services", "name": "Department of Parliamentary Services", "short_code": "DPS", "portfolio": "Parliamentary Departments", "kind": "parliamentary_department", "source_url": "https://www.aph.gov.au/About_Parliament/Parliamentary_Departments/Department_of_Parliamentary_Services"},
+    {"slug": "department-of-the-senate", "name": "Department of the Senate", "short_code": "Senate", "portfolio": "Parliamentary Departments", "kind": "parliamentary_department", "source_url": "https://www.aph.gov.au/About_Parliament/Parliamentary_Departments/Department_of_the_Senate"},
+    {"slug": "department-of-the-house", "name": "Department of the House of Representatives", "short_code": "House", "portfolio": "Parliamentary Departments", "kind": "parliamentary_department", "source_url": "https://www.aph.gov.au/About_Parliament/Parliamentary_Departments/Department_of_the_House_of_Representatives"},
+    {"slug": "parliamentary-budget-office", "name": "Parliamentary Budget Office", "short_code": "PBO", "portfolio": "Parliamentary Departments", "kind": "parliamentary_department", "source_url": "https://www.aph.gov.au/About_Parliament/Parliamentary_Departments/Parliamentary_Budget_Office"},
+    {"slug": "australian-public-service-commission", "name": "Australian Public Service Commission", "short_code": "APSC", "portfolio": "Prime Minister and Cabinet", "kind": "agency", "source_url": "https://www.apsc.gov.au/", "notes": "APS employer. Secretaries are not in the Parliamentary Handbook."},
+    {"slug": "australian-national-audit-office", "name": "Australian National Audit Office", "short_code": "ANAO", "portfolio": "Finance", "kind": "agency", "source_url": "https://www.anao.gov.au/"},
+    {"slug": "australian-taxation-office", "name": "Australian Taxation Office", "short_code": "ATO", "portfolio": "Treasury", "kind": "agency", "source_url": "https://www.ato.gov.au/"},
+    {"slug": "australian-electoral-commission", "name": "Australian Electoral Commission", "short_code": "AEC", "portfolio": "Finance", "kind": "agency", "source_url": "https://www.aec.gov.au/"},
+    {"slug": "national-indigenous-australians-agency", "name": "National Indigenous Australians Agency", "short_code": "NIAA", "portfolio": "Prime Minister and Cabinet", "kind": "agency", "source_url": "https://www.niaa.gov.au/"}
+  ]
+}

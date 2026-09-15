@@ -1,0 +1,44 @@
+{
+  "source": "qon",
+  "fetched": 5,
+  "upserted": 0,
+  "chunks": 0,
+  "status": "dry_run",
+  "error": null,
+  "meta": {
+    "dry_run": true,
+    "embedder": "hash",
+    "titles": [],
+    "held_on": [],
+    "with_transcript": 0,
+    "people_sample": [],
+    "handbook_entries": 0,
+    "handbook_roles": 0,
+    "handbook_tenure": 0,
+    "agencies": 0,
+    "questions": 5,
+    "instruments": 0,
+    "segments": 0,
+    "estimated_chunks": 0,
+    "chunks_with_speaker": 0,
+    "status": "ok",
+    "home": "https://www.aph.gov.au/Parliamentary_Business/Senate_Estimates/eqon",
+    "transport": "eqon_api",
+    "license_note": "\u00a9 Commonwealth of Australia. Senate Estimates Questions on Notice. Typically CC BY-NC-ND \u2014 attribute the Parliament of Australia.",
+    "research": {
+      "aph_eqon": "https://www.aph.gov.au/Parliamentary_Business/Senate_Estimates/eqon",
+      "aph_search_api": "https://www.aph.gov.au/api/qon/getestimatesdata",
+      "openaustralia": "no Estimates QoN feed",
+      "bulk_zip": "My Parliament sign-in required"
+    },
+    "limit": 5,
+    "skipped_existing": 0,
+    "errors": [],
+    "by_portfolio": {
+      "Health, Disability and Ageing": 5
+    },
+    "by_status": {
+      "answered": 5
+    }
+  }
+}

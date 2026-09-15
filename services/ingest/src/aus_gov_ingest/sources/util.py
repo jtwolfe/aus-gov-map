@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import date, datetime, timezone
 from html import unescape
 
 _DATE_LONG = re.compile(
@@ -48,3 +48,35 @@ def parse_date(text: str):
         except ValueError:
             pass
     return None
+
+
+_MS_DATE = re.compile(r"/Date\((?P<ms>-?\d+)\)/")
+_SENTINEL_DATES = {date(1900, 1, 1), date(1, 1, 1)}
+
+
+def parse_flexible_date(value, *, open_if_today: bool = False) -> date | None:
+    """Parse Handbook / EQON dates (ISO, DMY, or .NET `/Date(ms)/`)."""
+    if value in (None, "", 0):
+        return None
+    if isinstance(value, date) and not isinstance(value, datetime):
+        parsed = value
+    elif isinstance(value, datetime):
+        parsed = value.date()
+    else:
+        raw = str(value).strip()
+        match = _MS_DATE.search(raw)
+        if match:
+            parsed = datetime.fromtimestamp(int(match.group(1)) / 1000, tz=timezone.utc).date()
+        elif "T" in raw:
+            try:
+                parsed = datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+            except ValueError:
+                parsed = parse_date(raw)
+        else:
+            parsed = parse_date(raw)
+    if parsed is None or parsed in _SENTINEL_DATES:
+        return None
+    if open_if_today and parsed >= date.today():
+        # Handbook often stamps "still serving" as today's date.
+        return None
+    return parsed

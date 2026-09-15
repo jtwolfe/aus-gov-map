@@ -121,3 +121,35 @@ is unreachable from this IP:
 export `INGEST_FALLBACK_FIXTURE=0` in that environment too.
 
 Equivalent one-shot from the repo root: `make ingest-backfill-files`.
+
+## Accountability pipeline dry-runs (2026-09-15)
+
+Recorded from this environment. Persist with `DATABASE_URL` set and **omit** `--dry-run`.
+See `docs/accountability-map.md` for real vs proposed.
+
+```bash
+# Handbook — live OData (also: --path fixtures/live/handbook)
+python -m aus_gov_ingest run --source handbook --limit 5 --dry-run
+# recorded: dry_run_handbook_live.json — fetched 5, roles 29, tenure 18, transport=handbookapi
+
+# QoN — live EQON search (also: --path fixtures/live/qon)
+python -m aus_gov_ingest run --source qon --limit 5 --dry-run
+# recorded: dry_run_qon_live.json — fetched 5, transport=eqon_api
+
+# Agency stubs
+python -m aus_gov_ingest run --source agencies --dry-run
+# recorded: dry_run_agencies.json — fetched 25 official-name rows
+
+# Structured Estimates segments (same Official, annotated)
+python -m aus_gov_ingest run --source aph_transcript_file \
+  --path fixtures/transcript_fpa_28778_excerpt.json --dry-run
+# recorded: dry_run_segments.json — 7 segments (portfolio/agency/speaker/QoN markers)
+
+# Proposed instruments (not asserted facts)
+python -m aus_gov_ingest run --source instrument_propose \
+  --path fixtures/live/transcripts/28778.json --dry-run
+# recorded: dry_run_instrument_propose.json — 8 proposed (6 program, 2 contract)
+```
+
+Handbook does **not** include APS secretaries. OpenAustralia has **no** Estimates QoN feed.
+EQON bulk ZIP downloads require My Parliament sign-in; ingest uses the public search API.

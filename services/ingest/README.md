@@ -29,6 +29,12 @@ INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source senate_committee
 
 # Cron-friendly incremental Estimates
 python -m aus_gov_ingest cron
+
+# Accountability pipelines (dry-run; persist when DATABASE_URL is set)
+python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
+python -m aus_gov_ingest run --source qon --limit 10 --dry-run
+python -m aus_gov_ingest run --source agencies --dry-run
+python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
 ```
 
 `ingest` and `aus-gov-ingest` are the same console script after install.
@@ -43,8 +49,10 @@ python -m aus_gov_ingest cron
 | `estimates_schedule` | Same as `estimates`, tagged for cron / “what's new” |
 | `senate_committee` | APH Hansard Search (`chi=6`, `commsen`) + transcript API; Senate index HTML as listing fallback |
 | `openaustralia` | Hook only — chamber XML at data.openaustralia.org.au does not include Estimates |
-| `handbook` | Parliamentary Handbook OData — empty unless `HANDBOOK_LIVE=1`; parser maps returned individuals only. Schema: `005_handbook.sql` + `007_accountability.sql` |
-| `qon` | Questions on notice stub — empty `qons` / scrutiny. No invented answers |
+| `handbook` | Parliamentary Handbook OData (`handbookapi.aph.gov.au`) — people, chamber tenure, party, ministries. Fixture fallback: `fixtures/live/handbook/`. Promotes into `person_roles`. Secretaries are out of scope. |
+| `qon` | Senate Estimates EQON search (`/api/qon/getestimatesdata`) or `fixtures/live/qon/` into foundation `qons`. Status: open / answered / overdue / unknown. |
+| `agencies` | Official department / agency stubs (`fixtures/live/agencies.json`) upserted into foundation `agencies`. |
+| `instrument_propose` | Regex candidates from Officials (bills, programs, contract/grant mentions). **Proposed only** (`instruments.status`). |
 | `anao` | Auditor-General stub — empty scrutiny / outcomes. No invented findings |
 | `budget_measure` | Budget / PBS stub — empty instruments. No invented amounts |
 | `austender` | AusTender CN stub — empty contracts. GrantConnect documented as sibling |
@@ -117,7 +125,7 @@ python -m aus_gov_ingest apply-schema
 python -m aus_gov_ingest seed-demo-board
 ```
 
-That creates analytics views, Handbook stub tables, Stage 2 accountability tables (`007`), a unique pins index, and the FOI/procurement demo board.
+That creates analytics views, Handbook tables, Stage 2 accountability tables (`007` + `008` hearing segments), a unique pins index, and the FOI/procurement demo board.
 
 ## Graph
 

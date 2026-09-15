@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 
 from aus_gov_ingest.http import AphClient
 from aus_gov_ingest.models import AppearanceIn, CommitteeIn, DocumentIn, HearingIn, PersonIn
+from aus_gov_ingest.segments import dominant_portfolio, parse_official_segments
 from aus_gov_ingest.people import (
     canonical_slug,
     infer_role,
@@ -268,6 +269,7 @@ def hearing_from_transcript(
     held_on = parse_date(str(date_text or "")) or parse_date(hit.title)
     talk_html = payload.get("TalkText") or ""
     content = html_to_text(talk_html)
+    segments = parse_official_segments(talk_html, fallback_text=content)
     committee = _committee_from_title(main_title or hit.title, kind=hit.kind, aph_url=hit.display_url)
     doc_id = document_id(hit.bid)
     system_id = payload.get("SystemId") or f"{hit.bid}{hit.sid}"
@@ -302,9 +304,11 @@ def hearing_from_transcript(
             f"Official Hansard via APH /api/hansard/transcript ({system_id})."
             + (f" ParlInfo XML (WAF-gated from some IPs): {xml_link}" if xml_link else "")
         )[:500],
+        portfolio=dominant_portfolio(segments),
         committee=committee,
         people=_people_from_official(content),
         documents=documents,
+        segments=segments,
     )
 
 

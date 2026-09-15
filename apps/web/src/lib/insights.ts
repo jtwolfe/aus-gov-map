@@ -1,3 +1,4 @@
+import { loadQon, type QonPortfolioCount } from "./accountability";
 import { loadFixtures } from "./fixtures";
 import { postgresAvailable, query } from "./db";
 
@@ -33,6 +34,7 @@ export type InsightsPayload = {
   peopleAcrossEstimates: InsightPerson[];
   committeeActivity: InsightCommittee[];
   repeatedMentions: InsightMention[];
+  qonByPortfolio: QonPortfolioCount[];
 };
 
 function dateOnly(value: unknown): string | null {
@@ -137,6 +139,7 @@ function fromFixtures(): InsightsPayload {
     repeatedMentions: [...topicCounts.values(), ...textMentions].sort(
       (a, b) => b.hearingCount - a.hearingCount,
     ),
+    qonByPortfolio: [],
   };
 }
 
@@ -225,11 +228,12 @@ export async function loadInsights(): Promise<InsightsPayload> {
     LIMIT 16
   `;
 
-  const [people, committees, topics, texts] = await Promise.all([
+  const [people, committees, topics, texts, qon] = await Promise.all([
     query<Record<string, unknown>>(peopleSql),
     query<Record<string, unknown>>(committeeSql),
     query<Record<string, unknown>>(topicSql).catch(() => []),
     query<Record<string, unknown>>(textSql).catch(() => []),
+    loadQon(1).catch(() => ({ byPortfolio: [] as QonPortfolioCount[] })),
   ]);
 
   const mentions: InsightMention[] = [
@@ -268,5 +272,6 @@ export async function loadInsights(): Promise<InsightsPayload> {
       lastHearing: dateOnly(r.last_hearing),
     })),
     repeatedMentions: mentions,
+    qonByPortfolio: qon.byPortfolio,
   };
 }
