@@ -92,7 +92,7 @@ After `pip install -e .`, `ingest` and `aus-gov-ingest` are the same console scr
 ingest run --source estimates --limit 5
 ```
 
-Live APH fetches are best-effort. If they fail and `INGEST_FALLBACK_FIXTURE=1`, the fixture is loaded instead.
+Live APH fetches are best-effort. Parliament pages often return **403** from datacentre IPs; if that happens and `INGEST_FALLBACK_FIXTURE=1`, the fixture is loaded instead.
 
 Optional app containers:
 

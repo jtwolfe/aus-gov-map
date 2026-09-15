@@ -33,7 +33,7 @@ python -m aus_gov_ingest cron
 | `senate_committee` | Adapter toward APH Senate committee pages |
 | `openaustralia` | Hook only — XML later |
 
-If a live fetch fails and `INGEST_FALLBACK_FIXTURE=1` (default in `.env.example`), fixture records are loaded instead.
+If a live fetch fails (APH commonly returns 403 to automated clients) and `INGEST_FALLBACK_FIXTURE=1` (default in `.env.example`), fixture records are loaded instead.
 
 ## Embeddings
 
