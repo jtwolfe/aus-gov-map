@@ -12,11 +12,14 @@ python -m aus_gov_ingest seed
 # same as:
 python -m aus_gov_ingest run --source fixture
 
-# Live Estimates schedule ("what's new")
-python -m aus_gov_ingest run --source estimates --limit 10
+# Live Estimates Officials (APH Hansard JSON API — no ParlInfo needed)
+INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --dry-run
 
-# Senate committee adapter (best-effort APH pages)
-python -m aus_gov_ingest run --source senate_committee --limit 5
+# Persist the same pass when Postgres is up
+INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --no-graph
+
+# Senate committee Officials (chi=6, commsen)
+INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source senate_committee --limit 2 --dry-run
 
 # Cron-friendly incremental Estimates
 python -m aus_gov_ingest cron
@@ -29,11 +32,16 @@ python -m aus_gov_ingest cron
 | `--source` | Behaviour |
 | --- | --- |
 | `fixture` | Load `data/fixtures/seed.json` |
-| `estimates` | APH Senate Estimates landing + committee pages; incremental vs existing `source_key`s |
-| `senate_committee` | Adapter toward APH Senate committee pages |
-| `openaustralia` | Hook only — XML later |
+| `estimates` | APH Hansard Search (`chi=5`) + `GET /api/hansard/transcript` for Official text; HTML committee pages as listing fallback |
+| `estimates_schedule` | Same as `estimates`, tagged for cron / “what's new” |
+| `senate_committee` | APH Hansard Search (`chi=6`, `commsen`) + transcript API; Senate index HTML as listing fallback |
+| `openaustralia` | Hook only — chamber XML at data.openaustralia.org.au does not include Estimates |
 
-If a live fetch fails (APH commonly returns 403 to automated clients) and `INGEST_FALLBACK_FIXTURE=1` (default in `.env.example`), fixture records are loaded instead.
+APH Azure Front Door **403s bot-like User-Agents**. The client sends a browser-like UA, `Accept` / `Accept-Language`, and keeps session cookies. `parlinfo.aph.gov.au` (XML/PDF/`toc_unixml`) still returns an Azure WAF **JS challenge** from typical datacentre IPs — ingest does **not** follow those redirects. The working structured source is `https://www.aph.gov.au/api/hansard/transcript?id=committees/estimate/{id}/0000`.
+
+If a live fetch fails and `INGEST_FALLBACK_FIXTURE=1` (default in `.env.example`), fixture records are loaded instead. Set `INGEST_FALLBACK_FIXTURE=0` to fail empty rather than substituting invented Official.
+
+See `fixtures/live/NOTES.md` for the fetch matrix from a cloud VM.
 
 ## Embeddings
 
@@ -43,7 +51,7 @@ If a live fetch fails (APH commonly returns 403 to automated clients) and `INGES
 - `openai` — `OPENAI_API_KEY` + `text-embedding-3-small` (padded/truncated to `EMBEDDING_DIM`).
 - `sentence-transformers` — optional extra; install `[sentence-transformers]`.
 
-Upserts are idempotent on `source_key` (hearings, documents, chunks, people slugs).
+Upserts are idempotent on `source_key` (hearings, documents, chunks, people slugs). Live Hansard keys look like `hansard:committees/estimate/28778`.
 
 ## Cron
 

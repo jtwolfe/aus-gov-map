@@ -75,12 +75,13 @@ python -m aus_gov_ingest seed
 # equivalent:
 python -m aus_gov_ingest run --source fixture
 
-# Live Estimates (“what's new” when used incrementally / via cron)
-python -m aus_gov_ingest run --source estimates --limit 10
+# Live Estimates Officials (APH Hansard JSON API)
+INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --dry-run
+INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --no-graph
 python -m aus_gov_ingest run --source estimates --incremental --limit 10
 
-# Senate committee adapter
-python -m aus_gov_ingest run --source senate_committee --limit 5
+# Senate committee Officials
+INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source senate_committee --limit 2 --dry-run
 
 # Cron-friendly entrypoint (incremental Estimates)
 python -m aus_gov_ingest cron
@@ -92,7 +93,7 @@ After `pip install -e .`, `ingest` and `aus-gov-ingest` are the same console scr
 ingest run --source estimates --limit 5
 ```
 
-Live APH fetches are best-effort. Parliament pages often return **403** from datacentre IPs; if that happens and `INGEST_FALLBACK_FIXTURE=1`, the fixture is loaded instead.
+Live APH fetches use a **browser-like User-Agent**. Bot-like UAs get **403** from Azure Front Door on `www.aph.gov.au`. Direct ParlInfo XML/PDF still JS-challenges many datacentre IPs; ingest reads Official text from `GET /api/hansard/transcript` instead. If a live fetch fails and `INGEST_FALLBACK_FIXTURE=1`, the invented fixture is loaded.
 
 Optional app containers:
 

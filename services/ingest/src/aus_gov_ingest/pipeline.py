@@ -47,6 +47,8 @@ def run_ingest(
                 "dry_run": True,
                 "embedder": embedder.name,
                 "titles": [h.title for h in batch.hearings],
+                "held_on": [str(h.held_on) if h.held_on else None for h in batch.hearings],
+                "with_transcript": sum(1 for h in batch.hearings if h.documents),
                 **batch.meta,
             },
         )

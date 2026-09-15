@@ -35,9 +35,13 @@ class Settings(BaseSettings):
 
     aus_gov_fixture_path: str | None = None
     ingest_user_agent: str = (
-        "aus-gov-map-ingest/0.1 (+https://github.com/jtwolfe/aus-gov-map; research)"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
     )
-    ingest_timeout_seconds: float = 30
+    ingest_timeout_seconds: float = 45
+    ingest_rate_limit_seconds: float = 0.6
+    ingest_max_retries: int = 3
+    ingest_include_transcripts: bool = True
     ingest_fallback_fixture: bool = True
 
     def fixture_path(self) -> Path:
