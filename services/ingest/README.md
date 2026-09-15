@@ -43,7 +43,11 @@ python -m aus_gov_ingest cron
 | `estimates_schedule` | Same as `estimates`, tagged for cron / “what's new” |
 | `senate_committee` | APH Hansard Search (`chi=6`, `commsen`) + transcript API; Senate index HTML as listing fallback |
 | `openaustralia` | Hook only — chamber XML at data.openaustralia.org.au does not include Estimates |
-| `handbook` | Stage 2 stub — [Parliamentary Handbook](https://handbook.aph.gov.au); empty batch, no invented officials. Schema: `infra/postgres/005_handbook.sql` |
+| `handbook` | Parliamentary Handbook OData — empty unless `HANDBOOK_LIVE=1`; parser maps returned individuals only. Schema: `005_handbook.sql` + `007_accountability.sql` |
+| `qon` | Questions on notice stub — empty `qons` / scrutiny. No invented answers |
+| `anao` | Auditor-General stub — empty scrutiny / outcomes. No invented findings |
+| `budget_measure` | Budget / PBS stub — empty instruments. No invented amounts |
+| `austender` | AusTender CN stub — empty contracts. GrantConnect documented as sibling |
 
 APH Azure Front Door **403s bot-like User-Agents**. The client sends a browser-like UA, `Accept` / `Accept-Language`, and keeps session cookies. `parlinfo.aph.gov.au` (XML/PDF/`toc_unixml`) still returns an Azure WAF **JS challenge** from typical datacentre IPs — ingest does **not** follow those redirects. The working structured source is `https://www.aph.gov.au/api/hansard/transcript?id=committees/estimate/{id}/0000`.
 
@@ -113,7 +117,7 @@ python -m aus_gov_ingest apply-schema
 python -m aus_gov_ingest seed-demo-board
 ```
 
-That creates analytics views, Handbook stub tables, a unique pins index, and the FOI/procurement demo board.
+That creates analytics views, Handbook stub tables, Stage 2 accountability tables (`007`), a unique pins index, and the FOI/procurement demo board.
 
 ## Graph
 

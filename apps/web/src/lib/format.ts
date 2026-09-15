@@ -37,3 +37,45 @@ export function typeLabel(type: string): string {
       return type;
   }
 }
+
+export function roleTypeLabel(type: string): string {
+  switch (type) {
+    case "minister":
+      return "Minister";
+    case "shadow":
+      return "Shadow";
+    case "secretary":
+      return "Secretary";
+    case "deputy":
+      return "Deputy";
+    case "committee":
+      return "Committee";
+    case "mp":
+      return "MP";
+    case "senator":
+      return "Senator";
+    case "agency_head":
+      return "Agency head";
+    default:
+      return type;
+  }
+}
+
+export function instrumentTypeLabel(type: string): string {
+  switch (type) {
+    case "program":
+      return "Program";
+    case "measure":
+      return "Measure";
+    case "bill":
+      return "Bill";
+    case "contract":
+      return "Contract";
+    case "grant":
+      return "Grant";
+    case "policy":
+      return "Policy";
+    default:
+      return type;
+  }
+}

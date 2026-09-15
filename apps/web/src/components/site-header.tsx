@@ -4,6 +4,7 @@ const NAV = [
   { href: "/search", label: "Search" },
   { href: "/hearings", label: "Hearings" },
   { href: "/people", label: "People" },
+  { href: "/accountability", label: "Accountability" },
   { href: "/insights", label: "Insights" },
   { href: "/boards", label: "Boards" },
   { href: "/about", label: "About" },
@@ -16,7 +17,7 @@ export function SiteHeader() {
         <Link href="/" className="group flex items-baseline gap-2">
           <span className="font-serif text-xl tracking-tight text-navy">aus-gov-map</span>
           <span className="hidden text-[11px] uppercase tracking-[0.18em] text-muted sm:inline">
-            Stage 1
+            Stage 2
           </span>
           <span className="block h-px w-8 bg-gold transition-all group-hover:w-12" />
         </Link>
