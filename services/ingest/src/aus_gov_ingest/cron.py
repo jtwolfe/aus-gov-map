@@ -12,6 +12,11 @@ def main(limit: int = 0) -> int:
 
     Incremental Estimates schedule: only upsert hearings with a new source_key.
     Exit 0 on success (including “nothing new”). Exit 1 on pipeline failure.
+
+    Suggested timer: daily live ``estimates`` with ``INGEST_FALLBACK_FIXTURE=0``
+    (no invented Official). If APH is unreachable, run
+    ``aph_transcript_file`` with ``AUS_GOV_TRANSCRIPT_PATH`` pointed at
+    ``fixtures/live/transcripts``. See fixtures/live/NOTES.md.
     """
     started = datetime.now(timezone.utc).isoformat()
     print(f"[aus-gov-ingest] cron start {started}", flush=True)

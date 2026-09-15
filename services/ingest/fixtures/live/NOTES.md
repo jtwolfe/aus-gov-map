@@ -2,26 +2,57 @@
 
 ## Offline Official transcripts
 
-Full `/api/hansard/transcript` JSON for the three 5 June 2026 Estimates Officials
-is committed under `fixtures/live/transcripts/` so ingest can run **without**
-hitting APH (needed when another machine's IP gets the Azure WAF JS challenge):
+Full `/api/hansard/transcript` JSON for **21** Senate Estimates Officials is
+committed under `fixtures/live/transcripts/` so ingest can run **without**
+hitting APH (needed when another machine's IP gets the Azure WAF JS challenge).
 
-| File | SystemId | Official |
-| --- | --- | --- |
-| `transcripts/29629.json` | `committees/estimate/29629/0000` | Community Affairs Legislation Committee — 5 June 2026 |
-| `transcripts/29625.json` | `committees/estimate/29625/0000` | Economics Legislation Committee — 5 June 2026 |
-| `transcripts/29617.json` | `committees/estimate/29617/0000` | Education and Employment Legislation Committee — 5 June 2026 |
+IDs were discovered via Hansard Search `chi=5` (Estimates) using `AphClient`
+(browser-like UA on `www.aph.gov.au`). Do not invent IDs. Re-fetch with:
+
+```bash
+cd services/ingest
+python3 scripts/fetch_estimates_transcripts.py --per-round 5
+```
 
 These are the **real API JSON objects** (`TalkText` present, not HTML / WAF
 challenge pages). They are © Commonwealth of Australia (typically CC BY-NC-ND);
-attribute the Parliament of Australia. No secrets.
+attribute the Parliament of Australia. No secrets. ~20 MB total; each file is
+well under GitHub's blob limit.
+
+| File | SystemId | Round (approx.) | Official |
+| --- | --- | --- | --- |
+| `transcripts/29629.json` | `committees/estimate/29629/0000` | Budget 2026–27 | Community Affairs Legislation Committee — 5 June 2026 |
+| `transcripts/29628.json` | `committees/estimate/29628/0000` | Budget 2026–27 | Community Affairs Legislation Committee — 4 June 2026 |
+| `transcripts/29625.json` | `committees/estimate/29625/0000` | Budget 2026–27 | Economics Legislation Committee — 5 June 2026 |
+| `transcripts/29624.json` | `committees/estimate/29624/0000` | Budget 2026–27 | Economics Legislation Committee — 4 June 2026 |
+| `transcripts/29617.json` | `committees/estimate/29617/0000` | Budget 2026–27 | Education and Employment Legislation Committee — 5 June 2026 |
+| `transcripts/29616.json` | `committees/estimate/29616/0000` | Budget 2026–27 | Education and Employment Legislation Committee — 4 June 2026 |
+| `transcripts/29420.json` | `committees/estimate/29420/0000` | Additional 2025–26 | Foreign Affairs, Defence and Trade Legislation Committee — 10 March 2026 |
+| `transcripts/29374.json` | `committees/estimate/29374/0000` | Additional 2025–26 | Community Affairs Legislation Committee — 12 February 2026 |
+| `transcripts/29373.json` | `committees/estimate/29373/0000` | Additional 2025–26 | Economics Legislation Committee — 12 February 2026 |
+| `transcripts/29371.json` | `committees/estimate/29371/0000` | Additional 2025–26 | Education and Employment Legislation Committee — 12 February 2026 |
+| `transcripts/29370.json` | `committees/estimate/29370/0000` | Additional 2025–26 | Community Affairs Legislation Committee — 11 February 2026 |
+| `transcripts/29091.json` | `committees/estimate/29091/0000` | Supplementary 2025–26 | Finance and Public Administration Legislation Committee — 4 November 2025 |
+| `transcripts/29004.json` | `committees/estimate/29004/0000` | Supplementary 2025–26 | Community Affairs Legislation Committee — 10 October 2025 |
+| `transcripts/29003.json` | `committees/estimate/29003/0000` | Supplementary 2025–26 | Economics Legislation Committee — 10 October 2025 |
+| `transcripts/29001.json` | `committees/estimate/29001/0000` | Supplementary 2025–26 | Education and Employment Legislation Committee — 10 October 2025 |
+| `transcripts/29000.json` | `committees/estimate/29000/0000` | Supplementary 2025–26 | Community Affairs Legislation Committee — 9 October 2025 |
+| `transcripts/28780.json` | `committees/estimate/28780/0000` | Additional 2024–25 | Environment and Communications Legislation Committee — 27 March 2025 |
+| `transcripts/28779.json` | `committees/estimate/28779/0000` | Additional 2024–25 | Legal and Constitutional Affairs Legislation Committee — 27 March 2025 |
+| `transcripts/28778.json` | `committees/estimate/28778/0000` | Additional 2024–25 | Finance and Public Administration Legislation Committee — 27 March 2025 |
+| `transcripts/28751.json` | `committees/estimate/28751/0000` | Additional 2024–25 | Environment and Communications Legislation Committee — 28 February 2025 |
+| `transcripts/28750.json` | `committees/estimate/28750/0000` | Additional 2024–25 | Finance and Public Administration Legislation Committee — 28 February 2025 |
+
+Hansard Search `chi=5` with date windows for May–June 2025 did not list Budget
+Estimates 2025–26 Officials (federal election caretaker). Additional /
+Supplementary 2025–26 and nearby Additional 2024–25 are present.
 
 Load them into the pipeline (same `hearing_from_transcript` / `source_key`
 shape as live Estimates):
 
 ```bash
 cd services/ingest
-# parse only
+# parse only (also: make ingest-backfill-files from the repo root)
 python -m aus_gov_ingest run --source aph_transcript_file --dry-run
 # or an explicit path (repo root):
 python -m aus_gov_ingest run --source aph_transcript_file \
@@ -35,8 +66,8 @@ DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 `--path` accepts a directory of `*.json` or a single transcript file.
 `AUS_GOV_TRANSCRIPT_PATH` overrides the default directory.
 
-Offline dry-run from these files (`dry_run_aph_transcript_file.json`) matches the
-live Estimates Official char counts (29629 ≈ 508k, 29625 ≈ 431k, 29617 ≈ 336k).
+Offline dry-run from these files is recorded in `dry_run_aph_transcript_file.json`
+(`fetched` must be **> 3**).
 
 ## Fetch matrix
 
@@ -66,6 +97,27 @@ Senate committee dry-run (`--source senate_committee --limit 2`):
 - Community Affairs Legislation Committee — 11 September 2026 — Private Health Insurance Amendment (Modernising the Private Health Insurance Rebate) Bill 2026
 - Community Affairs Legislation Committee — 4 September 2026 — same bill
 
-Earlier API probe (full Official JSON):
+## Suggested cron
 
-- Finance and Public Administration Legislation Committee — 27 March 2025 — Estimates (`committees/estimate/28778`)
+Daily **live** Estimates (Hansard JSON API). Do **not** substitute invented
+fixtures. Keep the committed Official directory as a file fallback when APH
+is unreachable from this IP:
+
+```
+# Live incremental Estimates (browser-like UA; no invented Official)
+15 6 * * * cd /path/to/aus-gov-map/services/ingest && \
+  INGEST_FALLBACK_FIXTURE=0 \
+  python -m aus_gov_ingest run --source estimates --incremental \
+  >> /var/log/aus-gov-ingest.log 2>&1
+
+# File fallback — same source_key shape (hansard:committees/estimate/{id})
+30 6 * * * cd /path/to/aus-gov-map/services/ingest && \
+  AUS_GOV_TRANSCRIPT_PATH=/path/to/aus-gov-map/services/ingest/fixtures/live/transcripts \
+  python -m aus_gov_ingest run --source aph_transcript_file --incremental \
+  >> /var/log/aus-gov-ingest.log 2>&1
+```
+
+`python -m aus_gov_ingest cron` is the same live Estimates incremental pass;
+export `INGEST_FALLBACK_FIXTURE=0` in that environment too.
+
+Equivalent one-shot from the repo root: `make ingest-backfill-files`.

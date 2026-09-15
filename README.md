@@ -77,6 +77,8 @@ python -m aus_gov_ingest run --source fixture
 
 # Officials from committed APH transcript JSON (offline; no APH fetch)
 python -m aus_gov_ingest run --source aph_transcript_file --dry-run
+# same dry-run from the repo root:
+make ingest-backfill-files
 DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
   python -m aus_gov_ingest run --source aph_transcript_file --no-graph
 
@@ -91,6 +93,22 @@ INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source senate_committee
 # Cron-friendly entrypoint (incremental Estimates)
 python -m aus_gov_ingest cron
 ```
+
+Suggested daily cron — live Estimates with **no invented fixture fallback**, plus
+committed Official JSON if APH is unreachable:
+
+```
+15 6 * * * cd /path/to/aus-gov-map/services/ingest && \
+  INGEST_FALLBACK_FIXTURE=0 \
+  python -m aus_gov_ingest run --source estimates --incremental \
+  >> /var/log/aus-gov-ingest.log 2>&1
+30 6 * * * cd /path/to/aus-gov-map/services/ingest && \
+  AUS_GOV_TRANSCRIPT_PATH=/path/to/aus-gov-map/services/ingest/fixtures/live/transcripts \
+  python -m aus_gov_ingest run --source aph_transcript_file --incremental \
+  >> /var/log/aus-gov-ingest.log 2>&1
+```
+
+See `services/ingest/README.md` and `services/ingest/fixtures/live/NOTES.md`.
 
 After `pip install -e .`, `ingest` and `aus-gov-ingest` are the same console script:
 
