@@ -526,3 +526,62 @@ export async function loadQon(limit = 40): Promise<{
     return { source: "unavailable", questions: [], byPortfolio: [] };
   }
 }
+
+export type AccountabilitySummary = {
+  source: "postgres" | "unavailable";
+  agencies: number;
+  handbookEntries: number;
+  questions: number;
+  instrumentsProposed: number;
+  hearingSegments: number;
+  qonByPortfolio: QonPortfolioCount[];
+};
+
+export async function loadAccountabilitySummary(): Promise<AccountabilitySummary> {
+  const empty: AccountabilitySummary = {
+    source: "unavailable",
+    agencies: 0,
+    handbookEntries: 0,
+    questions: 0,
+    instrumentsProposed: 0,
+    hearingSegments: 0,
+    qonByPortfolio: [],
+  };
+  if (!(await postgresAvailable())) {
+    return empty;
+  }
+  try {
+    const [counts, qon] = await Promise.all([
+      query<Record<string, unknown>>(`
+        SELECT
+          (SELECT COUNT(*)::int FROM agencies) AS agencies,
+          (SELECT COUNT(*)::int FROM handbook_entries) AS handbook_entries,
+          (SELECT COUNT(*)::int FROM qons) AS questions,
+          (SELECT COUNT(*)::int FROM instruments WHERE COALESCE(status, '') = 'proposed') AS instruments_proposed,
+          (SELECT COUNT(*)::int FROM hearing_segments) AS hearing_segments
+      `).catch(async () =>
+        query<Record<string, unknown>>(`
+          SELECT
+            (SELECT COUNT(*)::int FROM agencies) AS agencies,
+            (SELECT COUNT(*)::int FROM handbook_entries) AS handbook_entries,
+            (SELECT COUNT(*)::int FROM qons) AS questions,
+            (SELECT COUNT(*)::int FROM instruments) AS instruments_proposed,
+            0::int AS hearing_segments
+        `),
+      ),
+      loadQon(1),
+    ]);
+    const row = counts[0] || {};
+    return {
+      source: "postgres",
+      agencies: Number(row.agencies ?? 0),
+      handbookEntries: Number(row.handbook_entries ?? 0),
+      questions: Number(row.questions ?? 0),
+      instrumentsProposed: Number(row.instruments_proposed ?? 0),
+      hearingSegments: Number(row.hearing_segments ?? 0),
+      qonByPortfolio: qon.byPortfolio,
+    };
+  } catch {
+    return empty;
+  }
+}

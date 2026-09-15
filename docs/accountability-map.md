@@ -158,9 +158,9 @@ co-occurrence (a hearing mentioned a program) without implying duty.
 
 | Source | What it grounds | Adapter |
 | --- | --- | --- |
-| [Parliamentary Handbook](https://handbook.aph.gov.au) / [handbookapi.aph.gov.au](https://handbookapi.aph.gov.au) | People, tenures, ministries, shadow ministries | `handbook` (OData probe + parser) |
-| Administrative Arrangements Order (AAO), PMC | Which department / minister owns which function | Documented; no adapter yet |
-| Senate Estimates / chamber Questions on Notice | QoN debt, taken-on-notice claims | `qon` (stub) |
+| [Parliamentary Handbook](https://handbook.aph.gov.au) / [handbookapi.aph.gov.au](https://handbookapi.aph.gov.au) | People, tenures, ministries, shadow ministries | `handbook` (live OData + fixture fallback; promotes into `person_roles`) |
+| Administrative Arrangements Order (AAO), PMC | Which department / minister owns which function | `agencies` stub list (official names); AAO dump later |
+| Senate Estimates / chamber Questions on Notice | QoN debt, taken-on-notice claims | `qon` (EQON search → `qons`); TON markers → `claims` |
 | [ANAO](https://www.anao.gov.au) | Audit gravity, outcome signals | `anao` (stub) |
 | Budget Papers / [PBS](https://www.finance.gov.au/publications/portfolio-budget-statements) | Measures, programs, amounts | `budget_measure` (stub) |
 | [AusTender](https://www.tenders.gov.au) | Contracts, CN identifiers, suppliers, amounts | `austender` (stub) |
@@ -203,7 +203,19 @@ fill it. Copy must not invent political conclusions.
 ## Schema and apply
 
 - Additive migration: `infra/postgres/007_accountability.sql`
+- Pipeline extensions: `infra/postgres/008_hearing_segments.sql` (`hearing_segments`, instrument `status`/`confidence`, `qons.identifiers`)
 - Handbook stub remains `005_handbook.sql` (extended, not replaced)
-- Views: `infra/postgres/analytics/accountability_*.sql`
+- Views: `infra/postgres/analytics/accountability_*.sql` plus `v_qon_by_portfolio` alias
 - Existing volumes: `make db-apply`
 - Graph: `infra/neo4j/constraints.cypher` + `infra/neo4j/queries/accountability/`
+
+## What is real vs proposed (pipeline fill)
+
+| Layer | Status | What you can trust |
+| --- | --- | --- |
+| Handbook people + roles | **Real** (APH OData / fixture fallback) | Parliamentarians, chamber tenure, ministries. Promoted into `roles` / `person_roles`. Not APS secretaries. |
+| Estimates segments | **Real structure, derived** | Portfolio / agency headers and speaker turns from Official `TalkText`. Same Official, annotated. |
+| Taken on notice | **Real phrases, incomplete QoN** | Markers in Officials become `claims.taken_on_notice`. Not the Table Office register. |
+| Questions on Notice | **Best-effort real** | EQON search into foundation `qons`. Status mapped to `open` / `answered` / `overdue` / `unknown`. |
+| Instruments from text | **Proposed only** | Regex candidates with `instruments.status='proposed'` and a `mentioned` chunk link. Human review required. |
+| Agencies | **Stub, official names** | Seeded departments upserted into foundation `agencies` (`short_name` from the fixture `short_code`). |

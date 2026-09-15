@@ -27,11 +27,45 @@ from aus_gov_ingest.models import (
     QuestionOnNoticeIn,
     TopicIn,
 )
-from aus_gov_ingest.people import canonical_slug, names_are_same_person, pick_display_name
+from aus_gov_ingest.people import canonical_slug, names_are_same_person, pick_display_name, slug as slugify
 
 
 def _uuid(*parts: str) -> UUID:
     return uuid5(NAMESPACE_URL, "aus-gov-map:" + "|".join(parts))
+
+
+def _handbook_role_type(role_kind: str | None) -> str | None:
+    kind = (role_kind or "").lower()
+    if kind == "ministry":
+        return "minister"
+    if "shadow" in kind:
+        return "shadow"
+    if kind == "party":
+        return None
+    if "committee" in kind:
+        return "committee"
+    if kind in {"parliamentary", "other"}:
+        return "other"
+    return "other" if kind else None
+
+
+def _chamber_role_type(chamber: str | None) -> str | None:
+    text = (chamber or "").lower()
+    if "senate" in text:
+        return "senator"
+    if "house" in text:
+        return "mp"
+    return None
+
+
+def _portfolio_from_role(item: HandbookRoleIn) -> str | None:
+    if item.role_kind == "ministry" and item.role_title:
+        for prefix in ("Minister for ", "Minister of ", "Assistant Minister for "):
+            if prefix in item.role_title:
+                return item.role_title.split(prefix, 1)[1].strip() or None
+        if item.notes:
+            return None
+    return None
 
 
 def _split_sql(sql_text: str) -> list[str]:
@@ -89,7 +123,7 @@ class PostgresStore:
     def existing_qon_keys(self) -> set[str]:
         with self.connect() as conn:
             try:
-                rows = conn.execute("SELECT source_key FROM questions_on_notice").fetchall()
+                rows = conn.execute("SELECT source_key FROM qons").fetchall()
             except Exception:
                 return set()
         return {row["source_key"] for row in rows}
@@ -452,16 +486,15 @@ class PostgresStore:
         aid = _uuid("agency", item.slug)
         conn.execute(
             """
-            INSERT INTO agencies (id, slug, name, short_code, portfolio, kind, source_url, notes)
+            INSERT INTO agencies (id, slug, name, short_name, portfolio, aao_ref, source, source_url)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (slug) DO UPDATE SET
                 name = EXCLUDED.name,
-                short_code = COALESCE(EXCLUDED.short_code, agencies.short_code),
+                short_name = COALESCE(EXCLUDED.short_name, agencies.short_name),
                 portfolio = COALESCE(EXCLUDED.portfolio, agencies.portfolio),
-                kind = EXCLUDED.kind,
-                source_url = COALESCE(EXCLUDED.source_url, agencies.source_url),
-                notes = COALESCE(EXCLUDED.notes, agencies.notes),
-                updated_at = now()
+                aao_ref = COALESCE(EXCLUDED.aao_ref, agencies.aao_ref),
+                source = COALESCE(EXCLUDED.source, agencies.source),
+                source_url = COALESCE(EXCLUDED.source_url, agencies.source_url)
             """,
             (
                 aid,
@@ -470,8 +503,8 @@ class PostgresStore:
                 item.short_code,
                 item.portfolio,
                 item.kind,
+                "seed",
                 item.source_url,
-                item.notes,
             ),
         )
         row = conn.execute("SELECT id FROM agencies WHERE slug = %s", (item.slug,)).fetchone()
@@ -512,20 +545,23 @@ class PostgresStore:
         ).fetchone()
         entry_id = row["id"] if row else eid
         for role in item.roles:
-            self.upsert_handbook_role(conn, entry_id, role)
+            role_id = self.upsert_handbook_role(conn, entry_id, role)
+            self._promote_handbook_role(conn, person_id, role_id, role, item)
         for tenure in item.tenure:
-            self.upsert_handbook_tenure(conn, entry_id, tenure)
+            tenure_id = self.upsert_handbook_tenure(conn, entry_id, tenure)
+            self._promote_handbook_tenure(conn, person_id, tenure_id, tenure, item)
         return entry_id
 
     def upsert_handbook_role(
         self, conn: Connection, entry_id: UUID, item: HandbookRoleIn
-    ) -> None:
+    ) -> UUID:
         rid = _uuid(
             "handbook-role",
             str(entry_id),
             item.role_title,
             str(item.started_on or ""),
         )
+        occupancy = _handbook_role_type(item.role_kind)
         existing = conn.execute(
             """
             SELECT id FROM handbook_roles
@@ -541,18 +577,32 @@ class PostgresStore:
                 UPDATE handbook_roles SET
                     role_kind = COALESCE(%s, role_kind),
                     ended_on = COALESCE(%s, ended_on),
-                    notes = COALESCE(%s, notes)
+                    notes = COALESCE(%s, notes),
+                    role_type = COALESCE(%s, role_type),
+                    portfolio = COALESCE(%s, portfolio),
+                    organisation = COALESCE(%s, organisation),
+                    source = COALESCE(%s, source)
                 WHERE id = %s
                 """,
-                (item.role_kind, item.ended_on, item.notes, existing["id"]),
+                (
+                    item.role_kind,
+                    item.ended_on,
+                    item.notes,
+                    occupancy,
+                    _portfolio_from_role(item),
+                    "Parliament of Australia",
+                    "handbook",
+                    existing["id"],
+                ),
             )
-            return
+            return existing["id"]
         conn.execute(
             """
             INSERT INTO handbook_roles (
-                id, handbook_entry_id, role_title, role_kind, started_on, ended_on, notes
+                id, handbook_entry_id, role_title, role_kind, started_on, ended_on, notes,
+                role_type, portfolio, organisation, source
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 rid,
@@ -562,12 +612,17 @@ class PostgresStore:
                 item.started_on,
                 item.ended_on,
                 item.notes,
+                occupancy,
+                _portfolio_from_role(item),
+                "Parliament of Australia",
+                "handbook",
             ),
         )
+        return rid
 
     def upsert_handbook_tenure(
         self, conn: Connection, entry_id: UUID, item: HandbookTenureIn
-    ) -> None:
+    ) -> UUID:
         tid = _uuid(
             "handbook-tenure",
             str(entry_id),
@@ -589,18 +644,20 @@ class PostgresStore:
                 UPDATE handbook_tenure SET
                     electorate = COALESCE(%s, electorate),
                     parliament_number = COALESCE(%s, parliament_number),
-                    ended_on = COALESCE(%s, ended_on)
+                    ended_on = COALESCE(%s, ended_on),
+                    source = COALESCE(%s, source)
                 WHERE id = %s
                 """,
-                (item.electorate, item.parliament_number, item.ended_on, existing["id"]),
+                (item.electorate, item.parliament_number, item.ended_on, "handbook", existing["id"]),
             )
-            return
+            return existing["id"]
         conn.execute(
             """
             INSERT INTO handbook_tenure (
-                id, handbook_entry_id, chamber, electorate, parliament_number, started_on, ended_on
+                id, handbook_entry_id, chamber, electorate, parliament_number,
+                started_on, ended_on, source
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 tid,
@@ -610,8 +667,180 @@ class PostgresStore:
                 item.parliament_number,
                 item.started_on,
                 item.ended_on,
+                "handbook",
             ),
         )
+        return tid
+
+    def _promote_handbook_role(
+        self,
+        conn: Connection,
+        person_id: UUID,
+        handbook_role_id: UUID,
+        item: HandbookRoleIn,
+        entry: HandbookEntryIn,
+    ) -> None:
+        role_type = _handbook_role_type(item.role_kind)
+        if role_type is None:
+            return
+        role_id = self._upsert_role_catalog(
+            conn,
+            title=item.role_title,
+            role_type=role_type,
+            portfolio=_portfolio_from_role(item) or entry.person.portfolio,
+            organisation="Parliament of Australia",
+        )
+        self._upsert_person_role(
+            conn,
+            person_id=person_id,
+            role_id=role_id,
+            role_type=role_type,
+            portfolio=_portfolio_from_role(item) or entry.person.portfolio,
+            organisation="Parliament of Australia",
+            start_date=item.started_on,
+            end_date=item.ended_on,
+            source="handbook",
+            source_url=entry.aph_url,
+            handbook_role_id=handbook_role_id,
+        )
+
+    def _promote_handbook_tenure(
+        self,
+        conn: Connection,
+        person_id: UUID,
+        handbook_tenure_id: UUID,
+        item: HandbookTenureIn,
+        entry: HandbookEntryIn,
+    ) -> None:
+        role_type = _chamber_role_type(item.chamber)
+        if role_type is None:
+            return
+        title = item.chamber or role_type
+        if item.electorate:
+            title = f"{title} — {item.electorate}"
+        role_id = self._upsert_role_catalog(
+            conn,
+            title=title,
+            role_type=role_type,
+            portfolio=None,
+            organisation=item.chamber or "Parliament of Australia",
+        )
+        self._upsert_person_role(
+            conn,
+            person_id=person_id,
+            role_id=role_id,
+            role_type=role_type,
+            portfolio=None,
+            organisation=item.chamber,
+            start_date=item.started_on,
+            end_date=item.ended_on,
+            source="handbook",
+            source_url=entry.aph_url,
+            handbook_tenure_id=handbook_tenure_id,
+        )
+
+    def _upsert_role_catalog(
+        self,
+        conn: Connection,
+        *,
+        title: str,
+        role_type: str,
+        portfolio: str | None,
+        organisation: str | None,
+    ) -> UUID:
+        slug = slugify(f"{role_type}-{title}-{portfolio or ''}")[:80] or slugify(title)
+        rid = _uuid("role", slug)
+        conn.execute(
+            """
+            INSERT INTO roles (id, slug, title, role_type, portfolio, organisation, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (slug) DO UPDATE SET
+                title = EXCLUDED.title,
+                portfolio = COALESCE(EXCLUDED.portfolio, roles.portfolio),
+                organisation = COALESCE(EXCLUDED.organisation, roles.organisation)
+            """,
+            (rid, slug, title, role_type, portfolio, organisation, "handbook"),
+        )
+        row = conn.execute("SELECT id FROM roles WHERE slug = %s", (slug,)).fetchone()
+        return row["id"] if row else rid
+
+    def _upsert_person_role(
+        self,
+        conn: Connection,
+        *,
+        person_id: UUID,
+        role_id: UUID,
+        role_type: str,
+        portfolio: str | None,
+        organisation: str | None,
+        start_date,
+        end_date,
+        source: str,
+        source_url: str | None,
+        handbook_role_id: UUID | None = None,
+        handbook_tenure_id: UUID | None = None,
+    ) -> UUID:
+        existing = conn.execute(
+            """
+            SELECT id FROM person_roles
+            WHERE person_id = %s
+              AND role_id = %s
+              AND COALESCE(start_date, DATE '0001-01-01') = COALESCE(%s, DATE '0001-01-01')
+            """,
+            (person_id, role_id, start_date),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                """
+                UPDATE person_roles SET
+                    end_date = COALESCE(%s, end_date),
+                    portfolio = COALESCE(%s, portfolio),
+                    organisation = COALESCE(%s, organisation),
+                    handbook_role_id = COALESCE(%s, handbook_role_id),
+                    handbook_tenure_id = COALESCE(%s, handbook_tenure_id)
+                WHERE id = %s
+                """,
+                (
+                    end_date,
+                    portfolio,
+                    organisation,
+                    handbook_role_id,
+                    handbook_tenure_id,
+                    existing["id"],
+                ),
+            )
+            return existing["id"]
+        prid = _uuid(
+            "person-role",
+            str(person_id),
+            str(role_id),
+            str(start_date or ""),
+        )
+        conn.execute(
+            """
+            INSERT INTO person_roles (
+                id, person_id, role_id, role_type, portfolio, organisation,
+                start_date, end_date, source, source_url,
+                handbook_role_id, handbook_tenure_id
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                prid,
+                person_id,
+                role_id,
+                role_type,
+                portfolio,
+                organisation,
+                start_date,
+                end_date,
+                source,
+                source_url,
+                handbook_role_id,
+                handbook_tenure_id,
+            ),
+        )
+        return prid
 
     def upsert_hearing_segment(
         self,
@@ -655,7 +884,79 @@ class PostgresStore:
                 Json(segment.metadata or {}),
             ),
         )
+        if segment.kind == "taken_on_notice":
+            self._upsert_taken_on_notice(
+                conn,
+                hearing_id=hearing_id,
+                source_key=source_key,
+                segment=segment,
+                index=index,
+            )
         return sid
+
+    def _upsert_taken_on_notice(
+        self,
+        conn: Connection,
+        *,
+        hearing_id: UUID,
+        source_key: str,
+        segment: HearingSegmentIn,
+        index: int,
+    ) -> None:
+        held = conn.execute(
+            "SELECT held_on FROM hearings WHERE id = %s", (hearing_id,)
+        ).fetchone()
+        made_on = held["held_on"] if held else None
+        scrutiny_key = f"scrutiny:{source_key}"
+        sid = _uuid("scrutiny", scrutiny_key)
+        conn.execute(
+            """
+            INSERT INTO scrutiny_items (
+                id, slug, item_type, title, identifiers, published_on,
+                hearing_id, source, source_url, source_key, summary
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (source_key) DO UPDATE SET
+                summary = EXCLUDED.summary,
+                title = EXCLUDED.title
+            """,
+            (
+                sid,
+                slugify(source_key)[:80],
+                "hearing_segment",
+                "Taken on notice",
+                Json({"segment_kind": segment.kind, "index": index}),
+                made_on,
+                hearing_id,
+                "estimates_segment",
+                None,
+                scrutiny_key,
+                (segment.content or "")[:500],
+            ),
+        )
+        claim_key = f"claim:ton:{source_key}"
+        cid = _uuid("claim", claim_key)
+        conn.execute(
+            """
+            INSERT INTO claims (
+                id, speaker_name, hearing_id, claim_type, text_span, made_on, source, source_key
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (source_key) DO UPDATE SET
+                text_span = EXCLUDED.text_span,
+                speaker_name = COALESCE(EXCLUDED.speaker_name, claims.speaker_name)
+            """,
+            (
+                cid,
+                segment.speaker_name,
+                hearing_id,
+                "taken_on_notice",
+                (segment.content or "")[:1000],
+                made_on,
+                "estimates_segment",
+                claim_key,
+            ),
+        )
 
     def upsert_question(
         self,
@@ -666,56 +967,101 @@ class PostgresStore:
     ) -> UUID:
         qid = _uuid("qon", item.source_key)
         agency_id = None
-        if item.agency_slug:
-            row = conn.execute(
-                "SELECT id FROM agencies WHERE slug = %s", (item.agency_slug,)
-            ).fetchone()
-            agency_id = row["id"] if row else None
+        if item.agency_slug or item.agency_name:
+            if item.agency_slug:
+                row = conn.execute(
+                    "SELECT id FROM agencies WHERE slug = %s", (item.agency_slug,)
+                ).fetchone()
+                agency_id = row["id"] if row else None
             if agency_id is None and item.agency_name:
                 row = conn.execute(
                     "SELECT id FROM agencies WHERE name ILIKE %s LIMIT 1",
                     (item.agency_name,),
                 ).fetchone()
                 agency_id = row["id"] if row else None
+            if agency_id is None:
+                agency_id = self.upsert_agency(
+                    conn,
+                    AgencyIn(
+                        slug=item.agency_slug or slugify(item.agency_name or "agency"),
+                        name=item.agency_name or item.agency_slug or "Unknown agency",
+                        short_code=None,
+                        portfolio=item.portfolio,
+                        kind="agency",
+                    ),
+                )
+        identifiers = {
+            **(item.metadata or {}),
+            "portfolio_question_number": item.portfolio_question_number,
+            "committee_name": item.committee_name,
+            "estimates_round": item.estimates_round,
+            "agency_name": item.agency_name,
+        }
+        scrutiny_key = f"scrutiny:{item.source_key}"
+        scrutiny_id = _uuid("scrutiny", scrutiny_key)
         conn.execute(
             """
-            INSERT INTO questions_on_notice (
-                id, source_key, qon_number, portfolio_question_number, portfolio,
-                agency_id, agency_name, asked_by, asked_on, due_on, answered_on,
-                status, question_text, answer_text, source_url, hearing_id,
-                committee_name, estimates_round, metadata, updated_at
+            INSERT INTO scrutiny_items (
+                id, slug, item_type, title, identifiers, published_on,
+                hearing_id, source, source_url, source_key, summary
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (source_key) DO UPDATE SET
+                summary = COALESCE(EXCLUDED.summary, scrutiny_items.summary),
+                title = EXCLUDED.title
+            """,
+            (
+                scrutiny_id,
+                slugify(item.source_key)[:80],
+                "qon",
+                item.portfolio_question_number or item.qon_number or item.source_key,
+                Json(identifiers),
+                item.asked_on,
+                hearing_id,
+                "eqon",
+                item.source_url,
+                scrutiny_key,
+                (item.question_text or "")[:500] or None,
+            ),
+        )
+        number = item.portfolio_question_number or item.qon_number
+        conn.execute(
+            """
+            INSERT INTO qons (
+                id, number, house, portfolio, asking_member, answering_agency_id,
+                asked_on, due_on, answered_on, status, question_ref, answer_ref,
+                hearing_id, scrutiny_item_id, source, source_url, source_key, identifiers
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (source_key) DO UPDATE SET
                 status = EXCLUDED.status,
-                question_text = COALESCE(EXCLUDED.question_text, questions_on_notice.question_text),
-                answer_text = COALESCE(EXCLUDED.answer_text, questions_on_notice.answer_text),
-                answered_on = COALESCE(EXCLUDED.answered_on, questions_on_notice.answered_on),
-                due_on = COALESCE(EXCLUDED.due_on, questions_on_notice.due_on),
-                agency_id = COALESCE(EXCLUDED.agency_id, questions_on_notice.agency_id),
-                metadata = EXCLUDED.metadata,
-                updated_at = now()
+                question_ref = COALESCE(EXCLUDED.question_ref, qons.question_ref),
+                answer_ref = COALESCE(EXCLUDED.answer_ref, qons.answer_ref),
+                answered_on = COALESCE(EXCLUDED.answered_on, qons.answered_on),
+                due_on = COALESCE(EXCLUDED.due_on, qons.due_on),
+                answering_agency_id = COALESCE(EXCLUDED.answering_agency_id, qons.answering_agency_id),
+                identifiers = EXCLUDED.identifiers,
+                scrutiny_item_id = COALESCE(EXCLUDED.scrutiny_item_id, qons.scrutiny_item_id)
             """,
             (
                 qid,
-                item.source_key,
-                item.qon_number,
-                item.portfolio_question_number,
+                number,
+                "Senate",
                 item.portfolio,
-                agency_id,
-                item.agency_name,
                 item.asked_by,
+                agency_id,
                 item.asked_on,
                 item.due_on,
                 item.answered_on,
-                item.status,
+                item.status if item.status in {"open", "answered", "overdue", "refused", "unknown"} else "unknown",
                 item.question_text,
                 item.answer_text,
-                item.source_url,
                 hearing_id,
-                item.committee_name,
-                item.estimates_round,
-                Json(item.metadata or {}),
+                scrutiny_id,
+                "eqon",
+                item.source_url,
+                item.source_key,
+                Json(identifiers),
             ),
         )
         return qid
@@ -728,42 +1074,75 @@ class PostgresStore:
         hearing_id: UUID | None = None,
     ) -> UUID:
         iid = _uuid("instrument", item.source_key)
+        slug = slugify(item.source_key)[:80] or slugify(item.title)
         chunk_id = None
         if item.source_chunk_key:
             row = conn.execute(
                 "SELECT id FROM chunks WHERE source_key = %s", (item.source_chunk_key,)
             ).fetchone()
             chunk_id = row["id"] if row else None
+        instrument_type = item.kind if item.kind in {
+            "program", "measure", "bill", "contract", "grant", "policy", "other",
+        } else "other"
+        identifiers = {
+            **(item.metadata or {}),
+            "source_chunk_key": item.source_chunk_key,
+            "notes": item.notes,
+        }
         conn.execute(
             """
             INSERT INTO instruments (
-                id, source_key, title, kind, status, confidence,
-                source_chunk_id, source_chunk_key, hearing_id, evidence_text, notes, metadata
+                id, slug, instrument_type, title, identifiers, source, source_url,
+                source_key, summary, status, confidence
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (source_key) DO UPDATE SET
                 title = EXCLUDED.title,
+                summary = COALESCE(EXCLUDED.summary, instruments.summary),
+                status = EXCLUDED.status,
                 confidence = EXCLUDED.confidence,
-                source_chunk_id = COALESCE(EXCLUDED.source_chunk_id, instruments.source_chunk_id),
-                evidence_text = COALESCE(EXCLUDED.evidence_text, instruments.evidence_text),
-                metadata = EXCLUDED.metadata
+                identifiers = EXCLUDED.identifiers
             """,
             (
                 iid,
-                item.source_key,
+                slug,
+                instrument_type,
                 item.title,
-                item.kind,
-                item.status,
-                item.confidence,
-                chunk_id,
-                item.source_chunk_key,
-                hearing_id,
+                Json(identifiers),
+                "instrument_propose",
+                None,
+                item.source_key,
                 item.evidence_text,
-                item.notes,
-                Json(item.metadata or {}),
+                item.status or "proposed",
+                item.confidence,
             ),
         )
-        return iid
+        row = conn.execute(
+            "SELECT id FROM instruments WHERE source_key = %s", (item.source_key,)
+        ).fetchone()
+        instrument_id = row["id"] if row else iid
+        if chunk_id:
+            conn.execute(
+                """
+                INSERT INTO instrument_links (
+                    instrument_id, target_kind, target_id, hearing_id, chunk_id,
+                    link_kind, source, notes
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (instrument_id, target_kind, target_id, link_kind) DO NOTHING
+                """,
+                (
+                    instrument_id,
+                    "chunk",
+                    chunk_id,
+                    hearing_id,
+                    chunk_id,
+                    "mentioned",
+                    "instrument_propose",
+                    item.notes,
+                ),
+            )
+        return instrument_id
 
     def resolve_appearance(self, conn: Connection, link: AppearanceIn) -> UUID | None:
         if link.person_id:

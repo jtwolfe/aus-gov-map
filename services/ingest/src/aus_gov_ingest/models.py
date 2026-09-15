@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 PersonRole = Literal["chair", "senator", "minister", "official", "witness", "appeared"]
 HearingType = Literal["estimates", "committee", "other"]
-QonStatus = Literal["open", "answered", "overdue", "unknown"]
+QonStatus = Literal["open", "answered", "overdue", "refused", "unknown"]
 InstrumentKind = Literal["bill", "program", "contract", "grant", "other"]
 SegmentKind = Literal[
     "portfolio_header",

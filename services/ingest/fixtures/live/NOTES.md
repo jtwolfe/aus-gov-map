@@ -125,7 +125,7 @@ Equivalent one-shot from the repo root: `make ingest-backfill-files`.
 ## Accountability pipeline dry-runs (2026-09-15)
 
 Recorded from this environment. Persist with `DATABASE_URL` set and **omit** `--dry-run`.
-See `docs/accountability-map` for real vs proposed.
+See `docs/accountability-map.md` for real vs proposed.
 
 ```bash
 # Handbook — live OData (also: --path fixtures/live/handbook)
