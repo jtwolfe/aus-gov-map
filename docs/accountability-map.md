@@ -161,9 +161,9 @@ co-occurrence (a hearing mentioned a program) without implying duty.
 | [Parliamentary Handbook](https://handbook.aph.gov.au) / [handbookapi.aph.gov.au](https://handbookapi.aph.gov.au) | People, tenures, ministries, shadow ministries | `handbook` (live OData + fixture fallback; promotes into `person_roles`) |
 | Administrative Arrangements Order (AAO), PMC | Which department / minister owns which function | `agencies` stub list (official names); AAO dump later |
 | Senate Estimates / chamber Questions on Notice | QoN debt, taken-on-notice claims | `qon` (EQON search → `qons`); TON markers → `claims` |
-| [ANAO](https://www.anao.gov.au) | Audit gravity, outcome signals | `anao` (stub) |
-| Budget Papers / [PBS](https://www.finance.gov.au/publications/portfolio-budget-statements) | Measures, programs, amounts | `budget_measure` (stub) |
-| [AusTender](https://www.tenders.gov.au) | Contracts, CN identifiers, suppliers, amounts | `austender` (stub) |
+| [ANAO](https://www.anao.gov.au) | Audit gravity, outcome signals | `anao` (work / pubs index + fixture fallback) |
+| Budget Papers / [PBS](https://www.finance.gov.au/publications/portfolio-budget-statements) | Measures, programs, amounts | `budget_measure` (BP2 DOCX + PBS CSV; PDF follow-up) |
+| [AusTender](https://www.tenders.gov.au) | Contracts, CN identifiers, suppliers, amounts | `austender` (OCDS API + fixture fallback) |
 | [GrantConnect](https://www.grants.gov.au) | Grants | Documented; no adapter yet |
 | [Federal Register of Legislation](https://www.legislation.gov.au) | Bills / Acts as instruments | Documented; no adapter yet |
 | [TheyVoteForYou](https://theyvoteforyou.org.au/help/api) | Divisions, `VOTED_ON` | Documented; no adapter yet |
@@ -204,6 +204,7 @@ fill it. Copy must not invent political conclusions.
 
 - Additive migration: `infra/postgres/007_accountability.sql`
 - Pipeline extensions: `infra/postgres/008_hearing_segments.sql` (`hearing_segments`, instrument `status`/`confidence`, `qons.identifiers`)
+- Source-adapter columns: `infra/postgres/009_source_adapters.sql` (outcome `confidence` / `source_key` / agency + scrutiny FKs)
 - Handbook stub remains `005_handbook.sql` (extended, not replaced)
 - Views: `infra/postgres/analytics/accountability_*.sql` plus `v_qon_by_portfolio` alias
 - Existing volumes: `make db-apply`
@@ -219,3 +220,6 @@ fill it. Copy must not invent political conclusions.
 | Questions on Notice | **Best-effort real** | EQON search into foundation `qons`. Status mapped to `open` / `answered` / `overdue` / `unknown`. |
 | Instruments from text | **Proposed only** | Regex candidates with `instruments.status='proposed'` and a `mentioned` chunk link. Human review required. |
 | Agencies | **Stub, official names** | Seeded departments upserted into foundation `agencies` (`short_name` from the fixture `short_code`). |
+| ANAO reports | **Best-effort real** | `scrutiny_items` type `anao` from the public work / performance-audit index. Fixture fallback: `fixtures/live/anao/`. Outcomes only when finding language (“partly effective”, “not effective”, “fully effective”) is on the page or excerpt. No invented findings. |
+| Budget measures / PBS programs | **Best-effort real** | `instruments` type `measure` from Budget Paper No. 2 measures DOCX; type `program` from the data.gov.au PBS program-expense CSV. Amounts stored as published (PBS often $'000; BP2 $m). Full BP PDF parsing is follow-up. Fixtures: `fixtures/live/budget/`. |
+| AusTender contracts | **Best-effort real** | `instruments` type `contract` from the AusTender OCDS API (`api.tenders.gov.au`), recent window, high-value first, `--limit` capped. Agency linked by name when possible. Fixture: `fixtures/live/austender/`. GrantConnect remains undocumented-as-sibling only. |

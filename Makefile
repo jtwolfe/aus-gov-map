@@ -27,7 +27,7 @@ db-up:
 	@echo "Postgres is starting. Point the web app and ingest at:"
 	@echo "  DATABASE_URL=$(DATABASE_URL)"
 	@echo "Copy .env.example → .env or export that URL before make web-dev / ingest-live-files."
-	@echo "Existing volumes keep data; new volumes load infra/postgres/001–008."
+	@echo "Existing volumes keep data; new volumes load infra/postgres/001–009."
 
 down:
 	docker compose down

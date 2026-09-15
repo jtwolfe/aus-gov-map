@@ -1,0 +1,43 @@
+{
+  "source": "anao",
+  "fetched": 4,
+  "upserted": 0,
+  "chunks": 0,
+  "status": "dry_run",
+  "error": null,
+  "meta": {
+    "dry_run": true,
+    "embedder": "hash",
+    "titles": [],
+    "held_on": [],
+    "with_transcript": 0,
+    "people_sample": [],
+    "handbook_entries": 0,
+    "handbook_roles": 0,
+    "handbook_tenure": 0,
+    "agencies": 0,
+    "questions": 0,
+    "instruments": 1,
+    "scrutiny_items": 4,
+    "outcomes": 3,
+    "segments": 0,
+    "estimated_chunks": 0,
+    "chunks_with_speaker": 0,
+    "status": "ok",
+    "home": "https://www.anao.gov.au",
+    "transport": "anao_file:fixtures/live/anao",
+    "license_note": "\u00a9 Commonwealth of Australia. Auditor-General reports. Attribute the Australian National Audit Office.",
+    "limit": 5,
+    "skipped_existing": 0,
+    "errors": [],
+    "endpoints": {
+      "home": "https://www.anao.gov.au",
+      "work": "https://www.anao.gov.au/work",
+      "pubs": "https://www.anao.gov.au/pubs/performance-audit",
+      "pubs_all": "https://www.anao.gov.au/pubs",
+      "data_gov": "https://data.gov.au/data/organization/australian-national-audit-office"
+    },
+    "schema": "infra/postgres/007_accountability.sql (scrutiny_items, outcomes)",
+    "note": "ANAO performance-audit listings into scrutiny_items (type anao). Outcomes only when finding language is parseable. No invented findings."
+  }
+}

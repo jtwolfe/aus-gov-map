@@ -10,7 +10,9 @@ from pydantic import BaseModel, Field
 PersonRole = Literal["chair", "senator", "minister", "official", "witness", "appeared"]
 HearingType = Literal["estimates", "committee", "other"]
 QonStatus = Literal["open", "answered", "overdue", "refused", "unknown"]
-InstrumentKind = Literal["bill", "program", "contract", "grant", "other"]
+InstrumentKind = Literal["bill", "program", "measure", "contract", "grant", "policy", "other"]
+ScrutinyType = Literal["qon", "anao", "inquiry_report", "division", "hearing_segment", "other"]
+OutcomeSignal = Literal["met", "unmet", "partial", "adverse", "unknown"]
 SegmentKind = Literal[
     "portfolio_header",
     "agency_header",
@@ -108,6 +110,7 @@ class AgencyIn(BaseModel):
     short_code: str | None = None
     portfolio: str | None = None
     kind: str = "department"
+    source: str | None = None
     source_url: str | None = None
     notes: str | None = None
 
@@ -172,6 +175,48 @@ class InstrumentIn(BaseModel):
     evidence_text: str | None = None
     notes: str | None = None
     metadata: dict = Field(default_factory=dict)
+    agency_slug: str | None = None
+    agency_name: str | None = None
+    portfolio: str | None = None
+    announced_on: date | None = None
+    commenced_on: date | None = None
+    ended_on: date | None = None
+    amount_aud: float | None = None
+    source: str | None = None
+    source_url: str | None = None
+    identifiers: dict = Field(default_factory=dict)
+    supplier_name: str | None = None
+
+
+class ScrutinyItemIn(BaseModel):
+    source_key: str
+    item_type: ScrutinyType = "other"
+    title: str
+    published_on: date | None = None
+    source: str | None = None
+    source_url: str | None = None
+    summary: str | None = None
+    identifiers: dict = Field(default_factory=dict)
+    agency_slug: str | None = None
+    agency_name: str | None = None
+    portfolio: str | None = None
+    confidence: float | None = None
+
+
+class OutcomeIn(BaseModel):
+    source_key: str
+    outcome_type: str
+    signal: OutcomeSignal = "unknown"
+    occurred_on: date | None = None
+    source: str | None = None
+    source_url: str | None = None
+    notes: str | None = None
+    confidence: float = 0.0
+    instrument_source_key: str | None = None
+    scrutiny_source_key: str | None = None
+    agency_slug: str | None = None
+    agency_name: str | None = None
+    identifiers: dict = Field(default_factory=dict)
 
 
 class HearingSegmentIn(BaseModel):
@@ -197,6 +242,8 @@ class SourceBatch(BaseModel):
     handbook_entries: list[HandbookEntryIn] = Field(default_factory=list)
     questions: list[QuestionOnNoticeIn] = Field(default_factory=list)
     instruments: list[InstrumentIn] = Field(default_factory=list)
+    scrutiny_items: list[ScrutinyItemIn] = Field(default_factory=list)
+    outcomes: list[OutcomeIn] = Field(default_factory=list)
     meta: dict = Field(default_factory=dict)
 
 

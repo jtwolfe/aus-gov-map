@@ -39,6 +39,9 @@ PATH_SOURCES = {
     "qon",
     "agencies",
     "instrument_propose",
+    "anao",
+    "budget_measure",
+    "austender",
 }
 
 
