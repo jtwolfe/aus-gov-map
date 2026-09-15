@@ -56,8 +56,10 @@ export default function AboutPage() {
         keys; the bundled seed does not. After{" "}
         <span className="font-mono">make db-up</span> and{" "}
         <span className="font-mono">make ingest-live-files</span>, expect the
-        three committed Estimates Officials (29617 / 29625 / 29629) plus the
-        fixture hearings if you also ran <span className="font-mono">make seed</span>.
+        committed Estimates Officials under{" "}
+        <span className="font-mono">fixtures/live/transcripts</span> (21 Hansard
+        JSON files, including 29617 / 29625 / 29629) plus the fixture hearings
+        if you also ran <span className="font-mono">make seed</span>.
       </p>
     </article>
   );
