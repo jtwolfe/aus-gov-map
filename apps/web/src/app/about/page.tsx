@@ -41,7 +41,7 @@ export default function AboutPage() {
           <a className="link" href="https://handbook.aph.gov.au">
             Parliamentary Handbook
           </a>{" "}
-          (OData at handbookapi.aph.gov.au — tenures / ministries; no invented rows)
+          (live OData ingest — parliamentarians, tenure, ministries; not APS secretaries)
         </li>
         <li>
           <a className="link" href="https://www.anao.gov.au">
@@ -73,11 +73,24 @@ export default function AboutPage() {
             OpenAustralia data (XML hook, later)
           </a>
         </li>
+        <li>
+          <a className="link" href="https://www.aph.gov.au/Parliamentary_Business/Senate_Estimates/eqon">
+            Senate Estimates Questions on Notice
+          </a>{" "}
+          (best-effort public search API / committed fixtures)
+        </li>
       </ul>
       <h2 className="font-serif text-2xl text-navy">Duty map (Stage 2)</h2>
       <p className="leading-relaxed text-muted">
-        The Accountability lenses read empty tables until real extracts land.
-        Hansard is a citation of what was said, not ground truth. See{" "}
+        Accountability lenses read foundation tables. Handbook people and
+        Estimates Officials are real public records. Structured hearing
+        segments are derived from those Officials. QoN rows come from the APH
+        EQON search or committed examples.{" "}
+        <strong> Instruments</strong> extracted from Estimates text are{" "}
+        <strong>proposed candidates only</strong> — low confidence, not asserted
+        facts. Agency stubs use official department names; secretaries need a
+        separate APS source. Hansard is a citation of what was said, not ground
+        truth. See{" "}
         <span className="font-mono">docs/accountability-map.md</span>.
       </p>
       <h2 className="font-serif text-2xl text-navy">Current coverage</h2>

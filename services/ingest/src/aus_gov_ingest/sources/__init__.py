@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from aus_gov_ingest.sources.agencies import AgenciesSource
 from aus_gov_ingest.sources.anao import AnaoSource
 from aus_gov_ingest.sources.aph_transcript_file import AphTranscriptFileSource
 from aus_gov_ingest.sources.austender import AustenderSource
@@ -10,6 +11,7 @@ from aus_gov_ingest.sources.budget_measure import BudgetMeasureSource
 from aus_gov_ingest.sources.estimates import EstimatesSource
 from aus_gov_ingest.sources.fixture import FixtureSource
 from aus_gov_ingest.sources.handbook import HandbookSource
+from aus_gov_ingest.sources.instrument_propose import InstrumentProposeSource
 from aus_gov_ingest.sources.openaustralia import OpenAustraliaSource
 from aus_gov_ingest.sources.qon import QonSource
 from aus_gov_ingest.sources.schedule import EstimatesScheduleSource
@@ -27,6 +29,16 @@ SOURCES: dict[str, type] = {
     "anao": AnaoSource,
     "budget_measure": BudgetMeasureSource,
     "austender": AustenderSource,
+    "agencies": AgenciesSource,
+    "instrument_propose": InstrumentProposeSource,
+}
+
+PATH_SOURCES = {
+    "aph_transcript_file",
+    "handbook",
+    "qon",
+    "agencies",
+    "instrument_propose",
 }
 
 
@@ -36,11 +48,12 @@ def get_source(name: str, *, path: str | Path | None = None) -> Source:
         known = ", ".join(sorted(SOURCES))
         raise ValueError(f"Unknown source {name!r}. Choose one of: {known}")
     cls = SOURCES[key]
-    if key == "aph_transcript_file":
+    if path and key not in PATH_SOURCES:
+        allowed = ", ".join(sorted(PATH_SOURCES))
+        raise ValueError(f"--path is only valid with {allowed}, not {name!r}")
+    if key in PATH_SOURCES:
         return cls(path=path)
-    if path:
-        raise ValueError(f"--path is only valid with aph_transcript_file, not {name!r}")
     return cls()
 
 
-__all__ = ["Source", "SOURCES", "get_source"]
+__all__ = ["Source", "SOURCES", "PATH_SOURCES", "get_source"]

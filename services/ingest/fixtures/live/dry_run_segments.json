@@ -1,0 +1,40 @@
+{
+  "source": "aph_transcript_file",
+  "fetched": 1,
+  "upserted": 0,
+  "chunks": 1,
+  "status": "dry_run",
+  "error": null,
+  "meta": {
+    "dry_run": true,
+    "embedder": "hash",
+    "titles": [
+      "Finance and Public Administration Legislation Committee - 27/03/2025 - Estimates"
+    ],
+    "held_on": [
+      "2025-03-27"
+    ],
+    "with_transcript": 1,
+    "people": [
+      "Senator Lines",
+      "Ms Jaala Hinchcliffe",
+      "Ms Nicola Hinder PSM",
+      "Senator Pratt"
+    ],
+    "handbook_entries": 0,
+    "handbook_roles": 0,
+    "handbook_tenure": 0,
+    "agencies": 0,
+    "questions": 0,
+    "instruments": 0,
+    "segments": 7,
+    "estimated_chunks": 1,
+    "chunks_with_speaker": 1,
+    "path": "fixtures/transcript_fpa_28778_excerpt.json",
+    "files": [
+      "transcript_fpa_28778_excerpt.json"
+    ],
+    "transport": "aph_transcript_file",
+    "errors": []
+  }
+}

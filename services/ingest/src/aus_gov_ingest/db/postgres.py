@@ -11,13 +11,20 @@ from psycopg.types.json import Json
 from aus_gov_ingest.chunking import Chunk
 from aus_gov_ingest.config import settings
 from aus_gov_ingest.models import (
+    AgencyIn,
     AppearanceIn,
     BoardIn,
     CommitteeIn,
     DocumentIn,
+    HandbookEntryIn,
+    HandbookRoleIn,
+    HandbookTenureIn,
     HearingIn,
+    HearingSegmentIn,
+    InstrumentIn,
     PersonIn,
     PinIn,
+    QuestionOnNoticeIn,
     TopicIn,
 )
 from aus_gov_ingest.people import canonical_slug, names_are_same_person, pick_display_name
@@ -67,6 +74,24 @@ class PostgresStore:
             params = (source,)
         with self.connect() as conn:
             rows = conn.execute(sql, params).fetchall()
+        return {row["source_key"] for row in rows}
+
+    def existing_handbook_keys(self) -> set[str]:
+        with self.connect() as conn:
+            try:
+                rows = conn.execute(
+                    "SELECT handbook_key FROM handbook_entries WHERE handbook_key IS NOT NULL"
+                ).fetchall()
+            except Exception:
+                return set()
+        return {f"handbook:{row['handbook_key']}" for row in rows}
+
+    def existing_qon_keys(self) -> set[str]:
+        with self.connect() as conn:
+            try:
+                rows = conn.execute("SELECT source_key FROM questions_on_notice").fetchall()
+            except Exception:
+                return set()
         return {row["source_key"] for row in rows}
 
     def start_run(self, source: str, meta: dict | None = None) -> UUID:
@@ -422,6 +447,291 @@ class PostgresStore:
             """,
             (pid, board_id, item.pin_type, item.target_id, item.note),
         )
+
+    def upsert_agency(self, conn: Connection, item: AgencyIn) -> UUID:
+        aid = _uuid("agency", item.slug)
+        conn.execute(
+            """
+            INSERT INTO agencies (id, slug, name, short_code, portfolio, kind, source_url, notes)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (slug) DO UPDATE SET
+                name = EXCLUDED.name,
+                short_code = COALESCE(EXCLUDED.short_code, agencies.short_code),
+                portfolio = COALESCE(EXCLUDED.portfolio, agencies.portfolio),
+                kind = EXCLUDED.kind,
+                source_url = COALESCE(EXCLUDED.source_url, agencies.source_url),
+                notes = COALESCE(EXCLUDED.notes, agencies.notes),
+                updated_at = now()
+            """,
+            (
+                aid,
+                item.slug,
+                item.name,
+                item.short_code,
+                item.portfolio,
+                item.kind,
+                item.source_url,
+                item.notes,
+            ),
+        )
+        row = conn.execute("SELECT id FROM agencies WHERE slug = %s", (item.slug,)).fetchone()
+        return row["id"] if row else aid
+
+    def upsert_handbook_entry(
+        self, conn: Connection, item: HandbookEntryIn, person_id: UUID
+    ) -> UUID:
+        eid = _uuid("handbook", item.handbook_key)
+        conn.execute(
+            """
+            INSERT INTO handbook_entries (
+                id, person_id, handbook_key, display_name, chamber, electorate, party, aph_url
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (handbook_key) DO UPDATE SET
+                person_id = COALESCE(EXCLUDED.person_id, handbook_entries.person_id),
+                display_name = EXCLUDED.display_name,
+                chamber = COALESCE(EXCLUDED.chamber, handbook_entries.chamber),
+                electorate = COALESCE(EXCLUDED.electorate, handbook_entries.electorate),
+                party = COALESCE(EXCLUDED.party, handbook_entries.party),
+                aph_url = COALESCE(EXCLUDED.aph_url, handbook_entries.aph_url),
+                updated_at = now()
+            """,
+            (
+                eid,
+                person_id,
+                item.handbook_key,
+                item.display_name,
+                item.chamber,
+                item.electorate,
+                item.party,
+                item.aph_url,
+            ),
+        )
+        row = conn.execute(
+            "SELECT id FROM handbook_entries WHERE handbook_key = %s", (item.handbook_key,)
+        ).fetchone()
+        entry_id = row["id"] if row else eid
+        for role in item.roles:
+            self.upsert_handbook_role(conn, entry_id, role)
+        for tenure in item.tenure:
+            self.upsert_handbook_tenure(conn, entry_id, tenure)
+        return entry_id
+
+    def upsert_handbook_role(
+        self, conn: Connection, entry_id: UUID, item: HandbookRoleIn
+    ) -> None:
+        rid = _uuid(
+            "handbook-role",
+            str(entry_id),
+            item.role_title,
+            str(item.started_on or ""),
+        )
+        conn.execute(
+            """
+            INSERT INTO handbook_roles (
+                id, handbook_entry_id, role_title, role_kind, started_on, ended_on, notes
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (handbook_entry_id, role_title, (COALESCE(started_on, DATE '0001-01-01')))
+            DO UPDATE SET
+                role_kind = COALESCE(EXCLUDED.role_kind, handbook_roles.role_kind),
+                ended_on = COALESCE(EXCLUDED.ended_on, handbook_roles.ended_on),
+                notes = COALESCE(EXCLUDED.notes, handbook_roles.notes)
+            """,
+            (
+                rid,
+                entry_id,
+                item.role_title,
+                item.role_kind,
+                item.started_on,
+                item.ended_on,
+                item.notes,
+            ),
+        )
+
+    def upsert_handbook_tenure(
+        self, conn: Connection, entry_id: UUID, item: HandbookTenureIn
+    ) -> None:
+        tid = _uuid(
+            "handbook-tenure",
+            str(entry_id),
+            item.chamber or "",
+            str(item.started_on or ""),
+        )
+        conn.execute(
+            """
+            INSERT INTO handbook_tenure (
+                id, handbook_entry_id, chamber, electorate, parliament_number, started_on, ended_on
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (handbook_entry_id, (COALESCE(chamber, '')), (COALESCE(started_on, DATE '0001-01-01')))
+            DO UPDATE SET
+                electorate = COALESCE(EXCLUDED.electorate, handbook_tenure.electorate),
+                parliament_number = COALESCE(EXCLUDED.parliament_number, handbook_tenure.parliament_number),
+                ended_on = COALESCE(EXCLUDED.ended_on, handbook_tenure.ended_on)
+            """,
+            (
+                tid,
+                entry_id,
+                item.chamber,
+                item.electorate,
+                item.parliament_number,
+                item.started_on,
+                item.ended_on,
+            ),
+        )
+
+    def upsert_hearing_segment(
+        self,
+        conn: Connection,
+        *,
+        hearing_id: UUID,
+        document_id: UUID | None,
+        hearing_source_key: str,
+        index: int,
+        segment: HearingSegmentIn,
+    ) -> UUID:
+        source_key = f"segment:{hearing_source_key}:{index}:{segment.kind}"
+        sid = _uuid("segment", source_key)
+        conn.execute(
+            """
+            INSERT INTO hearing_segments (
+                id, hearing_id, document_id, source_key, segment_index, kind,
+                speaker_name, portfolio, agency, content, char_start, char_end, metadata
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (source_key) DO UPDATE SET
+                speaker_name = EXCLUDED.speaker_name,
+                portfolio = EXCLUDED.portfolio,
+                agency = EXCLUDED.agency,
+                content = EXCLUDED.content,
+                metadata = EXCLUDED.metadata
+            """,
+            (
+                sid,
+                hearing_id,
+                document_id,
+                source_key,
+                index,
+                segment.kind,
+                segment.speaker_name,
+                segment.portfolio,
+                segment.agency,
+                segment.content,
+                segment.char_start,
+                segment.char_end,
+                Json(segment.metadata or {}),
+            ),
+        )
+        return sid
+
+    def upsert_question(
+        self,
+        conn: Connection,
+        item: QuestionOnNoticeIn,
+        *,
+        hearing_id: UUID | None = None,
+    ) -> UUID:
+        qid = _uuid("qon", item.source_key)
+        agency_id = None
+        if item.agency_slug:
+            row = conn.execute(
+                "SELECT id FROM agencies WHERE slug = %s", (item.agency_slug,)
+            ).fetchone()
+            agency_id = row["id"] if row else None
+            if agency_id is None and item.agency_name:
+                row = conn.execute(
+                    "SELECT id FROM agencies WHERE name ILIKE %s LIMIT 1",
+                    (item.agency_name,),
+                ).fetchone()
+                agency_id = row["id"] if row else None
+        conn.execute(
+            """
+            INSERT INTO questions_on_notice (
+                id, source_key, qon_number, portfolio_question_number, portfolio,
+                agency_id, agency_name, asked_by, asked_on, due_on, answered_on,
+                status, question_text, answer_text, source_url, hearing_id,
+                committee_name, estimates_round, metadata, updated_at
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
+            ON CONFLICT (source_key) DO UPDATE SET
+                status = EXCLUDED.status,
+                question_text = COALESCE(EXCLUDED.question_text, questions_on_notice.question_text),
+                answer_text = COALESCE(EXCLUDED.answer_text, questions_on_notice.answer_text),
+                answered_on = COALESCE(EXCLUDED.answered_on, questions_on_notice.answered_on),
+                due_on = COALESCE(EXCLUDED.due_on, questions_on_notice.due_on),
+                agency_id = COALESCE(EXCLUDED.agency_id, questions_on_notice.agency_id),
+                metadata = EXCLUDED.metadata,
+                updated_at = now()
+            """,
+            (
+                qid,
+                item.source_key,
+                item.qon_number,
+                item.portfolio_question_number,
+                item.portfolio,
+                agency_id,
+                item.agency_name,
+                item.asked_by,
+                item.asked_on,
+                item.due_on,
+                item.answered_on,
+                item.status,
+                item.question_text,
+                item.answer_text,
+                item.source_url,
+                hearing_id,
+                item.committee_name,
+                item.estimates_round,
+                Json(item.metadata or {}),
+            ),
+        )
+        return qid
+
+    def upsert_instrument(
+        self,
+        conn: Connection,
+        item: InstrumentIn,
+        *,
+        hearing_id: UUID | None = None,
+    ) -> UUID:
+        iid = _uuid("instrument", item.source_key)
+        chunk_id = None
+        if item.source_chunk_key:
+            row = conn.execute(
+                "SELECT id FROM chunks WHERE source_key = %s", (item.source_chunk_key,)
+            ).fetchone()
+            chunk_id = row["id"] if row else None
+        conn.execute(
+            """
+            INSERT INTO instruments (
+                id, source_key, title, kind, status, confidence,
+                source_chunk_id, source_chunk_key, hearing_id, evidence_text, notes, metadata
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (source_key) DO UPDATE SET
+                title = EXCLUDED.title,
+                confidence = EXCLUDED.confidence,
+                source_chunk_id = COALESCE(EXCLUDED.source_chunk_id, instruments.source_chunk_id),
+                evidence_text = COALESCE(EXCLUDED.evidence_text, instruments.evidence_text),
+                metadata = EXCLUDED.metadata
+            """,
+            (
+                iid,
+                item.source_key,
+                item.title,
+                item.kind,
+                item.status,
+                item.confidence,
+                chunk_id,
+                item.source_chunk_key,
+                hearing_id,
+                item.evidence_text,
+                item.notes,
+                Json(item.metadata or {}),
+            ),
+        )
+        return iid
 
     def resolve_appearance(self, conn: Connection, link: AppearanceIn) -> UUID | None:
         if link.person_id:

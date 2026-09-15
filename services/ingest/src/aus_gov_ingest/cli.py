@@ -30,7 +30,7 @@ def cli() -> None:
     "source_path",
     default=None,
     type=click.Path(exists=False),
-    help="Local APH transcript JSON file or directory (aph_transcript_file).",
+    help="Local fixture file or directory (handbook, qon, agencies, instrument_propose, aph_transcript_file).",
 )
 @click.option(
     "--incremental/--full",
@@ -39,6 +39,12 @@ def cli() -> None:
 )
 @click.option("--no-graph", is_flag=True, help="Skip Neo4j upsert.")
 @click.option("--dry-run", is_flag=True, help="Fetch/parse only — no database writes.")
+@click.option(
+    "--propose-instruments",
+    "propose_instruments_flag",
+    is_flag=True,
+    help="Also extract proposed instrument candidates from Official text.",
+)
 def run_cmd(
     source_name: str,
     limit: int,
@@ -46,8 +52,9 @@ def run_cmd(
     incremental: bool,
     no_graph: bool,
     dry_run: bool,
+    propose_instruments_flag: bool,
 ) -> None:
-    """Run an ingest pass. Example: ingest run --source estimates --limit 10"""
+    """Run an ingest pass. Example: ingest run --source handbook --limit 20 --dry-run"""
     try:
         result = run_ingest(
             source_name,
@@ -56,6 +63,7 @@ def run_cmd(
             write_graph=not no_graph,
             dry_run=dry_run,
             source_path=source_path,
+            propose_instruments_flag=propose_instruments_flag,
         )
     except Exception as exc:
         click.echo(f"ingest failed: {exc}", err=True)

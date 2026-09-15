@@ -1,0 +1,368 @@
+{
+  "value": [
+    {
+      "PHID": "316915",
+      "GivenName": "Basem",
+      "MiddleNames": "",
+      "FamilyName": "ABDO",
+      "DisplayName": "ABDO, Basem",
+      "Party": "Australian Labor Party",
+      "PartyAbbrev": "ALP",
+      "Electorate": "Calwell",
+      "SenateState": "",
+      "State": "Victoria",
+      "StateAbbrev": "Vic",
+      "MPorSenator": [
+        "Member"
+      ],
+      "InCurrentParliament": "True",
+      "ElectorateService": [
+        {
+          "Electorate": "Calwell",
+          "State": "Victoria",
+          "ServiceStart": "2025-05-03",
+          "ServiceEnd": "1900-01-01"
+        }
+      ],
+      "PartyParliamentaryService": [
+        {
+          "RoSId": 63352,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "316915",
+          "Value": "ABDO, Basem",
+          "ValueID": null,
+          "DateStart": "2025-05-03",
+          "DateEnd": "2026-09-15",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "316915",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "2025-05-03",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        }
+      ],
+      "RepresentedParliaments": [
+        48
+      ],
+      "Honours": []
+    },
+    {
+      "PHID": "R36",
+      "GivenName": "Anthony",
+      "MiddleNames": "Norman",
+      "FamilyName": "ALBANESE",
+      "DisplayName": "ALBANESE, the Hon. Anthony Norman",
+      "Party": "Australian Labor Party",
+      "PartyAbbrev": "ALP",
+      "Electorate": "Grayndler",
+      "SenateState": "",
+      "State": "New South Wales",
+      "StateAbbrev": "NSW",
+      "MPorSenator": [
+        "Member"
+      ],
+      "InCurrentParliament": "True",
+      "ElectorateService": [
+        {
+          "Electorate": "Grayndler",
+          "State": "New South Wales",
+          "ServiceStart": "2025-05-03",
+          "ServiceEnd": "1900-01-01"
+        },
+        {
+          "Electorate": "Grayndler",
+          "State": "New South Wales",
+          "ServiceStart": "2022-05-21",
+          "ServiceEnd": "2025-05-03"
+        },
+        {
+          "Electorate": "Grayndler",
+          "State": "New South Wales",
+          "ServiceStart": "2019-05-18",
+          "ServiceEnd": "2022-05-21"
+        },
+        {
+          "Electorate": "Grayndler",
+          "State": "New South Wales",
+          "ServiceStart": "2016-07-02",
+          "ServiceEnd": "2019-05-18"
+        },
+        {
+          "Electorate": "Grayndler",
+          "State": "New South Wales",
+          "ServiceStart": "2013-09-07",
+          "ServiceEnd": "2016-07-02"
+        },
+        {
+          "Electorate": "Grayndler",
+          "State": "New South Wales",
+          "ServiceStart": "2010-08-21",
+          "ServiceEnd": "2013-09-07"
+        }
+      ],
+      "PartyParliamentaryService": [
+        {
+          "RoSId": 27149,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "1996-03-02",
+          "DateEnd": "1998-10-03",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        },
+        {
+          "RoSId": 27150,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "1998-10-03",
+          "DateEnd": "2001-11-10",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        },
+        {
+          "RoSId": 27151,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "2001-11-10",
+          "DateEnd": "2004-10-09",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        },
+        {
+          "RoSId": 27152,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "2004-10-09",
+          "DateEnd": "2007-11-24",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        },
+        {
+          "RoSId": 27153,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "2007-11-24",
+          "DateEnd": "2010-08-21",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        },
+        {
+          "RoSId": 27154,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "2010-08-21",
+          "DateEnd": "2013-09-07",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        },
+        {
+          "RoSId": 27155,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "2013-09-07",
+          "DateEnd": "2016-07-02",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        },
+        {
+          "RoSId": 27862,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "R36",
+          "Value": "ALBANESE, the Hon. Anthony Norman",
+          "ValueID": null,
+          "DateStart": "2016-07-02",
+          "DateEnd": "2019-05-18",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "R36",
+              "Value": "Australian Labor Party",
+              "ValueID": 1,
+              "DateStart": "1996-03-02",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        }
+      ],
+      "RepresentedParliaments": [
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48
+      ],
+      "Honours": []
+    },
+    {
+      "PHID": "11788",
+      "GivenName": "Mary",
+      "MiddleNames": "",
+      "FamilyName": "ALDRED",
+      "DisplayName": "ALDRED, Mary",
+      "Party": "Liberal Party of Australia",
+      "PartyAbbrev": "LIB",
+      "Electorate": "Monash",
+      "SenateState": "",
+      "State": "Victoria",
+      "StateAbbrev": "Vic",
+      "MPorSenator": [
+        "Member"
+      ],
+      "InCurrentParliament": "True",
+      "ElectorateService": [
+        {
+          "Electorate": "Monash",
+          "State": "Victoria",
+          "ServiceStart": "2025-05-03",
+          "ServiceEnd": "1900-01-01"
+        }
+      ],
+      "PartyParliamentaryService": [
+        {
+          "RoSId": 63361,
+          "RoSType": "Parliamentary Service",
+          "ROSTypeID": 9,
+          "PHID": "11788",
+          "Value": "ALDRED, Mary",
+          "ValueID": null,
+          "DateStart": "2025-05-03",
+          "DateEnd": "2026-09-15",
+          "SecondaryService": [
+            {
+              "RoSId": 0,
+              "RoSType": "Parties Represented",
+              "ROSTypeID": 0,
+              "PHID": "11788",
+              "Value": "Liberal Party of Australia",
+              "ValueID": 4,
+              "DateStart": "2025-05-03",
+              "DateEnd": "2026-09-15",
+              "SecondaryService": []
+            }
+          ]
+        }
+      ],
+      "RepresentedParliaments": [
+        48
+      ],
+      "Honours": []
+    }
+  ],
+  "@odata.count": null
+}

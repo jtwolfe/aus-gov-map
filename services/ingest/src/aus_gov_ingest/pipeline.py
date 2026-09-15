@@ -9,7 +9,9 @@ from aus_gov_ingest.config import settings
 from aus_gov_ingest.db.neo4j_graph import Neo4jStore
 from aus_gov_ingest.db.postgres import PostgresStore
 from aus_gov_ingest.embeddings import get_embedder
+from aus_gov_ingest.instruments import propose_instruments
 from aus_gov_ingest.models import HearingIn, SourceBatch
+from aus_gov_ingest.segments import annotate_chunks
 from aus_gov_ingest.sources import get_source
 
 
@@ -24,6 +26,48 @@ class RunResult:
     meta: dict[str, Any] = field(default_factory=dict)
 
 
+def _primary_count(source_name: str, batch: SourceBatch) -> int:
+    if source_name == "handbook":
+        return len(batch.handbook_entries) or len(batch.people)
+    if source_name == "qon":
+        return len(batch.questions)
+    if source_name == "instrument_propose":
+        return len(batch.instruments)
+    if source_name == "agencies":
+        return len(batch.agencies)
+    return len(batch.hearings)
+
+
+def _dry_run_meta(batch: SourceBatch, *, embedder_name: str) -> dict[str, Any]:
+    n_chunks = 0
+    n_segments = 0
+    speaker_chunks = 0
+    for hearing in batch.hearings:
+        n_segments += len(hearing.segments)
+        for document in hearing.documents:
+            pieces = annotate_chunks(chunk_text(document.content_text or ""), hearing.segments)
+            n_chunks += len(pieces)
+            speaker_chunks += sum(1 for c in pieces if c.speaker_name)
+    return {
+        "dry_run": True,
+        "embedder": embedder_name,
+        "titles": [h.title for h in batch.hearings],
+        "held_on": [str(h.held_on) if h.held_on else None for h in batch.hearings],
+        "with_transcript": sum(1 for h in batch.hearings if h.documents),
+        "people_sample": [p.name for p in batch.people[:12]],
+        "handbook_entries": len(batch.handbook_entries),
+        "handbook_roles": sum(len(e.roles) for e in batch.handbook_entries),
+        "handbook_tenure": sum(len(e.tenure) for e in batch.handbook_entries),
+        "agencies": len(batch.agencies),
+        "questions": len(batch.questions),
+        "instruments": len(batch.instruments),
+        "segments": n_segments,
+        "estimated_chunks": n_chunks,
+        "chunks_with_speaker": speaker_chunks,
+        **batch.meta,
+    }
+
+
 def run_ingest(
     source_name: str,
     *,
@@ -33,48 +77,50 @@ def run_ingest(
     database_url: str | None = None,
     dry_run: bool = False,
     source_path: str | None = None,
+    propose_instruments_flag: bool = False,
 ) -> RunResult:
     source = get_source(source_name, path=source_path)
     embedder = get_embedder()
     if dry_run:
         batch = source.fetch(limit=limit, incremental_keys=None)
+        if propose_instruments_flag:
+            _attach_proposed_instruments(batch)
         return RunResult(
             source=source_name,
-            fetched=len(batch.hearings),
+            fetched=_primary_count(source_name, batch),
             upserted=0,
             chunks=sum(len(h.documents) for h in batch.hearings),
             status="dry_run",
-            meta={
-                "dry_run": True,
-                "embedder": embedder.name,
-                "titles": [h.title for h in batch.hearings],
-                "held_on": [str(h.held_on) if h.held_on else None for h in batch.hearings],
-                "with_transcript": sum(1 for h in batch.hearings if h.documents),
-                **batch.meta,
-            },
+            meta=_dry_run_meta(batch, embedder_name=embedder.name),
         )
 
     store = PostgresStore(dsn=database_url or settings.database_url)
 
     known: set[str] | None = None
     if incremental:
-        known = store.existing_source_keys(
-            source=(
-                "estimates"
-                if source_name in {"estimates", "estimates_schedule", "aph_transcript_file"}
-                else None
-            )
-        )
+        if source_name in {"estimates", "estimates_schedule", "aph_transcript_file"}:
+            known = store.existing_source_keys(source="estimates")
+        elif source_name == "handbook":
+            known = store.existing_handbook_keys()
+        elif source_name == "qon":
+            known = store.existing_qon_keys()
 
     run_id = store.start_run(
         source_name,
-        meta={"limit": limit, "incremental": incremental, "embedder": embedder.name},
+        meta={
+            "limit": limit,
+            "incremental": incremental,
+            "embedder": embedder.name,
+            "propose_instruments": propose_instruments_flag,
+        },
     )
     result = RunResult(source=source_name, meta={"run_id": str(run_id), "embedder": embedder.name})
 
     try:
         batch = source.fetch(limit=limit, incremental_keys=known)
-        result.fetched = len(batch.hearings)
+        if propose_instruments_flag:
+            _attach_proposed_instruments(batch)
+        result.fetched = _primary_count(source_name, batch)
         result.meta.update(batch.meta)
         upserted, chunks = _persist(store, batch, embedder, write_graph=write_graph)
         result.upserted = upserted
@@ -97,6 +143,23 @@ def run_ingest(
     return result
 
 
+def _attach_proposed_instruments(batch: SourceBatch) -> None:
+    extra = []
+    for hearing in batch.hearings:
+        for document in hearing.documents:
+            pieces = annotate_chunks(
+                chunk_text(document.content_text or ""), hearing.segments
+            )
+            extra.extend(
+                propose_instruments(
+                    pieces,
+                    hearing_source_key=hearing.source_key,
+                    document_source_key=document.source_key,
+                )
+            )
+    batch.instruments.extend(extra)
+
+
 def _persist(
     store: PostgresStore,
     batch: SourceBatch,
@@ -113,12 +176,21 @@ def _persist(
     upserted = 0
     chunks_written = 0
     with store.connect() as conn:
+        for agency in batch.agencies:
+            store.upsert_agency(conn, agency)
+            upserted += 1
+
         topic_ids: dict[str, str] = {}
         for topic in batch.topics:
             topic_ids[topic.slug] = str(store.upsert_topic(conn, topic))
         person_ids: dict[str, str] = {}
         for person in batch.people:
             person_ids[person.slug] = str(store.upsert_person(conn, person))
+        for entry in batch.handbook_entries:
+            pid = store.upsert_person(conn, entry.person)
+            person_ids[entry.person.slug] = str(pid)
+            store.upsert_handbook_entry(conn, entry, pid)
+            upserted += 1
         for committee in batch.committees:
             store.upsert_committee(conn, committee)
         board_ids: dict[str, UUID] = {}
@@ -133,10 +205,12 @@ def _persist(
             if board_id:
                 store.upsert_pin(conn, pin, board_id)
 
+        hearing_ids: dict[str, UUID] = {}
         for hearing in batch.hearings:
             hid, n_chunks, ids = _persist_hearing(
                 store, conn, hearing, embedder, topic_ids, person_ids
             )
+            hearing_ids[hearing.source_key] = hid
             upserted += 1
             chunks_written += n_chunks
             if graph:
@@ -144,6 +218,21 @@ def _persist(
                     graph.upsert_hearing(hearing, ids)
                 except Exception:
                     pass
+
+        for question in batch.questions:
+            hid = None
+            if question.hearing_source_key:
+                hid = hearing_ids.get(question.hearing_source_key)
+            store.upsert_question(conn, question, hearing_id=hid)
+            upserted += 1
+
+        for instrument in batch.instruments:
+            hid = None
+            if instrument.hearing_source_key:
+                hid = hearing_ids.get(instrument.hearing_source_key)
+            store.upsert_instrument(conn, instrument, hearing_id=hid)
+            upserted += 1
+
         conn.commit()
     return upserted, chunks_written
 
@@ -185,10 +274,15 @@ def _persist_hearing(
 
     document_ids: list[str] = []
     n_chunks = 0
+    first_doc = None
     for document in hearing.documents:
         did = store.upsert_document(conn, hid, document)
         document_ids.append(str(did))
-        pieces = chunk_text(document.content_text or "")
+        if first_doc is None:
+            first_doc = did
+        pieces = annotate_chunks(
+            chunk_text(document.content_text or ""), hearing.segments
+        )
         if not pieces:
             continue
         vectors = embedder.embed([c.content for c in pieces])
@@ -201,9 +295,25 @@ def _persist_hearing(
                 chunk=chunk,
                 source_key=source_key,
                 embedding=vector,
-                metadata={"embedder": embedder.name, "doc_type": document.doc_type},
+                metadata={
+                    "embedder": embedder.name,
+                    "doc_type": document.doc_type,
+                    "portfolio": chunk.portfolio,
+                    "agency": chunk.agency,
+                    "taken_on_notice": chunk.taken_on_notice,
+                },
             )
             n_chunks += 1
+
+    for index, segment in enumerate(hearing.segments):
+        store.upsert_hearing_segment(
+            conn,
+            hearing_id=hid,
+            document_id=first_doc,
+            hearing_source_key=hearing.source_key,
+            index=index,
+            segment=segment,
+        )
 
     ids = {
         "hearing_id": str(hid),
