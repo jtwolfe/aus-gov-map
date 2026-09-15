@@ -1,0 +1,42 @@
+{
+  "Id": 217187,
+  "Number": 3514,
+  "PortfolioQuestionNumber": "QSC SQ25-000329",
+  "AskedDate": "2025-12-05T00:00:00",
+  "AnsweredDate": "2026-01-29T00:00:00",
+  "DueDate": "2026-01-29T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Fatima",
+      "Initials": "F.",
+      "Surname": "Payman",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "NDIS Quality and Safeguards Commission",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Community Affairs",
+  "CommitteeId": 2,
+  "Portfolio": "Health, Disability and Ageing",
+  "PortfolioId": 51,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "Does the Minister agree that specialist disability regulation is essential and that multi-sector regulators cannot adequately safeguard disabled people?",
+  "BroadTopic": "specialist disability regulation",
+  "AnswerText": "Please see attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 203109,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=2&estimatesroundid=28&portfolioid=51&number=3514"
+}

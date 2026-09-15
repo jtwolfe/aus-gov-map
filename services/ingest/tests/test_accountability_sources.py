@@ -13,6 +13,7 @@ def test_accountability_sources_are_registered() -> None:
         "budget_measure",
         "austender",
         "agencies",
+        "aps_leaders",
         "instrument_propose",
     ):
         assert name in SOURCES
@@ -43,3 +44,9 @@ def test_qon_is_implemented() -> None:
     src = get_source("qon")
     assert src.name == "qon"
     assert src.ENDPOINTS["eqon_search"].startswith("https://www.aph.gov.au/api/qon/")
+
+
+def test_aps_leaders_is_implemented() -> None:
+    src = get_source("aps_leaders")
+    assert src.name == "aps_leaders"
+    assert src.ENDPOINTS["directory"].startswith("https://www.directory.gov.au")

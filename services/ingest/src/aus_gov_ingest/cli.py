@@ -30,7 +30,7 @@ def cli() -> None:
     "source_path",
     default=None,
     type=click.Path(exists=False),
-    help="Local fixture file or directory (handbook, qon, agencies, instrument_propose, aph_transcript_file, anao, budget_measure, austender).",
+    help="Local fixture file or directory (handbook, qon, agencies, aps_leaders, instrument_propose, aph_transcript_file, anao, budget_measure, austender).",
 )
 @click.option(
     "--incremental/--full",

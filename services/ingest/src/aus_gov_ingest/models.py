@@ -112,6 +112,7 @@ class AgencyIn(BaseModel):
     kind: str = "department"
     source: str | None = None
     source_url: str | None = None
+    source: str | None = None
     notes: str | None = None
 
 
@@ -141,6 +142,21 @@ class HandbookEntryIn(BaseModel):
     aph_url: str | None = None
     roles: list[HandbookRoleIn] = Field(default_factory=list)
     tenure: list[HandbookTenureIn] = Field(default_factory=list)
+
+
+class PersonRoleIn(BaseModel):
+    source_key: str
+    person: PersonIn
+    agency: AgencyIn | None = None
+    role_title: str
+    role_type: Literal["secretary", "deputy", "agency_head", "other"] = "other"
+    portfolio: str | None = None
+    organisation: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    source: str = "aps_leaders"
+    source_url: str | None = None
+    notes: str | None = None
 
 
 class QuestionOnNoticeIn(BaseModel):
@@ -244,6 +260,7 @@ class SourceBatch(BaseModel):
     instruments: list[InstrumentIn] = Field(default_factory=list)
     scrutiny_items: list[ScrutinyItemIn] = Field(default_factory=list)
     outcomes: list[OutcomeIn] = Field(default_factory=list)
+    person_roles: list[PersonRoleIn] = Field(default_factory=list)
     meta: dict = Field(default_factory=dict)
 
 

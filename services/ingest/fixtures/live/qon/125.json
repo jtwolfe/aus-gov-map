@@ -1,0 +1,42 @@
+{
+  "Id": 220161,
+  "Number": 3350,
+  "PortfolioQuestionNumber": "125",
+  "AskedDate": "2025-12-03T00:00:00",
+  "AnsweredDate": "2026-01-27T00:00:00",
+  "DueDate": "2026-01-29T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Jane",
+      "Initials": "J.",
+      "Surname": "Hume",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Australian War Memorial",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Foreign Affairs, Defence and Trade",
+  "CommitteeId": 5,
+  "Portfolio": "Defence",
+  "PortfolioId": 7,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "Were the furniture, fixtures or fittings of the Secretary's/agency head's office, or the offices of any Deputy Secretaries/executive leadership team members, upgraded in financial year 2025-26 to date?<br><br>Please provide an itemised list of costs (GST inclusive). Please provide photographs of the works conducted.",
+  "BroadTopic": "AWM - Upgrade to executive offices",
+  "AnswerText": "Please see the attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 206083,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=5&estimatesroundid=28&portfolioid=7&number=3350"
+}

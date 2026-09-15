@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AccountabilityNav, EmptyRows } from "@/components/accountability-lens";
 import { loadInstruments } from "@/lib/accountability";
 import { formatDate, instrumentTypeLabel } from "@/lib/format";
@@ -55,7 +56,14 @@ export default async function InstrumentsPage({
                 <p className="eyebrow">{instrumentTypeLabel(row.instrumentType)}</p>
                 <p className="font-serif text-lg text-navy">{row.title}</p>
                 <p className="text-sm text-muted">
-                  {[row.agencyName, row.source].filter(Boolean).join(" · ")}
+                  {row.agencySlug ? (
+                    <Link href={`/agencies/${row.agencySlug}`} className="hover:text-ochre">
+                      {row.agencyName ?? row.agencySlug}
+                    </Link>
+                  ) : (
+                    row.agencyName
+                  )}
+                  {row.source ? ` · ${row.source}` : ""}
                 </p>
               </div>
               <p className="text-xs uppercase tracking-[0.12em] text-muted">

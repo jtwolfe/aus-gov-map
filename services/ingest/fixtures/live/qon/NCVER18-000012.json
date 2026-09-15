@@ -1,0 +1,42 @@
+{
+  "Id": 60243,
+  "Number": 402,
+  "PortfolioQuestionNumber": "NCVER18-000012",
+  "AskedDate": "2018-10-25T00:00:00",
+  "AnsweredDate": "2018-12-04T00:00:00",
+  "DueDate": "2018-12-06T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator the Hon.",
+      "FirstName": "Doug",
+      "Initials": "D. N.",
+      "Surname": "Cameron",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "National Centre for Vocational Education Research",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Education and Employment",
+  "CommitteeId": 4,
+  "Portfolio": "Education and Training",
+  "PortfolioId": 8,
+  "EstimatesRoundName": "2018-19 Supplementary budget estimates",
+  "EstimatesRoundId": 4,
+  "SearchWeight": 0,
+  "QuestionText": "Who was the delegate responsible for the appointment?",
+  "BroadTopic": "Appointment of Managing Director",
+  "AnswerText": "<span style=\"font-size: 13px;\"></span>\n<p>The NCVER Board was responsible for the appointment, on the recommendation of the selection sub-committee. </p>",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 49411,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=4&estimatesroundid=4&portfolioid=8&number=402"
+}

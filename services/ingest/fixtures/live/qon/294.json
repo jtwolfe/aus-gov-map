@@ -1,0 +1,42 @@
+{
+  "Id": 53567,
+  "Number": 294,
+  "PortfolioQuestionNumber": "294",
+  "AskedDate": "2018-05-22T00:00:00",
+  "AnsweredDate": "2018-07-09T00:00:00",
+  "DueDate": "2018-07-11T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Anne",
+      "Initials": "A. E.",
+      "Surname": "Urquhart",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Snowy Hydro Limited",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Environment and Communications",
+  "CommitteeId": 8,
+  "Portfolio": "Environment and Energy",
+  "PortfolioId": 10,
+  "EstimatesRoundName": "2018-19 Budget estimates",
+  "EstimatesRoundId": 3,
+  "SearchWeight": 0,
+  "QuestionText": "<p>Further to the Former Snowy Scheme Sites Program funded through the 2002 Snowy Water Inquiry Outcomes Implementation Deed, I ask Snowy Hydro to: </p>\n<p> a) Provide a list of sites in Kosciusko NP damaged by the construction of the original Snowy Hydro Scheme, and the estimated cost of their rehabilitation; </p>\n<p> b) Provide a list of sites in Kosciusko NP repaired under the NPWS Rehabilitation of Former Snowy Scheme Sites Program; </p>\n<p> c) Provide expenditure by and remaining trust funds available to the Rehabilitation of Former Snowy Scheme Sites Program;  </p>\n<p>d) Provide a summary of the public benefits accruing from repair of sites in Kosciusko NP under the NPWS Rehabilitation of Former Snowy Scheme Sites Program; </p>\n<p> e) Provide a list of sites in Kosciusko NP damaged by the construction of the original Snowy scheme that are not yet rehabilitated, and the estimated costs of repairing them.</p>",
+  "BroadTopic": "Former Snowy Scheme Sites Program",
+  "AnswerText": "This program is managed by the New South Wales Government.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 42834,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=8&estimatesroundid=3&portfolioid=10&number=294"
+}

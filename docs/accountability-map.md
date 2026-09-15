@@ -159,6 +159,7 @@ co-occurrence (a hearing mentioned a program) without implying duty.
 | Source | What it grounds | Adapter |
 | --- | --- | --- |
 | [Parliamentary Handbook](https://handbook.aph.gov.au) / [handbookapi.aph.gov.au](https://handbookapi.aph.gov.au) | People, tenures, ministries, shadow ministries | `handbook` (live OData + fixture fallback; promotes into `person_roles`) |
+| [directory.gov.au](https://www.directory.gov.au/) / official executive pages | Current secretaries, deputies, agency heads | `aps_leaders` (live pages + `fixtures/live/aps/`) |
 | Administrative Arrangements Order (AAO), PMC | Which department / minister owns which function | `agencies` stub list (official names); AAO dump later |
 | Senate Estimates / chamber Questions on Notice | QoN debt, taken-on-notice claims | `qon` (EQON search → `qons`); TON markers → `claims` |
 | [ANAO](https://www.anao.gov.au) | Audit gravity, outcome signals | `anao` (work / pubs index + fixture fallback) |
@@ -205,6 +206,7 @@ fill it. Copy must not invent political conclusions.
 - Additive migration: `infra/postgres/007_accountability.sql`
 - Pipeline extensions: `infra/postgres/008_hearing_segments.sql` (`hearing_segments`, instrument `status`/`confidence`, `qons.identifiers`)
 - Source-adapter columns: `infra/postgres/009_source_adapters.sql` (outcome `confidence` / `source_key` / agency + scrutiny FKs)
+- APS / QoN glue: `infra/postgres/010_aps_leaders.sql` (`person_roles.source_key`, `claims.qon_id`, agency-head view, QoN debt + official)
 - Handbook stub remains `005_handbook.sql` (extended, not replaced)
 - Views: `infra/postgres/analytics/accountability_*.sql` plus `v_qon_by_portfolio` alias
 - Existing volumes: `make db-apply`
@@ -215,6 +217,7 @@ fill it. Copy must not invent political conclusions.
 | Layer | Status | What you can trust |
 | --- | --- | --- |
 | Handbook people + roles | **Real** (APH OData / fixture fallback) | Parliamentarians, chamber tenure, ministries. Promoted into `roles` / `person_roles`. Not APS secretaries. |
+| APS secretaries / agency heads | **Real current incumbents** | `aps_leaders` from directory.gov.au / official executive pages, or cited fixtures. `start_date` only when the source states it. Historical timelines need annual reports / Wayback — follow-up. |
 | Estimates segments | **Real structure, derived** | Portfolio / agency headers and speaker turns from Official `TalkText`. Same Official, annotated. |
 | Taken on notice | **Real phrases, incomplete QoN** | Markers in Officials become `claims.taken_on_notice`. Not the Table Office register. |
 | Questions on Notice | **Best-effort real** | EQON search into foundation `qons`. Status mapped to `open` / `answered` / `overdue` / `unknown`. |

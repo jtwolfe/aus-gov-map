@@ -1,0 +1,42 @@
+{
+  "Id": 137180,
+  "Number": 671,
+  "PortfolioQuestionNumber": "BE23-679",
+  "AskedDate": "2023-08-22T00:00:00",
+  "AnsweredDate": "2023-10-20T00:00:00",
+  "DueDate": "2023-09-01T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "Deborah",
+      "Initials": "D. M.",
+      "Surname": "O'Neill",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Australian Federal Police",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Legal and Constitutional Affairs",
+  "CommitteeId": 6,
+  "Portfolio": "Attorney-General's",
+  "PortfolioId": 5,
+  "EstimatesRoundName": "2023-24 Budget estimates",
+  "EstimatesRoundId": 21,
+  "SearchWeight": 0,
+  "QuestionText": "1. At any point prior to 12 July 2018, was Linda Geddes at the Department of Home Affairs / Immigration and Border Protection briefed about Operation Regatta, either in writing or orally? For the avoidance of doubt, this includes any written briefing or report that was provided to Linda Geddes either by the AFP or with input from the AFP and which referenced Operation Regatta either directly or indirectly. If so:&nbsp;<br />\na. On what date(s).<br />\nb. At what time(s).<br />\nc. What was the form of the briefings (oral, written etc).&nbsp;<br />\nd. Was Linda Geddes advised that the AFP was investigating Mr Bhojani or Radiance International (or both) as part of Operation Regatta.",
+  "BroadTopic": "Department of Home Affairs – Linda Geddes",
+  "AnswerText": "Please see the attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 123836,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=6&estimatesroundid=21&portfolioid=5&number=671"
+}

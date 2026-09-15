@@ -1,0 +1,42 @@
+{
+  "Id": 222613,
+  "Number": 2327,
+  "PortfolioQuestionNumber": "SED25-860",
+  "AskedDate": "2025-12-11T00:00:00",
+  "AnsweredDate": "2026-02-09T00:00:00",
+  "DueDate": "2026-01-29T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator",
+      "FirstName": "David",
+      "Initials": "D.",
+      "Surname": "Shoebridge",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "Department of Home Affairs",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Legal and Constitutional Affairs",
+  "CommitteeId": 6,
+  "Portfolio": "Home Affairs",
+  "PortfolioId": 20,
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "EstimatesRoundId": 28,
+  "SearchWeight": 0,
+  "QuestionText": "How much does the AFP owe to the Commonwealth Superannuation Corporation? <br>Why has it accrued these debts? <br>How many individual AFP officers have been hit with retrospective superannuation debts because of errors made by the AFP in their calculations? <br>How do you respond to officers in this situation? <br>What steps do you take to ensure any recovery or other action doesn't cause harm to these officers?",
+  "BroadTopic": "AFP - Superannuation debts by AFP officers",
+  "AnswerText": "Please see the attached answer.",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 208534,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=6&estimatesroundid=28&portfolioid=20&number=2327"
+}

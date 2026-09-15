@@ -1,0 +1,42 @@
+{
+  "Id": 60244,
+  "Number": 403,
+  "PortfolioQuestionNumber": "NCVER18-000013",
+  "AskedDate": "2018-10-25T00:00:00",
+  "AnsweredDate": "2018-12-04T00:00:00",
+  "DueDate": "2018-12-06T00:00:00",
+  "Senators": [
+    {
+      "SenatorId": 0,
+      "Title": "Senator the Hon.",
+      "FirstName": "Doug",
+      "Initials": "D. N.",
+      "Surname": "Cameron",
+      "SortName": null,
+      "State": null,
+      "PartyAbbreviation": null,
+      "PartyShortName": null,
+      "PartyFullName": null
+    }
+  ],
+  "Agency": "National Centre for Vocational Education Research",
+  "Prefix": "",
+  "Answered": true,
+  "Status": "Answered",
+  "Overdue": "No",
+  "Committee": "Education and Employment",
+  "CommitteeId": 4,
+  "Portfolio": "Education and Training",
+  "PortfolioId": 8,
+  "EstimatesRoundName": "2018-19 Supplementary budget estimates",
+  "EstimatesRoundId": 4,
+  "SearchWeight": 0,
+  "QuestionText": "What qualifications and experience does the new MD bring to the position?",
+  "BroadTopic": "Appointment of Managing Director",
+  "AnswerText": "<ul style=\"list-style-type: disc;\">\n    <li style=\"color: black; font-family: 'Times New Roman','serif'; font-size: 12pt; font-style: normal; font-weight: normal;\">\n    <p style=\"color: #000000; font-family: 'Calibri','sans-serif'; font-size: 11pt; font-style: normal; font-weight: normal;\"><span style=\"color: black;\">Simon Walker worked in a public policy role with the Western Australian government for 23 years.</span></p>\n    </li>\n    <li style=\"color: black; font-family: 'Times New Roman','serif'; font-size: 12pt; font-style: normal; font-weight: normal;\">\n    <p style=\"color: #000000; font-family: 'Calibri','sans-serif'; font-size: 11pt; font-style: normal; font-weight: normal;\"><span style=\"color: black;\">Simon was the State&rsquo;s representative on the peak COAG Industry and Skills Council&rsquo;s advisory body, the Skills Senior Officials&rsquo; Network for 10 years.</span></p>\n    </li>\n    <li style=\"color: black; font-family: 'Times New Roman','serif'; font-size: 12pt; font-style: normal; font-weight: normal;\">\n    <p style=\"color: #000000; font-family: 'Calibri','sans-serif'; font-size: 11pt; font-style: normal; font-weight: normal;\"><span style=\"color: black;\">Simon has been a Director of the Board of the NCVER for four years.</span></p>\n    </li>\n</ul>\n<p><span style=\"color: black; font-family: Calibri;\">Simon&rsquo;s career has also included representation/membership on a range of National and State based bodies, including;</span></p>\n<ul style=\"list-style-type: disc;\">\n    <li style=\"color: black; font-family: 'Times New Roman','serif'; font-size: 12pt; font-style: normal; font-weight: normal;\">\n    <p style=\"color: #000000; font-family: 'Calibri','sans-serif'; font-size: 11pt; font-style: normal; font-weight: normal;\"><span style=\"color: black;\">Australian Industry Skills Committee</span></p>\n    </li>\n    <li style=\"color: black; font-family: 'Times New Roman','serif'; font-size: 12pt; font-style: normal; font-weight: normal;\">\n    <p style=\"color: #000000; font-family: 'Calibri','sans-serif'; font-size: 11pt; font-style: normal; font-weight: normal;\"><span style=\"color: black;\">Ministerial Advisory Council on Skilled Migration</span></p>\n    </li>\n    <li style=\"color: black; font-family: 'Times New Roman','serif'; font-size: 12pt; font-style: normal; font-weight: normal;\">\n    <p style=\"color: #000000; font-family: 'Calibri','sans-serif'; font-size: 11pt; font-style: normal; font-weight: normal;\"><span style=\"color: black;\">Flexible Lea…",
+  "IsTransferred": false,
+  "IsMultiPortfolioQuestion": false,
+  "QuestionTextId": 49412,
+  "ProofHansardPage": "Written",
+  "_source_url": "https://www.aph.gov.au/api/qon/getestimatesquestion?committeeid=4&estimatesroundid=4&portfolioid=8&number=403"
+}
