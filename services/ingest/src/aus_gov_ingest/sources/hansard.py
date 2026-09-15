@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from html import unescape
+from pathlib import Path
 from typing import Iterable
 from urllib.parse import parse_qs, urljoin, urlparse
 
@@ -54,6 +55,38 @@ def _normalise_bid(bid: str) -> str:
 
 def document_id(bid: str) -> str:
     return _normalise_bid(bid).strip("/").split("/")[-1]
+
+
+def hit_from_transcript_payload(payload: dict, *, filename: str | None = None) -> HansardHit:
+    """Rebuild a HansardHit from a saved /api/hansard/transcript JSON object."""
+    system_id = str(payload.get("SystemId") or "").strip().strip("/")
+    parts = [p for p in system_id.split("/") if p]
+    if len(parts) >= 3 and parts[0].lower() == "committees":
+        kind = parts[1].lower()
+        doc_id = parts[2]
+        sid = parts[3].zfill(4) if len(parts) > 3 else "0000"
+        bid = _normalise_bid(f"committees/{kind}/{doc_id}")
+    elif filename:
+        stem = Path(filename).stem
+        kind = "estimate"
+        bid = _normalise_bid(f"committees/estimate/{stem}")
+        sid = "0000"
+    else:
+        raise ValueError(f"Cannot derive Hansard bid from SystemId={system_id!r}")
+    title = (payload.get("MainTitle") or payload.get("Title") or "").strip()
+    date_text = payload.get("Date")
+    display_url = (
+        f"{APH_ORIGIN}/Parliamentary_Business/Hansard/Hansard_Display"
+        f"?bid={bid}&sid={sid}"
+    )
+    return HansardHit(
+        title=title,
+        bid=bid,
+        sid=sid,
+        kind=kind,
+        display_url=display_url,
+        held_on_text=str(date_text) if date_text else None,
+    )
 
 
 def parse_search_hits(html: str, *, kinds: Iterable[str] | None = None) -> list[HansardHit]:

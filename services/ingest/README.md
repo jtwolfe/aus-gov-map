@@ -12,6 +12,11 @@ python -m aus_gov_ingest seed
 # same as:
 python -m aus_gov_ingest run --source fixture
 
+# Offline Officials (committed APH transcript JSON — no network)
+python -m aus_gov_ingest run --source aph_transcript_file --dry-run
+python -m aus_gov_ingest run --source aph_transcript_file \
+  --path fixtures/live/transcripts --no-graph
+
 # Live Estimates Officials (APH Hansard JSON API — no ParlInfo needed)
 INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --dry-run
 
@@ -32,6 +37,7 @@ python -m aus_gov_ingest cron
 | `--source` | Behaviour |
 | --- | --- |
 | `fixture` | Load `data/fixtures/seed.json` |
+| `aph_transcript_file` | Load saved APH `/api/hansard/transcript` JSON from disk (`--path` file or directory; default `fixtures/live/transcripts`) |
 | `estimates` | APH Hansard Search (`chi=5`) + `GET /api/hansard/transcript` for Official text; HTML committee pages as listing fallback |
 | `estimates_schedule` | Same as `estimates`, tagged for cron / “what's new” |
 | `senate_committee` | APH Hansard Search (`chi=6`, `commsen`) + transcript API; Senate index HTML as listing fallback |

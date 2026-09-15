@@ -1,5 +1,42 @@
 # Live APH fetch notes (2026-09-15)
 
+## Offline Official transcripts
+
+Full `/api/hansard/transcript` JSON for the three 5 June 2026 Estimates Officials
+is committed under `fixtures/live/transcripts/` so ingest can run **without**
+hitting APH (needed when another machine's IP gets the Azure WAF JS challenge):
+
+| File | SystemId | Official |
+| --- | --- | --- |
+| `transcripts/29629.json` | `committees/estimate/29629/0000` | Community Affairs Legislation Committee — 5 June 2026 |
+| `transcripts/29625.json` | `committees/estimate/29625/0000` | Economics Legislation Committee — 5 June 2026 |
+| `transcripts/29617.json` | `committees/estimate/29617/0000` | Education and Employment Legislation Committee — 5 June 2026 |
+
+These are the **real API JSON objects** (`TalkText` present, not HTML / WAF
+challenge pages). They are © Commonwealth of Australia (typically CC BY-NC-ND);
+attribute the Parliament of Australia. No secrets.
+
+Load them into the pipeline (same `hearing_from_transcript` / `source_key`
+shape as live Estimates):
+
+```bash
+cd services/ingest
+# parse only
+python -m aus_gov_ingest run --source aph_transcript_file --dry-run
+# or an explicit path (repo root):
+python -m aus_gov_ingest run --source aph_transcript_file \
+  --path services/ingest/fixtures/live/transcripts --dry-run
+
+# upsert when Postgres is up
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source aph_transcript_file --no-graph
+```
+
+`--path` accepts a directory of `*.json` or a single transcript file.
+`AUS_GOV_TRANSCRIPT_PATH` overrides the default directory.
+
+## Fetch matrix
+
 Proven from this environment (cloud VM, datacentre IP):
 
 | URL | Result |

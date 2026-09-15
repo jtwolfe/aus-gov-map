@@ -75,6 +75,11 @@ python -m aus_gov_ingest seed
 # equivalent:
 python -m aus_gov_ingest run --source fixture
 
+# Officials from committed APH transcript JSON (offline; no APH fetch)
+python -m aus_gov_ingest run --source aph_transcript_file --dry-run
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
+  python -m aus_gov_ingest run --source aph_transcript_file --no-graph
+
 # Live Estimates Officials (APH Hansard JSON API)
 INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --dry-run
 INGEST_FALLBACK_FIXTURE=0 python -m aus_gov_ingest run --source estimates --limit 3 --no-graph

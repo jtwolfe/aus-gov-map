@@ -5,6 +5,7 @@ from pathlib import Path
 from aus_gov_ingest.sources.hansard import (
     HansardHit,
     hearing_from_transcript,
+    hit_from_transcript_payload,
     html_to_text,
     parse_search_hits,
 )
@@ -58,3 +59,14 @@ def test_hearing_from_real_excerpt() -> None:
 
 def test_html_to_text_strips_tags() -> None:
     assert html_to_text("<p>CHAIR: Hello</p>") == "CHAIR: Hello"
+
+
+def test_hit_from_transcript_payload() -> None:
+    import json
+
+    payload = json.loads((FIXTURES / "transcript_fpa_28778_excerpt.json").read_text())
+    hit = hit_from_transcript_payload(payload)
+    assert hit.bid == "committees/estimate/28778/"
+    assert hit.sid == "0000"
+    assert hit.kind == "estimate"
+    assert "28778" in hit.display_url

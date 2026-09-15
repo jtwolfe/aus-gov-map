@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     st_embedding_model: str = "all-MiniLM-L6-v2"
 
     aus_gov_fixture_path: str | None = None
+    aus_gov_transcript_path: str | None = None
     ingest_user_agent: str = (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"

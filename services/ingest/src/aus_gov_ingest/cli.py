@@ -26,6 +26,13 @@ def cli() -> None:
 )
 @click.option("--limit", default=0, show_default=True, help="Cap records (0 = no cap).")
 @click.option(
+    "--path",
+    "source_path",
+    default=None,
+    type=click.Path(exists=False),
+    help="Local APH transcript JSON file or directory (aph_transcript_file).",
+)
+@click.option(
     "--incremental/--full",
     default=False,
     help="Skip hearings whose source_key already exists (Estimates “what's new”).",
@@ -33,7 +40,12 @@ def cli() -> None:
 @click.option("--no-graph", is_flag=True, help="Skip Neo4j upsert.")
 @click.option("--dry-run", is_flag=True, help="Fetch/parse only — no database writes.")
 def run_cmd(
-    source_name: str, limit: int, incremental: bool, no_graph: bool, dry_run: bool
+    source_name: str,
+    limit: int,
+    source_path: str | None,
+    incremental: bool,
+    no_graph: bool,
+    dry_run: bool,
 ) -> None:
     """Run an ingest pass. Example: ingest run --source estimates --limit 10"""
     try:
@@ -43,6 +55,7 @@ def run_cmd(
             incremental=incremental,
             write_graph=not no_graph,
             dry_run=dry_run,
+            source_path=source_path,
         )
     except Exception as exc:
         click.echo(f"ingest failed: {exc}", err=True)
