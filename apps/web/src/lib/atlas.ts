@@ -60,7 +60,16 @@ export type AtlasPayload = {
 const FOUNDATION = ["person_roles", "hearings", "agencies", "people"] as const;
 
 function dateOnly(value: unknown): string | null {
-  return value ? String(value).slice(0, 10) : null;
+  if (value == null || value === "") return null;
+  // node-pg returns DATE/TIMESTAMP as Date; String(date).slice(0, 10) is "Mon Aug 01".
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  const s = String(value);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const parsed = new Date(s);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  return null;
 }
 
 function needed(note: string, extra: Partial<NeededHint> = {}): NeededHint {
@@ -341,7 +350,7 @@ async function loadBounds(): Promise<DataBounds> {
         (SELECT MAX(COALESCE(end_date, CURRENT_DATE)) FROM person_roles),
         (SELECT MAX(COALESCE(answered_on, due_on, asked_on)) FROM qons),
         (SELECT MAX(published_on) FROM scrutiny_items WHERE item_type = 'anao'),
-        (SELECT MAX(COALESCE(ended_on, commenced_on, announced_on, CURRENT_DATE)) FROM instruments)
+        (SELECT MAX(COALESCE(announced_on, commenced_on)) FROM instruments)
       ) AS max_date
   `).catch(async () =>
     query<Record<string, unknown>>(`

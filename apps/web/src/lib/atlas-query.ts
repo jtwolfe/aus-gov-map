@@ -237,7 +237,8 @@ export function resolveWindow(
 
   const dataMin = isIsoDate(bounds.min) ? bounds.min : null;
   const dataMax = isIsoDate(bounds.max) ? bounds.max : null;
-  const latest = dataMax && dataMax < today ? dataMax : dataMax ?? today;
+  // Future zone is omitted (docs): never end the default window after today.
+  const latest = dataMax && dataMax <= today ? dataMax : today;
   const earliest = dataMin ?? addDays(latest, -defaultSpan);
   const observedSpan = dataMin && dataMax ? daysBetween(dataMin, dataMax) : defaultSpan;
 
