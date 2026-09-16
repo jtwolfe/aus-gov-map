@@ -47,8 +47,12 @@ def check_offline() -> None:
     assert "docs/laws-and-precedent.md" in readme
     assert "/laws" in readme
 
+    nav = (ROOT / "apps" / "web" / "src" / "lib" / "nav.ts").read_text()
+    assert "SITE_NAV" in nav
+    assert 'href: "/laws"' in nav
     header = (ROOT / "apps" / "web" / "src" / "components" / "site-header.tsx").read_text()
-    assert 'href: "/laws"' in header
+    assert "SITE_NAV" in header
+    assert "const NAV" not in header
 
     sql012 = (ROOT / "infra" / "postgres" / "012_laws.sql").read_text()
     assert "CREATE TABLE IF NOT EXISTS divisions" in sql012
