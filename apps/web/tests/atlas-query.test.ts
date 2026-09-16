@@ -75,6 +75,17 @@ describe("resolveWindow", () => {
     );
     assert.ok(window.from <= window.to);
   });
+
+  it("caps default window at today when bounds extend into the future", () => {
+    const window = resolveWindow(
+      { min: "2017-10-23", max: "2031-08-22" },
+      {},
+      { today: "2026-09-16", defaultSpanDays: 366 * 4 },
+    );
+    assert.equal(window.to, "2026-09-16");
+    assert.ok(window.from <= "2022-09-20", window.from);
+    assert.ok(window.from >= "2022-09-10", window.from);
+  });
 });
 
 describe("assignLane", () => {
