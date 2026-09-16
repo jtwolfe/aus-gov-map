@@ -702,12 +702,14 @@ async function loadInstrumentRows(
 }
 
 async function loadClaims(hasQon: boolean): Promise<ClaimLink[]> {
+  // Prefer claims that already point at a QoN/instrument so sparse arcs survive the cap.
   const rows = await query<Record<string, unknown>>(
     `
     SELECT id, claim_type, hearing_id, instrument_id
            ${hasQon ? ", qon_id" : ", NULL::uuid AS qon_id"}
     FROM claims
     WHERE claim_type IN ('promise', 'assurance', 'taken_on_notice')
+    ORDER BY (qon_id IS NOT NULL OR instrument_id IS NOT NULL) DESC, hearing_id NULLS LAST
     LIMIT 200
     `,
   );
