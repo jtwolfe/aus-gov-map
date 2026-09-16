@@ -136,7 +136,7 @@ and in Neo4j as the named relationships. Every edge needs a `source`.
 | `CONSTRUES` | Judgment → Act | Which Act does this decision interpret? |
 | `INVALIDATES` | Judgment → Act | Which provision / application did the court hold invalid (when the headnote says so)? |
 | `UPHOLDS` | Judgment → Act | Which provision did the court hold valid (when the headnote says so)? |
-| `FUNDED_BY` | Instrument → Instrument | Which appropriation, measure, or program funded this contract / grant? **Deferred** as a law↔money fill (Stage 3b). |
+| `FUNDED_BY` | Instrument → Instrument | Which appropriation, measure, or program funded this contract / grant? **Sourced only**: fixture `funded_by_source_key`, or a distinctive title (≥12 chars) plus matching agency and overlapping year. Weak fuzzy matches and ties are skipped. Confidence is stored on the link. |
 
 `instrument_links.link_kind` also allows `mentioned` for weak, sourced
 co-occurrence (a hearing mentioned a program) without implying duty.
@@ -227,12 +227,12 @@ fill it. Copy must not invent political conclusions.
 | APS secretaries / agency heads | **Real current incumbents** | `aps_leaders` from directory.gov.au / official executive pages, or cited fixtures. `start_date` only when the source states it. Historical timelines need annual reports / Wayback — follow-up. |
 | Estimates segments | **Real structure, derived** | Portfolio / agency headers and speaker turns from Official `TalkText`. Same Official, annotated. |
 | Taken on notice | **Real phrases, incomplete QoN** | Markers in Officials become `claims.taken_on_notice`. Not the Table Office register. |
-| Questions on Notice | **Best-effort real** | EQON search into foundation `qons`. Status mapped to `open` / `answered` / `overdue` / `unknown`. |
+| Questions on Notice | **Best-effort real** | EQON search into foundation `qons`. Status mapped to `open` / `answered` / `overdue` / `unknown`. `hearing_id` is filled only when fixture `_hearing_source_key` names an Estimates Official or portfolio+date+committee uniquely match a hearing (±3 days). Ties and weak matches stay null. Re-run: `make ingest-qon-hearings` after `make ingest-live-files`. |
 | Instruments from text | **Proposed only** | Regex candidates with `instruments.status='proposed'` and a `mentioned` chunk link. Human review required. |
 | Agencies | **Stub, official names** | Seeded departments upserted into foundation `agencies` (`short_name` from the fixture `short_code`). |
 | ANAO reports | **Best-effort real** | `scrutiny_items` type `anao` from the public work / performance-audit index. Fixture fallback: `fixtures/live/anao/`. Outcomes only when finding language (“partly effective”, “not effective”, “fully effective”) is on the page or excerpt. No invented findings. |
 | Budget measures / PBS programs | **Best-effort real** | `instruments` type `measure` from Budget Paper No. 2 measures DOCX; type `program` from the data.gov.au PBS program-expense CSV. Amounts stored as published (PBS often $'000; BP2 $m). Full BP PDF parsing is follow-up. Fixtures: `fixtures/live/budget/`. |
-| AusTender contracts | **Best-effort real** | `instruments` type `contract` from the AusTender OCDS API (`api.tenders.gov.au`), recent window, high-value first, `--limit` capped. Agency linked by name when possible. Fixture: `fixtures/live/austender/`. GrantConnect remains undocumented-as-sibling only. |
+| AusTender contracts | **Best-effort real** | `instruments` type `contract` from the AusTender OCDS API (`api.tenders.gov.au`), recent window, high-value first, `--limit` capped. Agency linked by name when possible. Fixture: `fixtures/live/austender/`. GrantConnect remains undocumented-as-sibling only. `FUNDED_BY` → a Budget measure/program when the CN title (or fixture key), agency, and period uniquely match. Example: CN4195346 (Child Care Subsidy integrity) → PBS Program 1.2. |
 | Bills / Acts | **Best-effort real** | `instruments` type `bill` / `act` from the Federal Register of Legislation. Live title pages when reachable; otherwise `fixtures/live/legislation/`. Identifiers: FRL id, series, year, number. See [`laws-and-precedent.md`](laws-and-precedent.md). |
 | Divisions | **Best-effort real excerpt** | `divisions` / `division_votes` from They Vote For You. People resolved only when they already exist. Fixture: `fixtures/live/tvfy/`. |
 | Judgments | **Fixture MVP** | `scrutiny_items` type `judgment` plus `construes` / `upholds` / `invalidates` links. Not a guilt label. Fixture: `fixtures/live/judgments/`. |

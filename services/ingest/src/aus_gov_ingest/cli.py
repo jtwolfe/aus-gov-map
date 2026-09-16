@@ -146,6 +146,23 @@ def merge_people_cmd() -> None:
     click.echo(json.dumps(store.merge_duplicate_people(), indent=2))
 
 
+@cli.command("backfill-qon-hearings")
+@click.option("--no-graph", is_flag=True, default=True)
+@click.option("--path", "source_path", default=None, type=click.Path(exists=False))
+def backfill_qon_hearings_cmd(no_graph: bool, source_path: str | None) -> None:
+    """Re-run QoN ingest so hearing_id can attach to existing Estimates hearings.
+
+    Requires hearings already in Postgres (make ingest-live-files). Does not
+    invent links — only fixture keys or unique portfolio+date+committee matches.
+    """
+    result = run_ingest(
+        "qon",
+        write_graph=not no_graph,
+        source_path=source_path,
+    )
+    click.echo(json.dumps(result.__dict__, default=str, indent=2))
+
+
 @cli.command("seed-demo-board")
 def seed_demo_board_cmd() -> None:
     """Pin FOI/procurement chunk hits onto the demo board (idempotent)."""

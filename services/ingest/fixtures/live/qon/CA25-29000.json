@@ -1,0 +1,27 @@
+{
+  "Id": "official-29000-medicare-campaigns",
+  "Number": "official-1",
+  "PortfolioQuestionNumber": "CA25-OFFICIAL-1",
+  "AskedDate": "2025-10-09T00:00:00",
+  "DueDate": "2025-11-28T00:00:00",
+  "Senators": [
+    {
+      "Title": "Senator",
+      "FirstName": "Leah",
+      "Surname": "Blyth"
+    }
+  ],
+  "Agency": "Department of Health, Disability and Ageing",
+  "Answered": false,
+  "Status": "Unanswered",
+  "Overdue": "No",
+  "Committee": "Community Affairs",
+  "Portfolio": "Health, Disability and Ageing",
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "QuestionText": "Senator BLYTH: I have a couple of follow-up questions. This is probably something you'll have to take on notice. How many specialised campaigns has Medicare run in the last four years in total? We've got Strengthening Medicare. We've got the 40th anniversary. How many specialised campaigns? Ms Ringwood: I would have to take that on notice.",
+  "BroadTopic": "Medicare specialised campaigns",
+  "AnswerText": "",
+  "_hearing_source_key": "hansard:committees/estimate/29000",
+  "_source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard/Hansard_Display?bid=committees/estimate/29000/&sid=0000",
+  "_note": "Taken on notice in the Official for Community Affairs Estimates 9 Oct 2025 (transcript 29000). Not an EQON id — fixture metadata names the hearing."
+}

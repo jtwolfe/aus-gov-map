@@ -1,4 +1,4 @@
-.PHONY: up down logs seed web ingest install compose-app help db-up db-apply ingest-live-files ingest-backfill-files ingest-laws web-dev verify verify-atlas verify-laws
+.PHONY: up down logs seed web ingest install compose-app help db-up db-apply ingest-live-files ingest-backfill-files ingest-laws ingest-qon-hearings ingest-links web-dev verify verify-atlas verify-laws
 
 # Default local URL used by db-up / ingest-live-files / web-dev docs.
 DATABASE_URL ?= postgresql://ausgov:ausgov@localhost:5432/ausgov
@@ -10,6 +10,8 @@ help:
 	@echo "  make up                     Start Postgres+pgvector and Neo4j"
 	@echo "  make db-apply               Apply analytics, handbook, accountability, laws, demo board"
 	@echo "  make ingest-laws            Dry-run legislation / TVFY / judgments fixtures"
+	@echo "  make ingest-qon-hearings    Dry-run QoN ingest (hearing_id match / fixture keys)"
+	@echo "  make ingest-links           Dry-run budget + AusTender (FUNDED_BY when evidenced)"
 	@echo "  make ingest-live-files      Persist committed APH Official JSON into Postgres"
 	@echo "  make ingest-backfill-files  Dry-run Official JSON under $(TRANSCRIPT_DIR)"
 	@echo "  make web-dev                Next.js dev server (prefers DATABASE_URL)"
@@ -86,6 +88,20 @@ verify-atlas:
 verify-laws:
 	python3 scripts/verify_laws.py
 	@if [ -n "$(DATABASE_URL)" ]; then DATABASE_URL=$(DATABASE_URL) python3 scripts/verify_laws.py; fi
+
+# Re-run QoN after hearings exist so hearing_id can attach.
+# Persist with: make ingest-qon-hearings DRY_RUN=
+ingest-qon-hearings:
+	cd services/ingest && python3 -m aus_gov_ingest run --source qon \
+	  --path fixtures/live/qon $(or $(DRY_RUN),--dry-run) --no-graph
+
+# Budget + AusTender fixtures; FUNDED_BY only when title+agency+period (or fixture key) match.
+# Persist with: make ingest-links DRY_RUN=
+ingest-links:
+	cd services/ingest && python3 -m aus_gov_ingest run --source budget_measure \
+	  --path fixtures/live/budget $(or $(DRY_RUN),--dry-run) --no-graph
+	cd services/ingest && python3 -m aus_gov_ingest run --source austender \
+	  --path fixtures/live/austender $(or $(DRY_RUN),--dry-run) --no-graph
 
 # Offline law ingest (fixtures). Persist with: make ingest-laws DRY_RUN=
 ingest-laws:

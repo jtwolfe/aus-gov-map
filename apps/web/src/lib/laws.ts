@@ -428,12 +428,15 @@ export async function loadLinkedScrutiny(slug: string): Promise<LinkedScrutiny[]
     const rows = await query<Record<string, unknown>>(
       `
       SELECT s.item_type, s.title, s.source_url, s.published_on, s.source,
-             h.slug AS hearing_slug
+             h.slug AS hearing_slug,
+             o.title AS other_title, o.slug AS other_slug, o.instrument_type AS other_type,
+             il.link_kind
       FROM instrument_links il
       JOIN instruments i ON i.id = il.instrument_id
       LEFT JOIN scrutiny_items s ON s.id = il.scrutiny_item_id
       LEFT JOIN hearings h ON h.id = il.hearing_id
-      WHERE i.slug = $1
+      LEFT JOIN instruments o ON o.id = il.other_instrument_id
+      WHERE (i.slug = $1 OR o.slug = $1)
         AND il.link_kind IN ('tested_in', 'mentioned', 'funded_by')
       ORDER BY COALESCE(s.published_on, h.held_on) DESC NULLS LAST
       LIMIT 20
@@ -441,15 +444,24 @@ export async function loadLinkedScrutiny(slug: string): Promise<LinkedScrutiny[]
       [slug],
     );
     return rows
-      .filter((r) => r.title || r.hearing_slug)
-      .map((r) => ({
-        kind: String(r.item_type || (r.hearing_slug ? "hearing" : "link")),
-        title: String(r.title || r.hearing_slug || "linked record"),
-        href: (r.source_url as string | null)
-          || (r.hearing_slug ? `/hearings/${r.hearing_slug}` : null),
-        on: dateOnly(r.published_on),
-        source: (r.source as string | null) ?? null,
-      }));
+      .filter((r) => r.title || r.hearing_slug || r.other_title)
+      .map((r) => {
+        const funded = String(r.link_kind) === "funded_by";
+        const otherType = (r.other_type as string | null) ?? null;
+        return {
+          kind: funded ? "funded_by" : String(r.item_type || (r.hearing_slug ? "hearing" : "link")),
+          title: String(r.other_title || r.title || r.hearing_slug || "linked record"),
+          href: (r.source_url as string | null)
+            || (r.other_slug
+              ? otherType === "bill" || otherType === "act"
+                ? `/laws/${r.other_slug}`
+                : `/accountability/instruments/${r.other_slug}`
+              : null)
+            || (r.hearing_slug ? `/hearings/${r.hearing_slug}` : null),
+          on: dateOnly(r.published_on),
+          source: (r.source as string | null) ?? null,
+        };
+      });
   } catch {
     return [];
   }

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AccountabilityNav, EmptyRows } from "@/components/accountability-lens";
 import { CrossLinks } from "@/components/cross-links";
 import { MiniAtlas } from "@/components/mini-atlas";
-import { loadInstrument } from "@/lib/accountability";
+import { loadFundedByLinks, loadInstrument } from "@/lib/accountability";
 import { formatDate, instrumentTypeLabel } from "@/lib/format";
 import { isLawType } from "@/lib/laws";
 
@@ -27,6 +27,7 @@ export default async function InstrumentPage({
   const { slug } = await params;
   const payload = await loadInstrument(slug);
   const row = payload.rows[0];
+  const funded = row ? await loadFundedByLinks(row.slug) : [];
   if (payload.ready && !row) notFound();
 
   return (
@@ -110,6 +111,32 @@ export default async function InstrumentPage({
               </div>
             ) : null}
           </dl>
+          {funded.length ? (
+            <section>
+              <p className="eyebrow">FUNDED_BY</p>
+              <h2 className="mt-2 font-serif text-2xl text-navy">Funding links</h2>
+              <p className="mt-2 text-sm text-muted">
+                Sourced contract ↔ measure/program edges only. Confidence and
+                evidence stay on the link. Weak title matches are not written.
+              </p>
+              <ul className="mt-3 space-y-2 text-sm">
+                {funded.map((link) => (
+                  <li key={`${link.kind}-${link.slug}`}>
+                    <span className="text-xs uppercase tracking-[0.12em] text-muted">
+                      {link.kind === "funded_by" ? "Funded by" : "Funds"}
+                    </span>
+                    {" · "}
+                    <Link href={link.href} className="link">
+                      {link.title}
+                    </Link>
+                    {link.confidence ? (
+                      <span className="text-muted"> · confidence {link.confidence}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {isLawType(row.instrumentType) ? (
             <p className="text-sm text-muted">
               This is a Bill or Act. The law dossier (status, votes, judgments)

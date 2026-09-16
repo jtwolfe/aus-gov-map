@@ -291,8 +291,10 @@ class InstrumentLinkIn(BaseModel):
     link_kind: InstrumentLinkKind
     target_kind: str = "scrutiny"
     target_source_key: str | None = None
+    other_instrument_source_key: str | None = None
     source: str | None = None
     notes: str | None = None
+    confidence: float | None = None
 
 
 class SourceBatch(BaseModel):

@@ -100,6 +100,24 @@
           "notes": "FOI Act privilege / public-interest construction (Bennett, published Full Court reasons)."
         }
       ]
+    },
+    {
+      "citation": "[2015] FCA 544",
+      "title": "Mulligan v National Disability Insurance Agency [2015] FCA 544",
+      "court": "Federal Court of Australia",
+      "published_on": "2015-06-03",
+      "source": "federal_court",
+      "source_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/FCA/2015/544.html",
+      "jade_url": "https://jade.io/article/396798",
+      "austlii_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/FCA/2015/544.html",
+      "summary": "Construction of s 24(1)(c) of the National Disability Insurance Scheme Act 2013 and the deeming effect of r 5.8 of the Becoming a Participant Rules. Sourced interpretation — not a verdict on any official.",
+      "links": [
+        {
+          "instrument_source_key": "frl:C2013A00020",
+          "link_kind": "construes",
+          "notes": "s 24(1)(c) NDIS Act 2013 and r 5.8 access rules (Mulligan, published reasons)."
+        }
+      ]
     }
   ]
 }

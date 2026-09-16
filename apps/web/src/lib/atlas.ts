@@ -255,9 +255,9 @@ export async function loadAtlas(input: URLSearchParams | AtlasParams): Promise<A
       if (!laneMap.has(moment.laneId)) {
         laneMap.set(moment.laneId, {
           id: moment.laneId,
-          label: labelFromLaneId(moment.laneId, moment.title),
-          kind: kindFromLaneId(moment.laneId),
-          href: hrefFromLaneId(moment.laneId),
+          label: moment.laneLabel || labelFromLaneId(moment.laneId, moment.title),
+          kind: moment.laneKind || kindFromLaneId(moment.laneId),
+          href: moment.laneHref ?? hrefFromLaneId(moment.laneId),
         });
       }
     }
@@ -455,8 +455,10 @@ async function loadHearings(
              COALESCE(v.agency_chip_count, 0) AS agency_chip_count,
              COALESCE(v.taken_on_notice_count, 0) AS taken_on_notice_count,
              v.segment_portfolio, v.segment_agency, v.lane_portfolio,
+             c.name AS committee_name,
              a.slug AS agency_slug, a.name AS agency_name
       FROM hearings h
+      LEFT JOIN committees c ON c.id = h.committee_id
       LEFT JOIN v_atlas_hearing_moments v ON v.hearing_id = h.id
       LEFT JOIN LATERAL (
         SELECT ag.slug, ag.name
@@ -495,9 +497,11 @@ async function loadHearings(
                LIMIT 1
              ) AS segment_agency,
              NULL::text AS lane_portfolio,
+             c.name AS committee_name,
              NULL::text AS agency_slug,
              NULL::text AS agency_name
       FROM hearings h
+      LEFT JOIN committees c ON c.id = h.committee_id
       LEFT JOIN hearing_segments hs ON hs.hearing_id = h.id
       `
       : `
@@ -505,11 +509,13 @@ async function loadHearings(
              0::int AS segment_count, 0::int AS portfolio_chip_count,
              0::int AS agency_chip_count, 0::int AS taken_on_notice_count,
              NULL::text AS segment_portfolio, NULL::text AS segment_agency,
-             NULL::text AS lane_portfolio, NULL::text AS agency_slug, NULL::text AS agency_name
+             NULL::text AS lane_portfolio, c.name AS committee_name,
+             NULL::text AS agency_slug, NULL::text AS agency_name
       FROM hearings h
+      LEFT JOIN committees c ON c.id = h.committee_id
     `;
 
-  const groupBy = opts.hasHearingView || !opts.hasSegments ? "" : "GROUP BY h.id";
+  const groupBy = opts.hasHearingView || !opts.hasSegments ? "" : "GROUP BY h.id, c.name";
   const sql = `
     ${rollup}
     WHERE h.held_on IS NOT NULL
@@ -548,6 +554,7 @@ async function loadHearings(
     takenOnNoticeCount: Number(r.taken_on_notice_count ?? 0),
     segmentPortfolio: (r.segment_portfolio as string | null) ?? null,
     segmentAgency: (r.segment_agency as string | null) ?? null,
+    committeeName: (r.committee_name as string | null) ?? null,
     agencySlug: (r.agency_slug as string | null) ?? null,
     agencyName: (r.agency_name as string | null) ?? null,
   }));

@@ -149,6 +149,8 @@ class QonSource:
                 "note": (
                     "Senate Estimates EQON search into foundation qons + scrutiny_items. "
                     "Browser-like UA, session warm-up, and portfolio sweep. "
+                    "hearing_id is filled only when fixture metadata names a hearing "
+                    "or portfolio+date+committee uniquely match an Estimates hearing. "
                     "No invented answers; fixture fallback if the live API is blocked."
                 ),
             },
@@ -285,6 +287,12 @@ def question_from_eqon(row: dict) -> QuestionOnNoticeIn | None:
     agency_name = (row.get("Agency") or None) or None
     question_text = _html_to_text(row.get("QuestionText") or row.get("BroadTopic") or "")
     answer_text = _html_to_text(row.get("AnswerText") or "")
+    identifiers = row.get("identifiers") if isinstance(row.get("identifiers"), dict) else {}
+    hearing_source_key = (
+        row.get("_hearing_source_key")
+        or row.get("hearing_source_key")
+        or identifiers.get("hearing_source_key")
+    )
     return QuestionOnNoticeIn(
         source_key=source_key,
         qon_number=str(number) if number is not None else None,
@@ -300,6 +308,7 @@ def question_from_eqon(row: dict) -> QuestionOnNoticeIn | None:
         question_text=question_text or None,
         answer_text=answer_text or None,
         source_url=source_url or row.get("_source_url"),
+        hearing_source_key=hearing_source_key or None,
         committee_name=row.get("Committee") or None,
         estimates_round=row.get("EstimatesRoundName") or None,
         metadata={
@@ -309,6 +318,7 @@ def question_from_eqon(row: dict) -> QuestionOnNoticeIn | None:
             "broad_topic": row.get("BroadTopic"),
             "download_url": row.get("_download_url"),
             "license_note": LICENSE_NOTE,
+            "hearing_source_key": hearing_source_key or None,
         },
     )
 

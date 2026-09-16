@@ -42,6 +42,11 @@ python -m aus_gov_ingest run --source austender --limit 10 --dry-run
 python -m aus_gov_ingest run --source legislation --limit 10 --dry-run
 python -m aus_gov_ingest run --source theyvoteforyou --limit 5 --dry-run
 python -m aus_gov_ingest run --source judgments --dry-run
+
+# QoN ↔ hearing (after Officials exist) and sourced FUNDED_BY
+python -m aus_gov_ingest run --source qon --path fixtures/live/qon --dry-run
+python -m aus_gov_ingest backfill-qon-hearings
+# or from the repo root: make ingest-qon-hearings / make ingest-links
 ```
 
 Persist the same passes when Postgres is up (omit `--dry-run`):
@@ -68,13 +73,13 @@ DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 | `senate_committee` | APH Hansard Search (`chi=6`, `commsen`) + transcript API; Senate index HTML as listing fallback |
 | `openaustralia` | Hook only — chamber XML at data.openaustralia.org.au does not include Estimates |
 | `handbook` | Parliamentary Handbook OData (`handbookapi.aph.gov.au`) — people, chamber tenure, party, ministries. Fixture fallback: `fixtures/live/handbook/`. Promotes into `person_roles`. Secretaries are out of scope. |
-| `qon` | Senate Estimates EQON search (`/api/qon/getestimatesdata`) or `fixtures/live/qon/` into foundation `qons`. Status: open / answered / overdue / unknown. |
+| `qon` | Senate Estimates EQON search (`/api/qon/getestimatesdata`) or `fixtures/live/qon/` into foundation `qons`. Status: open / answered / overdue / unknown. `hearing_id` attaches when `_hearing_source_key` names an Official or portfolio+date+committee uniquely match (±3 days). Re-run: `backfill-qon-hearings` / `make ingest-qon-hearings`. |
 | `agencies` | Official department / agency stubs (`fixtures/live/agencies.json`) upserted into foundation `agencies`. |
 | `aps_leaders` | Secretaries / deputies / agency heads from directory.gov.au and official executive pages into `people`, `agencies`, `roles`, `person_roles`. Fixture fallback: `fixtures/live/aps/`. Does not invent historical tenures. |
 | `instrument_propose` | Regex candidates from Officials (bills, programs, contract/grant mentions). **Proposed only** (`instruments.status`). |
 | `anao` | ANAO work / performance-audit index → `scrutiny_items` (type anao). Outcomes only when finding language is parseable. Fixture fallback: `fixtures/live/anao/`. |
 | `budget_measure` | BP2 measures DOCX + data.gov.au PBS program-expense CSV → `instruments` (measure / program). PDF Budget Papers are follow-up. Fixture: `fixtures/live/budget/`. |
-| `austender` | AusTender OCDS API (recent / high-value, `--limit`) → `instruments` (type contract). Agency name-match. Fixture: `fixtures/live/austender/`. |
+| `austender` | AusTender OCDS API (recent / high-value, `--limit`) → `instruments` (type contract). Agency name-match. Fixture: `fixtures/live/austender/`. Writes `FUNDED_BY` to a Budget measure/program only when a fixture key or distinctive title+agency+period uniquely match. |
 | `legislation` | Federal Register of Legislation Bills/Acts → `instruments` (type `bill` / `act`) with FRL id, series, year, number. Live title pages; fixture: `fixtures/live/legislation/`. |
 | `theyvoteforyou` | They Vote For You divisions → `divisions` / `division_votes`. Resolves people only when they already exist. Fixture: `fixtures/live/tvfy/`. |
 | `judgments` | High Court / Federal Court fixture MVP → `scrutiny_items` (judgment) + `construes` / `upholds` / `invalidates`. Not a guilt label. |

@@ -11,3 +11,8 @@ blocked or `--path` points here.
 / Office of Parliamentary Counsel. Research / non-commercial framing.
 
 Do not invent titles, FRL ids, or commencements.
+
+Seed now includes Finance / PGPA-adjacent, ANAO, APS, Ombudsman, NDIS,
+and Health Acts that already appear in accountability work (plus the
+related NDIS / Public Service amendment Bills). Live browse still starts
+from `SEED_FRL_IDS` in `legislation.py`.

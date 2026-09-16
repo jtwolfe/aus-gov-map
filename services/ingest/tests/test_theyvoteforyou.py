@@ -96,3 +96,14 @@ def test_tvfy_dry_run() -> None:
     assert result.meta["divisions"] >= 1
     assert result.meta["named_votes"] >= 1
     assert result.upserted == 0
+
+
+def test_tvfy_includes_real_ndis_senate_division() -> None:
+    batch = TheyVoteForYouSource(path=FIXTURES).fetch()
+    senate = [d for d in batch.divisions if d.house == "senate"]
+    assert senate, "expected a sourced Senate division excerpt"
+    ndis = next(d for d in senate if "Disability" in (d.title or ""))
+    assert ndis.source_key == "tvfy:senate:2024-08-22:10"
+    assert ndis.instrument_source_key and "ndis" in ndis.instrument_source_key
+    assert ndis.votes and all(v.person_name for v in ndis.votes)
+    assert any(v.person_name == "Jacqui Lambie" and v.vote == "aye" for v in ndis.votes)

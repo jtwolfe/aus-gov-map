@@ -54,6 +54,28 @@
           "electorate": "Dickson"
         }
       ]
+    },
+    {
+      "id": "senate-2024-08-22-10",
+      "house": "senate",
+      "date": "2024-08-22",
+      "number": 10,
+      "name": "National Disability Insurance Scheme Amendment (Getting the NDIS Back on Track No. 1) Bill 2024 - Committee of the Whole - Veterans that have lived experience with disability",
+      "source_url": "https://theyvoteforyou.org.au/divisions/senate/2024-08-22/10",
+      "summary": "Senate division on Jacqui Lambie Network amendments. The majority voted against the amendments. Excerpt of published member positions only — totals omitted so we do not invent a chamber count.",
+      "bills": [
+        {
+          "title": "National Disability Insurance Scheme Amendment (Getting the NDIS Back on Track No. 1) Bill 2024",
+          "instrument_source_key": "frl:bill:national-disability-insurance-scheme-amendment-getting-the-ndis-back-on-track-no-1-bill-2024"
+        }
+      ],
+      "votes": [
+        {
+          "vote": "aye",
+          "name": "Jacqui Lambie",
+          "party": "Jacqui Lambie Network"
+        }
+      ]
     }
   ]
 }

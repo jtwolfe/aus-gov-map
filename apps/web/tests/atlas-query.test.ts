@@ -3,9 +3,11 @@ import { describe, it } from "node:test";
 import {
   assignLane,
   buildArcs,
+  committeeAsPortfolio,
   deriveHearingLaneHint,
   filterInstruments,
   hearingMoments,
+  looksLikePersonLabel,
   occupantsAtDate,
   packIntervals,
   parseAtlasParams,
@@ -218,6 +220,37 @@ describe("moments and occupants", () => {
   it("stays unassigned when neither hearing nor segments name a portfolio or agency", () => {
     const hint = deriveHearingLaneHint({ portfolio: null, segmentPortfolio: null });
     assert.equal(assignLane(hint, "agency").id, "unassigned");
+  });
+
+  it("does not use a person-shaped segment agency as an agency-mode lane", () => {
+    assert.equal(looksLikePersonLabel("Senator Hume"), true);
+    assert.equal(looksLikePersonLabel("Glyn Davis"), true);
+    assert.equal(looksLikePersonLabel("Ms Ringwood"), true);
+    assert.equal(looksLikePersonLabel("Department of Finance"), false);
+    assert.equal(looksLikePersonLabel("Community Affairs"), false);
+    assert.equal(looksLikePersonLabel("Home Affairs"), false);
+    assert.equal(looksLikePersonLabel("Prime Minister and Cabinet"), false);
+    const hint = deriveHearingLaneHint({
+      portfolio: null,
+      segmentPortfolio: null,
+      segmentAgency: "Senator Hume",
+    });
+    assert.equal(hint.agencyName, null);
+    assert.equal(assignLane(hint, "agency").id, "unassigned");
+  });
+
+  it("uses a sourced committee name when portfolio and agency are empty", () => {
+    assert.equal(committeeAsPortfolio("Finance and Public Administration Legislation Committee"), "Finance and Public Administration");
+    const hint = deriveHearingLaneHint({
+      portfolio: null,
+      segmentPortfolio: null,
+      committeeName: "Community Affairs Legislation Committee",
+    });
+    assert.equal(hint.portfolio, "Community Affairs");
+    const lane = assignLane(hint, "agency");
+    assert.equal(lane.kind, "portfolio");
+    assert.equal(lane.id, "portfolio:community-affairs");
+    assert.notEqual(lane.label, "Glyn Davis");
   });
 
   it("lists role-at-date occupants from tenures only", () => {

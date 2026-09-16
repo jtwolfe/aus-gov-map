@@ -9,8 +9,10 @@ from aus_gov_ingest.config import settings
 from aus_gov_ingest.db.neo4j_graph import Neo4jStore
 from aus_gov_ingest.db.postgres import PostgresStore
 from aus_gov_ingest.embeddings import get_embedder
+from aus_gov_ingest.funded_by import links_from_matches, match_funded_by
 from aus_gov_ingest.instruments import propose_instruments
-from aus_gov_ingest.models import HearingIn, SourceBatch
+from aus_gov_ingest.models import HearingIn, InstrumentIn, SourceBatch
+from aus_gov_ingest.qon_hearing import apply_hearing_match, match_qon_to_hearing
 from aus_gov_ingest.segments import annotate_chunks
 from aus_gov_ingest.sources import get_source
 
@@ -74,6 +76,8 @@ def _dry_run_meta(batch: SourceBatch, *, embedder_name: str) -> dict[str, Any]:
         "divisions": len(batch.divisions),
         "named_votes": sum(len(d.votes) for d in batch.divisions),
         "instrument_links": len(batch.instrument_links),
+        "qons_with_hearing_key": sum(1 for q in batch.questions if q.hearing_source_key),
+        "funded_by_links": sum(1 for lnk in batch.instrument_links if lnk.link_kind == "funded_by"),
         "person_roles": len(batch.person_roles),
         "occupancies": len(batch.person_roles),
         "role_types": sorted({pr.role_type for pr in batch.person_roles}),
@@ -104,6 +108,7 @@ def run_ingest(
         batch = source.fetch(limit=limit, incremental_keys=None)
         if propose_instruments_flag:
             _attach_proposed_instruments(batch)
+        _attach_in_memory_links(batch)
         return RunResult(
             source=source_name,
             fetched=_primary_count(source_name, batch),
@@ -149,6 +154,7 @@ def run_ingest(
         batch = source.fetch(limit=limit, incremental_keys=known)
         if propose_instruments_flag:
             _attach_proposed_instruments(batch)
+        _attach_in_memory_links(batch)
         result.fetched = _primary_count(source_name, batch)
         result.meta.update(batch.meta)
         upserted, chunks = _persist(store, batch, embedder, write_graph=write_graph)
@@ -187,6 +193,56 @@ def _attach_proposed_instruments(batch: SourceBatch) -> None:
                 )
             )
     batch.instruments.extend(extra)
+
+
+def _attach_in_memory_links(batch: SourceBatch) -> None:
+    """Dry-run / same-batch links that do not need Postgres."""
+    contracts = [i for i in batch.instruments if i.kind in {"contract", "grant"}]
+    funders = [i for i in batch.instruments if i.kind in {"measure", "program"}]
+    extra_funders: list[InstrumentIn] = []
+    if contracts and not funders:
+        extra_funders = _load_budget_fixture_instruments()
+    extra_contracts: list[InstrumentIn] = []
+    if funders and not contracts:
+        extra_contracts = _load_austender_fixture_instruments()
+    matches = match_funded_by(contracts or extra_contracts, funders or extra_funders)
+    existing = {
+        (lnk.instrument_source_key, lnk.other_instrument_source_key, lnk.link_kind)
+        for lnk in batch.instrument_links
+    }
+    for link in links_from_matches(matches):
+        key = (link.instrument_source_key, link.other_instrument_source_key, link.link_kind)
+        if key not in existing:
+            batch.instrument_links.append(link)
+            existing.add(key)
+
+
+def _load_budget_fixture_instruments() -> list[InstrumentIn]:
+    try:
+        from aus_gov_ingest.sources.budget_measure import (
+            default_budget_dir,
+            instrument_from_budget_row,
+            load_budget_path,
+        )
+
+        records, _ = load_budget_path(default_budget_dir())
+        return [item for item in (instrument_from_budget_row(r) for r in records) if item]
+    except Exception:
+        return []
+
+
+def _load_austender_fixture_instruments() -> list[InstrumentIn]:
+    try:
+        from aus_gov_ingest.sources.austender import (
+            default_austender_dir,
+            instrument_from_cn,
+            load_austender_path,
+        )
+
+        records, _ = load_austender_path(default_austender_dir())
+        return [item for item in (instrument_from_cn(r) for r in records) if item]
+    except Exception:
+        return []
 
 
 def _persist(
@@ -252,12 +308,25 @@ def _persist(
                 except Exception:
                     pass
 
+        hearing_candidates = []
+        if batch.questions:
+            hearing_candidates = store.list_hearing_candidates(conn)
+        matched_hearings = 0
         for question in batch.questions:
             hid = None
+            match = match_qon_to_hearing(question, hearing_candidates)
+            question = apply_hearing_match(question, match)
             if question.hearing_source_key:
                 hid = hearing_ids.get(question.hearing_source_key)
+                if hid is None:
+                    hid = store.lookup_hearing_id(conn, question.hearing_source_key)
+            if hid is None and match and match.hearing_id:
+                hid = UUID(match.hearing_id)
+            if hid:
+                matched_hearings += 1
             store.upsert_question(conn, question, hearing_id=hid)
             upserted += 1
+        batch.meta["qons_hearing_attached"] = matched_hearings
 
         instrument_ids: dict[str, UUID] = {}
         for instrument in batch.instruments:
@@ -297,10 +366,44 @@ def _persist(
                     source=outcome.source or batch.source,
                 )
 
+        if batch.instruments:
+            db_funders = store.list_funding_instruments(conn)
+            db_contracts = store.list_contract_instruments(conn)
+            batch_contracts = [i for i in batch.instruments if i.kind in {"contract", "grant"}]
+            batch_funders = [i for i in batch.instruments if i.kind in {"measure", "program"}]
+            for match in match_funded_by(
+                batch_contracts or db_contracts,
+                batch_funders or db_funders,
+            ):
+                already = any(
+                    lnk.link_kind == "funded_by"
+                    and lnk.instrument_source_key == match.contract_source_key
+                    and lnk.other_instrument_source_key == match.funder_source_key
+                    for lnk in batch.instrument_links
+                )
+                if not already:
+                    batch.instrument_links.extend(links_from_matches([match]))
+
         for extra in batch.instrument_links:
             iid = instrument_ids.get(extra.instrument_source_key)
             if not iid and extra.instrument_source_key:
                 iid = store.lookup_instrument_id(conn, extra.instrument_source_key)
+            other_id = None
+            if extra.other_instrument_source_key:
+                other_id = instrument_ids.get(extra.other_instrument_source_key)
+                if not other_id:
+                    other_id = store.lookup_instrument_id(conn, extra.other_instrument_source_key)
+            if iid and other_id and extra.link_kind == "funded_by":
+                store.link_funded_by(
+                    conn,
+                    instrument_id=iid,
+                    other_instrument_id=other_id,
+                    source=extra.source or batch.source,
+                    notes=extra.notes,
+                    confidence=extra.confidence,
+                )
+                upserted += 1
+                continue
             sid = (
                 scrutiny_ids.get(extra.target_source_key)
                 if extra.target_source_key

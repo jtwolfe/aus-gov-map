@@ -32,7 +32,7 @@ division is a many-person event, not a single edge. Judgments land as
 | Stage 2 object | Stage 3a use |
 | --- | --- |
 | `instruments` (`bill` already allowed) | Add `act`. Status catalog for law: `introduced` · `passed` · `commenced` · `amended` · `repealed` · `as_made` · `in_force` (other instruments keep `proposed` / `sourced` / `unknown`). |
-| `instrument_links` | `voted_on` (person → bill, when a resolved voter exists); `tested_in` (hearing / QoN / ANAO → instrument); **new** `construes` · `invalidates` · `upholds` (judgment → Act). `funded_by` stays defined, **deferred** as a fill. |
+| `instrument_links` | `voted_on` (person → bill, when a resolved voter exists); `tested_in` (hearing / QoN / ANAO → instrument); **new** `construes` · `invalidates` · `upholds` (judgment → Act). `funded_by` is written only when a contract/grant title (or fixture key) plus agency and period uniquely match a Budget measure/program. |
 | `scrutiny_items` | Divisions may also appear as `item_type = division`. Judgments use `judgment`. |
 | `outcomes` | Optional sourced court / register signals (`court_holding`, `legislation_status`). Descriptive only. |
 | `people` | Shared person key. Vote rows resolve to existing people when names match. **Do not invent MPs.** |
@@ -45,7 +45,8 @@ Person ──HELD_ROLE_DURING──► Role ──► Agency
   ▼
 Instrument (bill | act) ◄──CONSTRUES / UPHOLDS / INVALIDATES── ScrutinyItem (judgment)
   │         │
-  │         └──FUNDED_BY──► Instrument (appropriation / measure)   [deferred]
+  │         └──FUNDED_BY──► Instrument (appropriation / measure / program)
+  │                         [sourced only: fixture key or title+agency+period]
   │
   ├──TESTED_IN──► Hearing / QoN / ANAO
   └── Division ── division_votes (aye / no / abstain)
@@ -118,7 +119,7 @@ liable, or corrupt. A holding that a provision is invalid is a
 | `INVALIDATES` | Judgment → Act | Which provision / application did the court hold invalid? | **Filled** only when the published holding says so |
 | `UPHOLDS` | Judgment → Act | Which provision did the court hold valid? | Same honesty rule |
 | `TESTED_IN` | Instrument → Hearing / QoN / ANAO | Where was the law later examined in Parliament or audit? | Existing; filled when those adapters link |
-| `FUNDED_BY` | Instrument → Instrument | Which appropriation / measure funded a contract or program? | **Deferred** (Budget / AusTender already exist; law↔money join is Stage 3b) |
+| `FUNDED_BY` | Instrument → Instrument | Which appropriation / measure / program funded a contract or grant? | **Filled** when Budget `measure`/`program` and AusTender `contract` share a fixture `funded_by_source_key` or a distinctive title (≥12 chars after stripping `Program X.Y:`) plus matching agency and overlapping year. Ties and weak fuzzy matches are skipped. Confidence and evidence stay on `instrument_links.notes`. |
 | `ACCOUNTABLE_FOR` / `RESPONSIBLE_OFFICIAL` | Person → Instrument | Duty on a Bill / Act | Existing; empty until a source names the minister / official |
 
 Every edge needs a `source`.
@@ -189,8 +190,11 @@ Nav: **Laws** next to Accountability / Atlas.
 - **Proposed / asserted stay visually distinct.** Regex bill candidates
   from Officials remain `status = proposed` and dashed on the Atlas.
   FRL rows are sourced register facts.
-- **FUNDED_BY is deferred.** Do not infer that an Act funded a
-  contract from title overlap.
+- **FUNDED_BY is sourced only.** Do not infer that an Act funded a
+  contract from title overlap. A contract may link to a PBS program or
+  Budget measure when the published title, agency, and period agree, or
+  when fixture metadata names the funder `source_key`. Weak fuzzy
+  matches and ambiguous ties are skipped.
 - **Hansard / TVFY are not ground truth of “what the law means”.**
   They record what was said or how a chamber divided.
 - **Jade / AustLII / court sites are citations**, not a dump of the
@@ -214,7 +218,9 @@ DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 ```
 
 Makefile: `make ingest-laws` (dry-run fixtures) and the same targets
-without `DRY_RUN=1` to persist.
+without `DRY_RUN=` to persist. Re-run QoN after hearings exist
+(`make ingest-qon-hearings`) so `qons.hearing_id` can attach. Budget +
+AusTender (`make ingest-links`) write `FUNDED_BY` when evidence exists.
 
 Schema: `make db-apply` (now `004`–`013` plus analytics views).
 
@@ -230,7 +236,9 @@ A researcher can:
 3. See votes on a **person** page only when that person already exists
    and a division_vote resolved to them.
 4. Run ingest offline from fixtures; live fetch is best-effort.
-5. Trust that nothing invents MPs, vote positions, or legal conclusions.
+5. Trust that nothing invents MPs, vote positions, legal conclusions,
+   or funding links.
 
 Tests must prove: upsert keys are stable, votes do not create people,
-and date parsing does not invent commencements.
+date parsing does not invent commencements, QoN↔hearing matches only
+when unique, and `FUNDED_BY` skips weak or tied titles.

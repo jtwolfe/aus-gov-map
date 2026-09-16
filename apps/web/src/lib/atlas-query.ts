@@ -90,6 +90,8 @@ export type HearingRollup = {
   segmentPortfolio?: string | null;
   /** Dominant sourced segment agency string (Hansard chip). */
   segmentAgency?: string | null;
+  /** Committee name from hearings.committee_id — sourced fallback lane. */
+  committeeName?: string | null;
 } & LaneHint;
 
 export type HearingQonLink = {
@@ -151,6 +153,9 @@ export type AtlasMoment = {
   title: string;
   href: string | null;
   status: string | null;
+  laneLabel?: string;
+  laneKind?: LaneKind;
+  laneHref?: string | null;
   meta?: Record<string, number | string | null>;
 };
 export type AtlasInstrument = InstrumentInput & { laneId: string };
@@ -302,25 +307,66 @@ export function firstSourcedText(...values: Array<string | null | undefined>): s
   return null;
 }
 
+const PERSON_LABEL = /^(senator|hon\.?|the hon\.?|ms|mr|mrs|dr|professor|dame|sir|chair)\b/i;
+const AGENCY_HINT =
+  /\b(department|agency|commission|office|authority|corporation|service|parliament|portfolio|ministry|australia|national|treasury|defence)\b/i;
+const INSTITUTIONAL =
+  /\b(affairs|services|cabinet|department|office|health|education|finance|defence|development|energy|environment|trade|ageing|communications|employment|training|infrastructure|transport|immigration|treasury|parliament|commission|agency|authority|aged|care|indigenous|disability)\b/i;
+
+/** True when a sourced string looks like a person, not an agency/portfolio. */
+export function looksLikePersonLabel(value: string | null | undefined): boolean {
+  const text = (value ?? "").trim();
+  if (!text) return false;
+  if (PERSON_LABEL.test(text)) return true;
+  if (AGENCY_HINT.test(text) || INSTITUTIONAL.test(text)) return false;
+  const words = text.split(/\s+/);
+  return words.length === 2 && words.every((w) => /^[A-Z][a-z'’-]+$/.test(w));
+}
+
+export function agencyModeText(value: string | null | undefined): string | null {
+  const trimmed = firstSourcedText(value);
+  if (!trimmed || looksLikePersonLabel(trimmed)) return null;
+  return trimmed;
+}
+
+export function committeeAsPortfolio(name: string | null | undefined): string | null {
+  const raw = firstSourcedText(name);
+  if (!raw) return null;
+  const stripped = raw
+    .replace(/\s+(Legislation|References|Standing|Select|Joint)?\s*Committee$/i, "")
+    .replace(/^Senate\s+/i, "")
+    .trim();
+  return agencyModeText(stripped || raw);
+}
+
 /**
  * Lane hint for a hearing-level moment. Prefers a matched agency row, then
  * hearings.portfolio, then the dominant sourced segment portfolio / agency
- * string. Never invents a name that is not on the hearing or its segments.
+ * string, then the committee name. Never uses a person-shaped label as an
+ * agency or portfolio in agency mode.
  */
 export function deriveHearingLaneHint(row: {
   portfolio?: string | null;
   segmentPortfolio?: string | null;
   segmentAgency?: string | null;
+  committeeName?: string | null;
   agencySlug?: string | null;
   agencyName?: string | null;
   personId?: string | null;
   personSlug?: string | null;
   personName?: string | null;
 }): LaneHint {
+  const agencyName = agencyModeText(row.agencyName) ?? agencyModeText(row.segmentAgency);
+  const agencySlug = agencyName || !looksLikePersonLabel(row.agencySlug)
+    ? firstSourcedText(row.agencySlug)
+    : null;
   return {
-    agencySlug: firstSourcedText(row.agencySlug),
-    agencyName: firstSourcedText(row.agencyName, row.segmentAgency),
-    portfolio: firstSourcedText(row.portfolio, row.segmentPortfolio),
+    agencySlug,
+    agencyName,
+    portfolio:
+      agencyModeText(row.portfolio) ??
+      agencyModeText(row.segmentPortfolio) ??
+      committeeAsPortfolio(row.committeeName),
     personId: row.personId ?? null,
     personSlug: row.personSlug ?? null,
     personName: row.personName ?? null,
@@ -341,7 +387,7 @@ export function assignLane(hint: LaneHint, mode: LaneMode): Lane {
     return { id: "unassigned", label: "Unassigned", kind: "unassigned", href: null };
   }
 
-  if (hint.agencySlug) {
+  if (hint.agencySlug && !looksLikePersonLabel(hint.agencyName || hint.agencySlug)) {
     return {
       id: `agency:${hint.agencySlug}`,
       label: hint.agencyName || hint.agencySlug,
@@ -349,7 +395,7 @@ export function assignLane(hint: LaneHint, mode: LaneMode): Lane {
       href: `/agencies/${hint.agencySlug}`,
     };
   }
-  if (hint.agencyName) {
+  if (hint.agencyName && !looksLikePersonLabel(hint.agencyName)) {
     const slug = slugify(hint.agencyName);
     return {
       id: `agency:${slug}`,
@@ -417,7 +463,10 @@ export function hearingMoments(rows: HearingRollup[], mode: LaneMode): AtlasMome
   const out: AtlasMoment[] = [];
   for (const row of rows) {
     if (!isIsoDate(row.heldOn)) continue;
-    const hint = deriveHearingLaneHint(row);
+    const hint = deriveHearingLaneHint({
+      ...row,
+      committeeName: row.committeeName,
+    });
     const lane = assignLane(hint, mode);
     out.push({
       id: `hearing:${row.id}`,
@@ -427,6 +476,9 @@ export function hearingMoments(rows: HearingRollup[], mode: LaneMode): AtlasMome
       title: row.title,
       href: row.href,
       status: null,
+      laneLabel: lane.label,
+      laneKind: lane.kind,
+      laneHref: lane.href,
       meta: {
         segmentCount: row.segmentCount,
         portfolioChips: row.portfolioChipCount,
@@ -443,7 +495,15 @@ export function hearingMoments(rows: HearingRollup[], mode: LaneMode): AtlasMome
 export function qonMoments(rows: QonEvent[], mode: LaneMode): AtlasMoment[] {
   const out: AtlasMoment[] = [];
   for (const row of rows) {
-    const lane = assignLane(row, mode);
+    const hint: LaneHint = {
+      agencySlug: row.agencySlug,
+      agencyName: agencyModeText(row.agencyName),
+      portfolio: agencyModeText(row.portfolio),
+      personId: row.personId,
+      personSlug: row.personSlug,
+      personName: row.personName,
+    };
+    const lane = assignLane(hint, mode);
     if (isIsoDate(row.askedOn)) {
       out.push({
         id: `qon:${row.id}:asked`,
@@ -453,6 +513,9 @@ export function qonMoments(rows: QonEvent[], mode: LaneMode): AtlasMoment[] {
         title: row.title,
         href: row.href,
         status: row.status,
+        laneLabel: lane.label,
+        laneKind: lane.kind,
+        laneHref: lane.href,
       });
     }
     if (isIsoDate(row.answeredOn) && row.answeredOn !== row.askedOn) {
@@ -464,6 +527,9 @@ export function qonMoments(rows: QonEvent[], mode: LaneMode): AtlasMoment[] {
         title: `${row.title} (answered)`,
         href: row.href,
         status: "answered",
+        laneLabel: lane.label,
+        laneKind: lane.kind,
+        laneHref: lane.href,
       });
     }
   }
@@ -474,7 +540,14 @@ export function anaoMoments(rows: AnaoItem[], mode: LaneMode): AtlasMoment[] {
   const out: AtlasMoment[] = [];
   for (const row of rows) {
     if (!isIsoDate(row.publishedOn)) continue;
-    const lane = assignLane(row, mode);
+    const lane = assignLane(
+      {
+        agencySlug: row.agencySlug,
+        agencyName: agencyModeText(row.agencyName),
+        portfolio: agencyModeText(row.portfolio),
+      },
+      mode,
+    );
     out.push({
       id: `anao:${row.id}`,
       laneId: lane.id,
@@ -483,6 +556,9 @@ export function anaoMoments(rows: AnaoItem[], mode: LaneMode): AtlasMoment[] {
       title: row.title,
       href: row.href,
       status: null,
+      laneLabel: lane.label,
+      laneKind: lane.kind,
+      laneHref: lane.href,
     });
   }
   return out;
