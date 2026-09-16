@@ -7,6 +7,12 @@ export const dynamic = "force-dynamic";
 
 const LENSES = [
   {
+    href: "/atlas",
+    kicker: "00",
+    title: "Responsibility Atlas",
+    body: "Left-to-right past–future view of tenures, Estimates moments, QoNs, ANAO items, and instrument threads. A scrubber asks role-at-date for the lanes in view.",
+  },
+  {
     href: "/accountability/role-at-date",
     kicker: "01",
     title: "Role at date",
@@ -112,7 +118,7 @@ export default async function AccountabilityPage() {
 
       <LensNeeded
         needed={{
-          note: "Lenses read Postgres views when 007–010 have been applied. Handbook, QoN, agencies, aps_leaders, instrument_propose, ANAO, Budget/PBS, and AusTender now write into that model. Sparse data is correct; nothing invents officials or findings.",
+          note: "Lenses read Postgres views when 007–011 have been applied. Handbook, QoN, agencies, aps_leaders, instrument_propose, ANAO, Budget/PBS, and AusTender now write into that model. Sparse data is correct; nothing invents officials or findings. The Atlas is the temporal reading room.",
           apply: "make db-apply",
           sources: ["handbook", "aps_leaders", "qon", "agencies", "instrument_propose", "anao", "budget_measure", "austender"],
           tables: ["person_roles", "instruments", "qons", "claims", "scrutiny_items", "outcomes"],

@@ -108,7 +108,7 @@ def sources_cmd() -> None:
 
 @cli.command("apply-schema")
 def apply_schema_cmd() -> None:
-    """Apply incremental SQL: analytics, handbook, accountability, demo board."""
+    """Apply incremental SQL: analytics, handbook, accountability, atlas, demo board."""
     from pathlib import Path
 
     from aus_gov_ingest.config import settings

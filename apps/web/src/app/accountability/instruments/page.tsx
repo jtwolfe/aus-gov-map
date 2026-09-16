@@ -54,8 +54,13 @@ export default async function InstrumentsPage({
             <li key={row.slug} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
               <div>
                 <p className="eyebrow">{instrumentTypeLabel(row.instrumentType)}</p>
-                <p className="font-serif text-lg text-navy">{row.title}</p>
+                <p className="font-serif text-lg text-navy">
+                  <Link href={`/accountability/instruments/${row.slug}`} className="hover:text-ochre">
+                    {row.title}
+                  </Link>
+                </p>
                 <p className="text-sm text-muted">
+                  {row.status === "proposed" ? "proposed · " : ""}
                   {row.agencySlug ? (
                     <Link href={`/agencies/${row.agencySlug}`} className="hover:text-ochre">
                       {row.agencyName ?? row.agencySlug}

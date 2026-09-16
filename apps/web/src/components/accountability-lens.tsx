@@ -1,6 +1,6 @@
 import Link from "next/link";
-import type { NeededHint } from "@/lib/accountability";
-import { LENSES } from "@/lib/accountability";
+import type { NeededHint } from "@/lib/accountability-meta";
+import { LENSES } from "@/lib/accountability-meta";
 
 export function AccountabilityNav({ current }: { current: string }) {
   return (

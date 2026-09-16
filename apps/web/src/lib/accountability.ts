@@ -1,13 +1,10 @@
 import { postgresAvailable, query } from "./db";
+import type { NeededHint } from "./accountability-meta";
+
+export type { NeededHint } from "./accountability-meta";
+export { LENSES } from "./accountability-meta";
 
 export type AccountabilitySource = "postgres" | "fixture";
-
-export type NeededHint = {
-  note: string;
-  apply?: string;
-  sources?: string[];
-  tables?: string[];
-};
 
 export type RoleAtDateRow = {
   personSlug: string | null;
@@ -87,6 +84,10 @@ export type InstrumentRow = {
   amountAud: string | null;
   source: string | null;
   sourceUrl: string | null;
+  status?: string | null;
+  commencedOn?: string | null;
+  endedOn?: string | null;
+  summary?: string | null;
 };
 
 export type AccountabilityPayload<T> = {
@@ -510,7 +511,8 @@ export async function loadInstruments(q: string | null) {
       `
       SELECT i.slug, i.title, i.instrument_type,
              a.slug AS agency_slug, a.name AS agency_name,
-             i.announced_on, i.amount_aud, i.source, i.source_url
+             i.announced_on, i.amount_aud, i.source, i.source_url,
+             i.status
       FROM instruments i
       LEFT JOIN agencies a ON a.id = i.agency_id
       WHERE ($1::text IS NULL OR i.title ILIKE '%' || $1 || '%'
@@ -520,6 +522,22 @@ export async function loadInstruments(q: string | null) {
       LIMIT 80
       `,
       [q?.trim() || null],
+    ).catch(async () =>
+      query<Record<string, unknown>>(
+        `
+        SELECT i.slug, i.title, i.instrument_type,
+               a.slug AS agency_slug, a.name AS agency_name,
+               i.announced_on, i.amount_aud, i.source, i.source_url
+        FROM instruments i
+        LEFT JOIN agencies a ON a.id = i.agency_id
+        WHERE ($1::text IS NULL OR i.title ILIKE '%' || $1 || '%'
+               OR i.slug ILIKE '%' || $1 || '%'
+               OR i.identifiers::text ILIKE '%' || $1 || '%')
+        ORDER BY i.title
+        LIMIT 80
+        `,
+        [q?.trim() || null],
+      ),
     );
     return rows.map((r) => ({
       slug: String(r.slug),
@@ -531,19 +549,50 @@ export async function loadInstruments(q: string | null) {
       amountAud: r.amount_aud != null ? String(r.amount_aud) : null,
       source: (r.source as string | null) ?? null,
       sourceUrl: (r.source_url as string | null) ?? null,
+      status: (r.status as string | null) ?? null,
     }));
   }, { query: q });
 }
 
-export const LENSES = [
-  { href: "/accountability", label: "Overview", match: "exact" as const },
-  { href: "/accountability/role-at-date", label: "Role at date" },
-  { href: "/accountability/promise-receipt", label: "Promise → receipt" },
-  { href: "/accountability/qon-debt", label: "QoN debt" },
-  { href: "/accountability/chain-completeness", label: "Chain completeness" },
-  { href: "/accountability/instruments", label: "Instruments" },
-  { href: "/agencies", label: "Agencies" },
-];
+export async function loadInstrument(slug: string) {
+  const hint = needed(
+    "An instrument dossier needs a sourced row in instruments. budget_measure and austender persist asserted rows; instrument_propose stays proposed-only.",
+    {
+      sources: ["budget_measure", "austender", "instrument_propose"],
+      tables: ["instruments", "agencies"],
+    },
+  );
+  return withFoundation<InstrumentRow>(hint, async () => {
+    const rows = await query<Record<string, unknown>>(
+      `
+      SELECT i.slug, i.title, i.instrument_type,
+             a.slug AS agency_slug, a.name AS agency_name,
+             i.announced_on, i.commenced_on, i.ended_on, i.amount_aud,
+             i.source, i.source_url, i.status, i.summary
+      FROM instruments i
+      LEFT JOIN agencies a ON a.id = i.agency_id
+      WHERE i.slug = $1
+      LIMIT 1
+      `,
+      [slug],
+    );
+    return rows.map((r) => ({
+      slug: String(r.slug),
+      title: String(r.title),
+      instrumentType: String(r.instrument_type),
+      agencySlug: (r.agency_slug as string | null) ?? null,
+      agencyName: (r.agency_name as string | null) ?? null,
+      announcedOn: dateOnly(r.announced_on),
+      commencedOn: dateOnly(r.commenced_on),
+      endedOn: dateOnly(r.ended_on),
+      amountAud: r.amount_aud != null ? String(r.amount_aud) : null,
+      source: (r.source as string | null) ?? null,
+      sourceUrl: (r.source_url as string | null) ?? null,
+      status: (r.status as string | null) ?? null,
+      summary: (r.summary as string | null) ?? null,
+    }));
+  });
+}
 
 export type QonStatus = "open" | "answered" | "overdue" | "refused" | "unknown";
 

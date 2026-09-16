@@ -101,6 +101,11 @@ export default function AboutPage() {
         / executive pages / cited fixtures). Hansard is a citation of what was said, not ground
         truth. See{" "}
         <span className="font-mono">docs/accountability-map.md</span>.
+        The temporal reading room is the{" "}
+        <a className="link" href="/atlas">
+          Responsibility Atlas
+        </a>{" "}
+        (<span className="font-mono">docs/responsibility-atlas.md</span>).
       </p>
       <h2 className="font-serif text-2xl text-navy">Current coverage</h2>
       <p className="leading-relaxed text-muted">
