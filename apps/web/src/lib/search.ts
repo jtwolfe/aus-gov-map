@@ -226,6 +226,31 @@ function hearingFilterSql(
 async function postgresKeyword(q: string, filters: SearchFilters): Promise<SearchHit[]> {
   const { sql: filterSql, params: filterParams, next } = hearingFilterSql(filters, "h", 2);
   const personParam = next;
+  const hasInstruments = await query<{ n: number }>(
+    `SELECT COUNT(*)::int AS n FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_name = 'instruments'`,
+  ).then((rows) => (rows[0]?.n ?? 0) === 1).catch(() => false);
+  const instrumentUnion = hasInstruments
+    ? `
+      UNION ALL
+
+      SELECT 'instrument', i.id::text, i.slug, i.title,
+             i.instrument_type,
+             COALESCE(i.summary, i.title),
+             ts_rank(
+               to_tsvector('english', coalesce(i.title,'') || ' ' || coalesce(i.summary,'')),
+               (SELECT tsq FROM q)
+             ),
+             i.source_key, NULL
+      FROM instruments i
+      WHERE (
+        to_tsvector('english', coalesce(i.title,'') || ' ' || coalesce(i.summary,''))
+          @@ (SELECT tsq FROM q)
+        OR i.title ILIKE '%' || (SELECT raw FROM q) || '%'
+        OR i.identifiers::text ILIKE '%' || (SELECT raw FROM q) || '%'
+      )
+    `
+    : "";
   const rows = await query<{
     kind: string;
     id: string;
@@ -293,6 +318,8 @@ async function postgresKeyword(q: string, filters: SearchFilters): Promise<Searc
       )
       ${filterSql}
 
+      ${instrumentUnion}
+
       UNION ALL
 
       SELECT 'chunk', ch.id::text, h.slug, h.title,
@@ -324,6 +351,10 @@ async function postgresKeyword(q: string, filters: SearchFilters): Promise<Searc
     href:
       row.kind === "person"
         ? `/people/${row.slug}`
+        : row.kind === "instrument" && row.slug
+          ? row.subtitle === "bill" || row.subtitle === "act"
+            ? `/laws/${row.slug}`
+            : `/accountability/instruments/${row.slug}`
         : row.kind === "chunk" && row.slug
           ? `/hearings/${row.slug}#chunk-${row.id}`
           : row.slug

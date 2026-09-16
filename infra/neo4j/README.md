@@ -34,8 +34,8 @@ python -m aus_gov_ingest graph-init
 | --- | --- | --- |
 | `Role` | `id`, `slug`, `title`, `role_type` | Time-bounded office / seat |
 | `Agency` | `id`, `slug`, `name` | Department or agency |
-| `Instrument` | `id`, `slug`, `title`, `instrument_type` | Program, measure, bill, contract, grant, policy |
-| `ScrutinyItem` | `id`, `slug`, `title`, `item_type` | Hearing segment, QoN, ANAO, division, inquiry |
+| `Instrument` | `id`, `slug`, `title`, `instrument_type` | Program, measure, bill, act, contract, grant, policy |
+| `ScrutinyItem` | `id`, `slug`, `title`, `item_type` | Hearing segment, QoN, ANAO, division, judgment, inquiry |
 | `Claim` | `id`, `claim_type` | Promise / assurance / taken on notice / denial |
 | `Outcome` | `id`, `outcome_type`, `signal` | Sourced later signal — not a verdict |
 
@@ -49,6 +49,7 @@ python -m aus_gov_ingest graph-init
 (Claim)-[:PROMISED_IN]->(Instrument)
 (Instrument)-[:TESTED_IN]->(ScrutinyItem)
 (Person)-[:VOTED_ON {vote, source}]->(Instrument)
+(ScrutinyItem)-[:CONSTRUES|UPHOLDS|INVALIDATES]->(Instrument)
 (Instrument)-[:FUNDED_BY]->(Instrument)
 (Hearing)-[:SCRUTINISES]->(Instrument)
 (Instrument)-[:OWNED_BY]->(Agency)

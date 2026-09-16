@@ -1,4 +1,4 @@
-.PHONY: up down logs seed web ingest install compose-app help db-up db-apply ingest-live-files ingest-backfill-files web-dev verify
+.PHONY: up down logs seed web ingest install compose-app help db-up db-apply ingest-live-files ingest-backfill-files ingest-laws web-dev verify verify-atlas verify-laws
 
 # Default local URL used by db-up / ingest-live-files / web-dev docs.
 DATABASE_URL ?= postgresql://ausgov:ausgov@localhost:5432/ausgov
@@ -8,7 +8,8 @@ help:
 	@echo "aus-gov-map Stage 2"
 	@echo "  make db-up                  Start Postgres+pgvector (and print DATABASE_URL)"
 	@echo "  make up                     Start Postgres+pgvector and Neo4j"
-	@echo "  make db-apply               Apply analytics, handbook, accountability, demo board"
+	@echo "  make db-apply               Apply analytics, handbook, accountability, laws, demo board"
+	@echo "  make ingest-laws            Dry-run legislation / TVFY / judgments fixtures"
 	@echo "  make ingest-live-files      Persist committed APH Official JSON into Postgres"
 	@echo "  make ingest-backfill-files  Dry-run Official JSON under $(TRANSCRIPT_DIR)"
 	@echo "  make web-dev                Next.js dev server (prefers DATABASE_URL)"
@@ -28,7 +29,7 @@ db-up:
 	@echo "Postgres is starting. Point the web app and ingest at:"
 	@echo "  DATABASE_URL=$(DATABASE_URL)"
 	@echo "Copy .env.example → .env or export that URL before make web-dev / ingest-live-files."
-	@echo "Existing volumes keep data; new volumes load infra/postgres/001–011."
+	@echo "Existing volumes keep data; new volumes load infra/postgres/001–013."
 
 down:
 	docker compose down
@@ -81,3 +82,16 @@ verify:
 verify-atlas:
 	python3 scripts/verify_atlas.py
 	@if [ -n "$(DATABASE_URL)" ]; then DATABASE_URL=$(DATABASE_URL) python3 scripts/verify_atlas.py; fi
+
+verify-laws:
+	python3 scripts/verify_laws.py
+	@if [ -n "$(DATABASE_URL)" ]; then DATABASE_URL=$(DATABASE_URL) python3 scripts/verify_laws.py; fi
+
+# Offline law ingest (fixtures). Persist with: make ingest-laws DRY_RUN=
+ingest-laws:
+	cd services/ingest && python3 -m aus_gov_ingest run --source legislation \
+	  --path fixtures/live/legislation $(or $(DRY_RUN),--dry-run) --no-graph
+	cd services/ingest && python3 -m aus_gov_ingest run --source theyvoteforyou \
+	  --path fixtures/live/tvfy $(or $(DRY_RUN),--dry-run) --no-graph
+	cd services/ingest && python3 -m aus_gov_ingest run --source judgments \
+	  --path fixtures/live/judgments $(or $(DRY_RUN),--dry-run) --no-graph

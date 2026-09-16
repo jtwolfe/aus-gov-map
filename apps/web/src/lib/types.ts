@@ -98,7 +98,7 @@ export type Pin = {
 };
 
 export type SearchHit = {
-  kind: "hearing" | "person" | "chunk" | "document";
+  kind: "hearing" | "person" | "chunk" | "document" | "instrument";
   id: string;
   slug?: string;
   title: string;

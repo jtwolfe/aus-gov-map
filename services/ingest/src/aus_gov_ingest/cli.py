@@ -30,7 +30,7 @@ def cli() -> None:
     "source_path",
     default=None,
     type=click.Path(exists=False),
-    help="Local fixture file or directory (handbook, qon, agencies, aps_leaders, instrument_propose, aph_transcript_file, anao, budget_measure, austender).",
+    help="Local fixture file or directory (handbook, qon, agencies, aps_leaders, instrument_propose, aph_transcript_file, anao, budget_measure, austender, legislation, theyvoteforyou, judgments).",
 )
 @click.option(
     "--incremental/--full",
@@ -108,7 +108,7 @@ def sources_cmd() -> None:
 
 @cli.command("apply-schema")
 def apply_schema_cmd() -> None:
-    """Apply incremental SQL: analytics, handbook, accountability, atlas, demo board."""
+    """Apply incremental SQL: analytics, handbook, accountability, atlas, laws, demo board."""
     from pathlib import Path
 
     from aus_gov_ingest.config import settings

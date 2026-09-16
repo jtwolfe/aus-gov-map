@@ -21,9 +21,13 @@ export default async function InstrumentsPage({
         <p className="eyebrow">Programs · measures · bills · contracts · grants</p>
         <h1 className="mt-2 font-serif text-4xl text-ink">Instruments</h1>
         <p className="mt-3 text-muted leading-relaxed">
-          Public things that can be decided, funded, or delivered. Amounts and
-          dates stay nullable until a source provides them. This list does not
-          rank value or controversy.
+          Public things that can be decided, funded, or delivered — including
+          Bills and Acts. Amounts and dates stay nullable until a source
+          provides them. Law dossiers live at{" "}
+          <Link href="/laws" className="link">
+            /laws
+          </Link>
+          . This list does not rank value or controversy.
         </p>
         <p className="mt-2 text-xs text-muted">
           Source · <span className="font-mono">{payload.source}</span>
@@ -55,7 +59,14 @@ export default async function InstrumentsPage({
               <div>
                 <p className="eyebrow">{instrumentTypeLabel(row.instrumentType)}</p>
                 <p className="font-serif text-lg text-navy">
-                  <Link href={`/accountability/instruments/${row.slug}`} className="hover:text-ochre">
+                  <Link
+                    href={
+                      row.instrumentType === "bill" || row.instrumentType === "act"
+                        ? `/laws/${row.slug}`
+                        : `/accountability/instruments/${row.slug}`
+                    }
+                    className="hover:text-ochre"
+                  >
                     {row.title}
                   </Link>
                 </p>

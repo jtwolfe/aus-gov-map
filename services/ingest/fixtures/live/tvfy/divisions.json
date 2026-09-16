@@ -1,0 +1,59 @@
+{
+  "license_note": "They Vote For You / OpenAustralia Foundation, citing Commonwealth Hansard. Short published excerpt — not a full chamber list. Third reading of this Bill was agreed without a division; this fixture is a recorded consideration-in-detail division.",
+  "divisions": [
+    {
+      "id": 4,
+      "house": "representatives",
+      "date": "2022-11-24",
+      "number": 4,
+      "name": "National Anti-Corruption Commission Bill 2022 - Consideration in Detail - Budget review timing and funding recommendations",
+      "source_url": "https://theyvoteforyou.org.au/divisions/representatives/2022-11-24/4",
+      "hansard_url": "https://www.openaustralia.org.au/debate/?id=2022-11-24.38.4",
+      "summary": "House division on a motion to disagree with amendments (8) and (9) (Helen Haines). The amendments failed. Excerpt of published member positions only — totals omitted so we do not invent a chamber count.",
+      "bills": [
+        {
+          "title": "National Anti-Corruption Commission Bill 2022",
+          "instrument_source_key": "frl:bill:national-anti-corruption-commission-bill-2022"
+        }
+      ],
+      "votes": [
+        {
+          "vote": "aye",
+          "name": "Mark Dreyfus",
+          "party": "Australian Labor Party",
+          "electorate": "Isaacs"
+        },
+        {
+          "vote": "aye",
+          "name": "Julian Leeser",
+          "party": "Liberal Party",
+          "electorate": "Berowra"
+        },
+        {
+          "vote": "no",
+          "name": "Helen Haines",
+          "party": "Independent",
+          "electorate": "Indi"
+        },
+        {
+          "vote": "no",
+          "name": "Bridget Archer",
+          "party": "Liberal Party",
+          "electorate": "Bass"
+        },
+        {
+          "vote": "absent",
+          "name": "Anthony Albanese",
+          "party": "Australian Labor Party",
+          "electorate": "Grayndler"
+        },
+        {
+          "vote": "absent",
+          "name": "Peter Dutton",
+          "party": "Liberal Party",
+          "electorate": "Dickson"
+        }
+      ]
+    }
+  ]
+}

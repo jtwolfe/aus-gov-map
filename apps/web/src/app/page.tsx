@@ -77,12 +77,17 @@ export default async function HomePage() {
           <Link href="/atlas" className="hover:text-ochre">
             Atlas
           </Link>
+          <span className="text-muted"> · </span>
+          <Link href="/laws" className="hover:text-ochre">
+            Laws
+          </Link>
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          Search a hearing or person, then step into Accountability lenses or
-          the Atlas. Lenses stay empty until Handbook, APS leaders, QoN, ANAO,
-          Budget, or AusTender rows land — they do not invent conclusions or
-          guilt labels. Sitting in Estimates is not a tenure.
+          Search a hearing or person, then step into Accountability lenses,
+          the Atlas, or Laws. Lenses stay empty until Handbook, APS leaders,
+          QoN, ANAO, Budget, AusTender, or legislation rows land — they do
+          not invent conclusions or guilt labels. Sitting in Estimates is
+          not a tenure.
         </p>
       </section>
 

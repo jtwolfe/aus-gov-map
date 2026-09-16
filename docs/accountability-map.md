@@ -86,7 +86,7 @@ row exists.
 
 A public **thing that can be decided, funded, or delivered**:
 
-`program` · `measure` · `bill` · `contract` · `grant` · `policy` · `other`
+`program` · `measure` · `bill` · `act` · `contract` · `grant` · `policy` · `other`
 
 Identifiers live in `instruments.identifiers` (JSONB): bill number, AusTender
 CN, GrantConnect GA, PBS measure id, appropriation line. Amounts and dates
@@ -104,6 +104,7 @@ official is a **chain gap**, not a finding of fault.
 | `anao` | Auditor-General report or extract |
 | `inquiry_report` | Committee inquiry report |
 | `division` | Recorded vote (TheyVoteForYou / Hansard division) |
+| `judgment` | High Court / Federal Court decision that cites a mapped Act |
 | `other` | Sourced scrutiny that does not fit yet |
 
 `qons` is the typed QoN ledger (status, due date, asker, answering
@@ -132,7 +133,10 @@ and in Neo4j as the named relationships. Every edge needs a `source`.
 | `PROMISED_IN` | Claim → Instrument | Where was a delivery or assurance stated? |
 | `TESTED_IN` | Instrument → ScrutinyItem | Where was that instrument later examined (hearing, QoN, ANAO, division)? |
 | `VOTED_ON` | Person → Instrument (usually a bill) | How did this person vote, if a sourced division exists? |
-| `FUNDED_BY` | Instrument → Instrument | Which appropriation, measure, or program funded this contract / grant? |
+| `CONSTRUES` | Judgment → Act | Which Act does this decision interpret? |
+| `INVALIDATES` | Judgment → Act | Which provision / application did the court hold invalid (when the headnote says so)? |
+| `UPHOLDS` | Judgment → Act | Which provision did the court hold valid (when the headnote says so)? |
+| `FUNDED_BY` | Instrument → Instrument | Which appropriation, measure, or program funded this contract / grant? **Deferred** as a law↔money fill (Stage 3b). |
 
 `instrument_links.link_kind` also allows `mentioned` for weak, sourced
 co-occurrence (a hearing mentioned a program) without implying duty.
@@ -166,8 +170,9 @@ co-occurrence (a hearing mentioned a program) without implying duty.
 | Budget Papers / [PBS](https://www.finance.gov.au/publications/portfolio-budget-statements) | Measures, programs, amounts | `budget_measure` (BP2 DOCX + PBS CSV; PDF follow-up) |
 | [AusTender](https://www.tenders.gov.au) | Contracts, CN identifiers, suppliers, amounts | `austender` (OCDS API + fixture fallback) |
 | [GrantConnect](https://www.grants.gov.au) | Grants | Documented; no adapter yet |
-| [Federal Register of Legislation](https://www.legislation.gov.au) | Bills / Acts as instruments | Documented; no adapter yet |
-| [TheyVoteForYou](https://theyvoteforyou.org.au/help/api) | Divisions, `VOTED_ON` | Documented; no adapter yet |
+| [Federal Register of Legislation](https://www.legislation.gov.au) | Bills / Acts as instruments | `legislation` (live title pages + `fixtures/live/legislation/`) |
+| [TheyVoteForYou](https://theyvoteforyou.org.au/help/api) | Divisions, `VOTED_ON` | `theyvoteforyou` (JSON + `fixtures/live/tvfy/`; never invents people) |
+| Jade / AustLII / court sites | Judgments that cite mapped Acts | `judgments` (fixture MVP; `fixtures/live/judgments/`) |
 | Stage 1 APH Hansard JSON | Hearings, chunks, claims spans | Existing `estimates` / `aph_transcript_file` |
 
 Companion endpoints used by the Handbook adapter (OData, as consumed by
@@ -207,6 +212,8 @@ fill it. Copy must not invent political conclusions.
 - Pipeline extensions: `infra/postgres/008_hearing_segments.sql` (`hearing_segments`, instrument `status`/`confidence`, `qons.identifiers`)
 - Source-adapter columns: `infra/postgres/009_source_adapters.sql` (outcome `confidence` / `source_key` / agency + scrutiny FKs)
 - APS / QoN glue: `infra/postgres/010_aps_leaders.sql` (`person_roles.source_key`, `claims.qon_id`, agency-head view, QoN debt + official)
+- Laws: `infra/postgres/012_laws.sql` (`act` type, `divisions`, `division_votes`, law Atlas helper)
+- Precedent: `infra/postgres/013_precedent.sql` (`judgment` type, `construes` / `invalidates` / `upholds`)
 - Handbook stub remains `005_handbook.sql` (extended, not replaced)
 - Views: `infra/postgres/analytics/accountability_*.sql` plus `v_qon_by_portfolio` alias
 - Existing volumes: `make db-apply`
@@ -226,3 +233,6 @@ fill it. Copy must not invent political conclusions.
 | ANAO reports | **Best-effort real** | `scrutiny_items` type `anao` from the public work / performance-audit index. Fixture fallback: `fixtures/live/anao/`. Outcomes only when finding language (“partly effective”, “not effective”, “fully effective”) is on the page or excerpt. No invented findings. |
 | Budget measures / PBS programs | **Best-effort real** | `instruments` type `measure` from Budget Paper No. 2 measures DOCX; type `program` from the data.gov.au PBS program-expense CSV. Amounts stored as published (PBS often $'000; BP2 $m). Full BP PDF parsing is follow-up. Fixtures: `fixtures/live/budget/`. |
 | AusTender contracts | **Best-effort real** | `instruments` type `contract` from the AusTender OCDS API (`api.tenders.gov.au`), recent window, high-value first, `--limit` capped. Agency linked by name when possible. Fixture: `fixtures/live/austender/`. GrantConnect remains undocumented-as-sibling only. |
+| Bills / Acts | **Best-effort real** | `instruments` type `bill` / `act` from the Federal Register of Legislation. Live title pages when reachable; otherwise `fixtures/live/legislation/`. Identifiers: FRL id, series, year, number. See [`laws-and-precedent.md`](laws-and-precedent.md). |
+| Divisions | **Best-effort real excerpt** | `divisions` / `division_votes` from They Vote For You. People resolved only when they already exist. Fixture: `fixtures/live/tvfy/`. |
+| Judgments | **Fixture MVP** | `scrutiny_items` type `judgment` plus `construes` / `upholds` / `invalidates` links. Not a guilt label. Fixture: `fixtures/live/judgments/`. |

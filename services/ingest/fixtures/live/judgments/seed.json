@@ -1,0 +1,105 @@
+{
+  "license_note": "Published court catchwords / headnotes. Attribute the Commonwealth courts. Citations via Jade, AustLII, or hcourt.gov.au. Not a republication of reasons.",
+  "judgments": [
+    {
+      "citation": "[2014] HCA 23",
+      "title": "Williams v Commonwealth of Australia [2014] HCA 23",
+      "court": "High Court of Australia",
+      "published_on": "2014-06-19",
+      "source": "high_court",
+      "source_url": "https://eresources.hcourt.gov.au/showCase/2014/HCA/23",
+      "jade_url": "https://jade.io/article/331388",
+      "austlii_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/HCA/2014/23.html",
+      "summary": "Williams (No 2). The Court held that s 32B of the Financial Management and Accountability Act 1997 and related regulations were invalid insofar as they purported to authorise the school chaplaincy payments under challenge. Sourced holding — not a finding about any official's conduct.",
+      "links": [
+        {
+          "instrument_source_key": "frl:C2004A05251",
+          "link_kind": "invalidates",
+          "notes": "s 32B FMA Act 1997 and related regs invalid to the extent they authorised the challenged payments (Williams No 2, published holding)."
+        },
+        {
+          "instrument_source_key": "frl:C2004A05251",
+          "link_kind": "construes",
+          "notes": "Construction of the FMA spending-authorisation provisions."
+        }
+      ]
+    },
+    {
+      "citation": "[2023] HCA 37",
+      "title": "NZYQ v Minister for Immigration, Citizenship and Multicultural Affairs [2023] HCA 37",
+      "court": "High Court of Australia",
+      "published_on": "2023-11-28",
+      "source": "high_court",
+      "source_url": "https://eresources.hcourt.gov.au/showCase/2023/HCA/37",
+      "jade_url": "https://jade.io/article/1028458",
+      "austlii_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/HCA/2023/37.html",
+      "summary": "The Court held that ss 189(1) and 196(1) of the Migration Act 1958 do not authorise detention where there is no real prospect of removal from Australia becoming practicable in the reasonably foreseeable future. Construction of those sections as applied — not a wholesale strike-down of the Act, and not a guilt label.",
+      "links": [
+        {
+          "instrument_source_key": "frl:C1958A00062",
+          "link_kind": "construes",
+          "notes": "ss 189(1) and 196(1) do not authorise detention without a real prospect of removal (NZYQ, published holding)."
+        }
+      ]
+    },
+    {
+      "citation": "[2003] HCA 2",
+      "title": "Plaintiff S157/2002 v Commonwealth of Australia [2003] HCA 2",
+      "court": "High Court of Australia",
+      "published_on": "2003-02-04",
+      "source": "high_court",
+      "source_url": "https://eresources.hcourt.gov.au/showCase/2003/HCA/2",
+      "jade_url": "https://jade.io/article/68072",
+      "austlii_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/HCA/2003/2.html",
+      "summary": "The Court read s 474 of the Migration Act 1958 (privative clause) so that it does not protect decisions involving jurisdictional error. The provision was construed, not labelled a crime.",
+      "links": [
+        {
+          "instrument_source_key": "frl:C1958A00062",
+          "link_kind": "construes",
+          "notes": "s 474 privative clause does not oust review of jurisdictional error (Plaintiff S157, published holding)."
+        },
+        {
+          "instrument_source_key": "frl:C1958A00062",
+          "link_kind": "upholds",
+          "notes": "The section was held capable of a valid reading (not struck down in terms)."
+        }
+      ]
+    },
+    {
+      "citation": "[2013] HCA 52",
+      "title": "Kline v Official Secretary to the Governor-General [2013] HCA 52",
+      "court": "High Court of Australia",
+      "published_on": "2013-12-06",
+      "source": "high_court",
+      "source_url": "https://eresources.hcourt.gov.au/showCase/2013/HCA/52",
+      "jade_url": "https://jade.io/article/307888",
+      "austlii_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/HCA/2013/52.html",
+      "summary": "Construction of the Freedom of Information Act 1982 exemption for official documents of the Governor-General. Sourced interpretation — not a verdict on any official.",
+      "links": [
+        {
+          "instrument_source_key": "frl:C2004A02562",
+          "link_kind": "construes",
+          "notes": "FOI Act exemption for official documents of the Governor-General (Kline, published holding)."
+        }
+      ]
+    },
+    {
+      "citation": "[2004] FCAFC 237",
+      "title": "Bennett v Chief Executive Officer of the Australian Customs Service [2004] FCAFC 237",
+      "court": "Federal Court of Australia",
+      "published_on": "2004-08-25",
+      "source": "federal_court",
+      "source_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/FCAFC/2004/237.html",
+      "jade_url": "https://jade.io/article/114580",
+      "austlii_url": "https://www.austlii.edu.au/cgi-bin/viewdoc/au/cases/cth/FCAFC/2004/237.html",
+      "summary": "Full Federal Court construction of Freedom of Information Act 1982 legal-professional-privilege and public-interest questions. Sourced interpretation.",
+      "links": [
+        {
+          "instrument_source_key": "frl:C2004A02562",
+          "link_kind": "construes",
+          "notes": "FOI Act privilege / public-interest construction (Bennett, published Full Court reasons)."
+        }
+      ]
+    }
+  ]
+}

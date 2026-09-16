@@ -69,6 +69,8 @@ export function instrumentTypeLabel(type: string): string {
       return "Measure";
     case "bill":
       return "Bill";
+    case "act":
+      return "Act";
     case "contract":
       return "Contract";
     case "grant":
