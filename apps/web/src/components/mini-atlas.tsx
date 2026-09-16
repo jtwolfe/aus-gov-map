@@ -41,8 +41,11 @@ export async function MiniAtlas({
       </div>
       {!payload.ready || payload.lanes.length === 0 ? (
         <p className="px-4 py-5 text-sm text-muted">
-          No sourced tenures or moments for this filter yet. Sitting in
-          Estimates is not a tenure.{" "}
+          No sourced tenures or moments for this filter yet. That layer is
+          filled by <span className="font-mono">handbook</span>,{" "}
+          <span className="font-mono">aps_leaders</span>, and Estimates
+          ingest. Sitting in Estimates is not a tenure. Empty is correct — it
+          is not a finding.{" "}
           <Link href="/accountability" className="link">
             Accountability
           </Link>

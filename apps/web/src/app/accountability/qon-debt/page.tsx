@@ -34,7 +34,14 @@ export default async function QonDebtPage() {
               className="flex flex-wrap items-baseline justify-between gap-2 py-3"
             >
               <div>
-                <p className="font-serif text-lg text-navy">{row.portfolio}</p>
+                <p className="font-serif text-lg text-navy">
+                  <Link
+                    href={`/atlas?portfolio=${encodeURIComponent(row.portfolio)}`}
+                    className="hover:text-ochre"
+                  >
+                    {row.portfolio}
+                  </Link>
+                </p>
                 <p className="text-sm text-muted">
                   {row.agencySlug ? (
                     <Link href={`/agencies/${row.agencySlug}`} className="hover:text-ochre">

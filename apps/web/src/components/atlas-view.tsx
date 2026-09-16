@@ -87,8 +87,8 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
 
       <AccountabilityNav current="/atlas" />
 
-      <form className="grid gap-3 border border-rule bg-card p-4 sm:grid-cols-2 md:grid-cols-12" method="get">
-        <label className="text-sm text-muted md:col-span-2">
+      <form className="grid gap-3 border border-rule bg-card p-4 sm:grid-cols-2 lg:grid-cols-12" method="get">
+        <label className="text-sm text-muted lg:col-span-2">
           From
           <input
             type="date"
@@ -97,7 +97,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
             className="mt-1 block w-full border border-rule bg-paper px-2 py-1.5 text-ink"
           />
         </label>
-        <label className="text-sm text-muted md:col-span-2">
+        <label className="text-sm text-muted lg:col-span-2">
           To
           <input
             type="date"
@@ -106,7 +106,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
             className="mt-1 block w-full border border-rule bg-paper px-2 py-1.5 text-ink"
           />
         </label>
-        <label className="text-sm text-muted md:col-span-2">
+        <label className="text-sm text-muted lg:col-span-2">
           Lanes
           <select
             name="lane"
@@ -117,7 +117,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
             <option value="person">Person</option>
           </select>
         </label>
-        <label className="text-sm text-muted md:col-span-2">
+        <label className="text-sm text-muted lg:col-span-2">
           Agency
           <input
             type="search"
@@ -127,7 +127,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
             className="mt-1 block w-full border border-rule bg-paper px-2 py-1.5 text-ink"
           />
         </label>
-        <label className="text-sm text-muted md:col-span-2">
+        <label className="text-sm text-muted lg:col-span-2">
           Person
           <input
             type="search"
@@ -137,7 +137,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
             className="mt-1 block w-full border border-rule bg-paper px-2 py-1.5 text-ink"
           />
         </label>
-        <label className="text-sm text-muted md:col-span-2">
+        <label className="text-sm text-muted lg:col-span-2">
           Instrument
           <input
             type="search"
@@ -148,7 +148,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
           />
         </label>
         <input type="hidden" name="portfolio" defaultValue={params.portfolio ?? ""} />
-        <fieldset className="md:col-span-9 flex flex-wrap items-end gap-3 text-sm text-muted">
+        <fieldset className="lg:col-span-9 flex flex-wrap items-end gap-3 text-sm text-muted">
           <label>
             Proposed
             <select name="includeProposed" defaultValue={params.includeProposed ? "1" : "0"} className="mt-1 block border border-rule bg-paper px-2 py-1.5 text-ink">
@@ -178,7 +178,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
             </select>
           </label>
         </fieldset>
-        <div className="md:col-span-3 flex items-end justify-end">
+        <div className="lg:col-span-3 flex items-end justify-end">
           <button type="submit" className="border border-navy px-3 py-1.5 text-sm text-navy hover:bg-paper-2">
             Apply filters
           </button>
@@ -211,7 +211,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
         </div>
       ) : (
         <>
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_16rem]">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(14rem,16rem)]">
             <section className="border border-rule">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-paper-2/60 px-3 py-2 text-xs text-muted">
                 <p>
@@ -223,7 +223,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
                   {payload.counts.droppedLanes ? ` · ${payload.counts.droppedLanes} quieter lanes hidden` : ""}
                 </p>
                 <p className="font-mono">
-                  Drag the ochre line · ← → weeks
+                  Drag or tap the ochre line · ← → weeks
                   {focus ? (
                     <>
                       {" · "}
@@ -306,6 +306,12 @@ function Legend() {
         <li><span className="inline-block h-2 w-2 bg-gold align-middle" /> ANAO</li>
         <li><span className="inline-block h-1 w-6 border border-dashed border-gold align-middle" /> Proposed instrument</li>
       </ul>
+      <p className="eyebrow mt-3">Arcs (sourced links only)</p>
+      <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+        <li><span className="inline-block h-px w-6 bg-ochre align-middle" /> Promise / assurance — claim → instrument</li>
+        <li><span className="inline-block h-px w-6 bg-navy align-middle" /> TON — hearing → QoN (claim.qon_id or qons.hearing_id)</li>
+        <li><span className="inline-block h-px w-6 bg-eucalyptus align-middle" /> Tested — later hearing / ANAO on the same instrument</li>
+      </ul>
     </section>
   );
 }
@@ -319,7 +325,7 @@ export function LayerGuide() {
         ["QoN diamonds", "qon → qons"],
         ["ANAO squares", "anao → scrutiny_items"],
         ["Instrument threads", "budget_measure, austender; instrument_propose is proposed-only"],
-        ["Arcs", "claims (promise / TON) with qon_id or instrument_id"],
+        ["Arcs", "claims, qons.hearing_id, instrument_links (promised_in / tested_in), outcomes"],
       ].map(([k, v]) => (
         <div key={k}>
           <dt className="font-serif text-navy">{k}</dt>

@@ -7,11 +7,14 @@ export function AccountabilityNav({ current }: { current: string }) {
     <nav className="flex flex-wrap gap-x-4 gap-y-1 border-b border-rule pb-3 text-sm">
       {LENSES.map((item) => {
         const active =
-          item.match === "exact" ? current === item.href : current === item.href;
+          item.match === "exact"
+            ? current === item.href
+            : current === item.href || current.startsWith(`${item.href}/`);
         return (
           <Link
             key={item.href}
             href={item.href}
+            aria-current={active ? "page" : undefined}
             className={active ? "text-ochre" : "text-navy hover:text-ochre"}
           >
             {item.label}
@@ -25,7 +28,7 @@ export function AccountabilityNav({ current }: { current: string }) {
 export function LensNeeded({ needed }: { needed: NeededHint }) {
   return (
     <aside className="border border-rule bg-card px-5 py-4">
-      <p className="eyebrow">What this lens needs</p>
+      <p className="eyebrow">What this layer needs</p>
       <p className="mt-2 text-sm leading-relaxed text-muted">{needed.note}</p>
       <dl className="mt-3 space-y-1 text-xs text-muted">
         {needed.apply ? (
@@ -47,6 +50,15 @@ export function LensNeeded({ needed }: { needed: NeededHint }) {
           </div>
         ) : null}
       </dl>
+      <p className="mt-3 text-sm">
+        <Link href="/accountability" className="link">
+          Accountability
+        </Link>
+        {" · "}
+        <Link href="/atlas" className="link">
+          Atlas
+        </Link>
+      </p>
     </aside>
   );
 }
@@ -61,8 +73,9 @@ export function EmptyRows({
   return (
     <div className="space-y-4">
       <p className="border border-dashed border-rule bg-paper-2/50 px-5 py-6 text-sm leading-relaxed text-muted">
-        No {label} in the current store. That is expected until the listed
-        sources write sourced rows. Nothing here is inferred from silence.
+        No {label} in the current store. That layer is missing until the listed
+        ingest writes sourced rows. Empty is correct — it is not a finding, and
+        nothing here is inferred from silence.
       </p>
       <LensNeeded needed={needed} />
     </div>

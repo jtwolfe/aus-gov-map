@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en-AU"
       className={`${sans.variable} ${serif.variable} ${mono.variable}`}
     >
-      <body className={`${sans.className} antialiased`}>
+      <body className={`${sans.className} bg-paper text-ink antialiased`}>
         <SiteHeader />
         <main className="mx-auto w-full max-w-6xl px-5 py-10">{children}</main>
         <SiteFooter />

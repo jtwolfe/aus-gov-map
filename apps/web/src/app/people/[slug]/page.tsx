@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CrossLinks } from "@/components/cross-links";
 import { MiniAtlas } from "@/components/mini-atlas";
 import { PinButton } from "@/components/pin-button";
 import { SourceBadge } from "@/components/source-badge";
@@ -47,6 +48,18 @@ export default async function PersonPage({
             </a>
           </p>
         ) : null}
+        <p className="mt-3 text-sm text-muted">
+          Sitting in Estimates is <strong>not</strong> a tenure. Occupancy bars
+          come from sourced <span className="font-mono">person_roles</span> only.
+        </p>
+        <CrossLinks
+          items={[
+            { href: `/atlas?person=${encodeURIComponent(person.slug)}&lane=person`, label: "Atlas focus" },
+            { href: `/accountability/role-at-date?person=${encodeURIComponent(person.slug)}`, label: "Role at date" },
+            { href: "/accountability/qon-debt", label: "QoN debt" },
+            { href: "/accountability", label: "Accountability" },
+          ]}
+        />
         <div className="mt-5">
           <PinButton
             pinType="person"

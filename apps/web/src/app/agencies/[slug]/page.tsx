@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountabilityNav, EmptyRows } from "@/components/accountability-lens";
+import { CrossLinks } from "@/components/cross-links";
 import { MiniAtlas } from "@/components/mini-atlas";
 import { loadAgency, loadRoleAtDate } from "@/lib/accountability";
 import { formatDate, roleTypeLabel } from "@/lib/format";
@@ -39,6 +40,18 @@ export default async function AgencyPage({
           Current occupants come from sourced <span className="font-mono">person_roles</span>.
           QoN counts are a process ledger, not a ranking.
         </p>
+        <CrossLinks
+          items={
+            agency
+              ? [
+                  { href: `/atlas?agency=${encodeURIComponent(agency.slug)}`, label: "Atlas focus" },
+                  { href: `/accountability/role-at-date?portfolio=${encodeURIComponent(agency.slug)}`, label: "Role at date" },
+                  { href: "/accountability/qon-debt", label: "QoN debt" },
+                  { href: `/accountability/instruments?q=${encodeURIComponent(agency.slug)}`, label: "Instruments" },
+                ]
+              : [{ href: "/accountability", label: "Accountability" }]
+          }
+        />
         <p className="mt-2 text-xs text-muted">
           Source · <span className="font-mono">{payload.source}</span>
           {agency?.sourceUrl ? (

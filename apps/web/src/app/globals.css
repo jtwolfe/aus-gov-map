@@ -11,9 +11,9 @@
   --color-muted: #6b6458;
   --color-rule: #d4cbb8;
   --color-card: #faf7f0;
-  --font-sans: "Public Sans", "Public Sans Fallback", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Source Serif 4", "Source Serif 4 Fallback", ui-serif, Georgia, serif;
-  --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, monospace;
+  --font-sans: var(--font-public-sans), "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), "Source Serif 4", ui-serif, Georgia, serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
 }
 
 html {

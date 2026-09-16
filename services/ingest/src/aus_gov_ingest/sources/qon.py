@@ -106,6 +106,7 @@ class QonSource:
                 rows = self._fetch_live(limit=limit or 20)
             except Exception as exc:
                 errors.append(f"eqon_api: {exc}")
+            if not rows:
                 try:
                     rows, transport = self._from_path(default_qon_dir())
                     transport = f"fixture_fallback:{transport}"

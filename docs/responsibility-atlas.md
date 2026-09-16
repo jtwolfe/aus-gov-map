@@ -37,11 +37,11 @@ X-axis is **time** (past left, present / latest data right). Y-axis is
 
 | Mark | Meaning | Source |
 | --- | --- | --- |
-| **Lane** | Portfolio / agency (default) or a person | `agencies.portfolio` / `agencies.slug`, or `people` |
+| **Lane** | Portfolio / agency (default) or a person | `agencies.portfolio` / `agencies.slug`, or `people`. Hearing moments also use sourced `hearing_segments.portfolio` / `.agency` when `hearings.portfolio` is null (`v_atlas_hearing_moments.lane_portfolio`). |
 | **Tenure bar** | Occupancy of a seat | `person_roles` only (`handbook`, `aps_leaders`, …) |
 | **Moment** | Dated scrutiny point | Hearing (segments rolled up), QoN asked/answered, ANAO item |
 | **Instrument thread** | Longer band for a measure / program / contract | `instruments` dates; proposed is dashed and off by default |
-| **Arc** | Sparse promise / TON / tested link | `claims` → later QoN / hearing / instrument when `qon_id`, `instrument_id`, or `tested_in` exists |
+| **Arc** | Sparse promise / TON / tested link | `claims` (`qon_id` / `instrument_id`), `qons.hearing_id`, `instrument_links` (`promised_in` / `tested_in`), and `outcomes` → scrutiny. No decorative arcs. |
 | **Scrubber** | Vertical as-of line | Client cursor; optional `asOf=` on the API |
 | **Focus** | Dim unrelated marks | `focus=person:slug\|agency:slug\|instrument:slug` |
 

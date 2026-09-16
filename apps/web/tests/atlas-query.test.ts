@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   assignLane,
   buildArcs,
+  deriveHearingLaneHint,
   filterInstruments,
   hearingMoments,
   occupantsAtDate,
@@ -172,6 +173,53 @@ describe("moments and occupants", () => {
     assert.equal(moments[0].meta?.segmentCount, 10_412);
   });
 
+  it("assigns a lane from sourced segment portfolio when hearings.portfolio is null", () => {
+    const hint = deriveHearingLaneHint({
+      portfolio: null,
+      segmentPortfolio: "Treasury",
+      segmentAgency: "Department of the Treasury",
+    });
+    assert.equal(hint.portfolio, "Treasury");
+    assert.equal(hint.agencyName, "Department of the Treasury");
+    assert.equal(assignLane(hint, "agency").id, "agency:department-of-the-treasury");
+    assert.notEqual(assignLane(hint, "agency").id, "unassigned");
+
+    const matched = deriveHearingLaneHint({
+      portfolio: null,
+      segmentPortfolio: "Finance",
+      agencySlug: "finance",
+      agencyName: "Department of Finance",
+    });
+    assert.equal(assignLane(matched, "agency").id, "agency:finance");
+
+    const moments = hearingMoments(
+      [
+        {
+          id: "h-seg",
+          slug: "eco-2025-06",
+          title: "Economics Estimates",
+          heldOn: "2025-06-05",
+          portfolio: null,
+          href: "/hearings/eco-2025-06",
+          segmentCount: 80,
+          portfolioChipCount: 1,
+          agencyChipCount: 2,
+          takenOnNoticeCount: 3,
+          segmentPortfolio: "Treasury",
+        },
+      ],
+      "agency",
+    );
+    assert.equal(moments.length, 1);
+    assert.notEqual(moments[0].laneId, "unassigned");
+    assert.equal(moments[0].laneId, "portfolio:treasury");
+  });
+
+  it("stays unassigned when neither hearing nor segments name a portfolio or agency", () => {
+    const hint = deriveHearingLaneHint({ portfolio: null, segmentPortfolio: null });
+    assert.equal(assignLane(hint, "agency").id, "unassigned");
+  });
+
   it("lists role-at-date occupants from tenures only", () => {
     const occupants = occupantsAtDate(
       [
@@ -232,6 +280,35 @@ describe("instruments and arcs", () => {
     assert.equal(arcs[0].kind, "ton");
     assert.equal(arcs[0].fromMomentId, "hearing:h1");
     assert.equal(arcs[0].toMomentId, "qon:q1:asked");
+  });
+
+  it("adds a ton arc when a QoN row names the hearing", () => {
+    const arcs = buildArcs(
+      [],
+      [],
+      new Set(["hearing:h2", "qon:q9:asked"]),
+      new Set(),
+      [{ hearingId: "h2", qonId: "q9" }],
+    );
+    assert.equal(arcs.length, 1);
+    assert.equal(arcs[0].kind, "ton");
+    assert.equal(arcs[0].id, "qon-hearing:q9");
+  });
+
+  it("adds a promise arc from promised_in and a tested arc via mention + ANAO", () => {
+    const arcs = buildArcs(
+      [],
+      [
+        { instrumentId: "i1", hearingId: "h3", qonId: null, scrutinyId: null, linkKind: "promised_in" },
+        { instrumentId: "i1", hearingId: null, qonId: null, scrutinyId: "s1", linkKind: "tested_in" },
+      ],
+      new Set(["hearing:h3", "anao:s1"]),
+      new Set(["i1"]),
+    );
+    const kinds = arcs.map((a) => a.kind).sort();
+    assert.ok(kinds.includes("promise"));
+    assert.ok(kinds.includes("tested"));
+    assert.ok(arcs.every((a) => a.fromMomentId === "hearing:h3"));
   });
 });
 

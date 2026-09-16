@@ -100,3 +100,29 @@ def test_aps_leaders_fixture_and_dry_run() -> None:
     assert result.upserted == 0
     assert result.meta["occupancies"] >= 4
     assert result.meta["leaders_sample"]
+
+
+def test_historical_tenures_are_sourced_and_multi_year() -> None:
+    src = get_source("aps_leaders", path=str(FIXTURES / "historical_tenures.json"))
+    batch = src.fetch()
+    davis = next(pr for pr in batch.person_roles if "Davis" in pr.person.name)
+    assert davis.start_date and davis.end_date
+    assert davis.start_date.isoformat() == "2022-06-06"
+    assert davis.end_date.isoformat() == "2025-06-16"
+    assert (davis.end_date - davis.start_date).days > 365
+    kennedy_treasury = next(
+        pr
+        for pr in batch.person_roles
+        if "Kennedy" in pr.person.name and pr.agency and pr.agency.slug == "treasury"
+    )
+    assert kennedy_treasury.start_date and kennedy_treasury.end_date
+    assert kennedy_treasury.start_date.year == 2019
+    # Directory load must include historical JSON and skip parser excerpts.
+    whole = get_source("aps_leaders", path=str(FIXTURES)).fetch()
+    names = {pr.person.name for pr in whole.person_roles}
+    assert "Glyn Davis" in names
+    assert "Steven Kennedy" in names
+    assert "Matt Yannopoulos" in names
+    dated = [pr for pr in whole.person_roles if pr.start_date and pr.end_date]
+    assert dated, "expected at least one closed multi-year tenure"
+    assert all(pr.source_url for pr in dated)

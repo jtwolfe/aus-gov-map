@@ -1,17 +1,11 @@
-import Link from "next/link";
+"use client";
 
-const NAV = [
-  { href: "/search", label: "Search" },
-  { href: "/hearings", label: "Hearings" },
-  { href: "/people", label: "People" },
-  { href: "/accountability", label: "Accountability" },
-  { href: "/atlas", label: "Atlas" },
-  { href: "/insights", label: "Insights" },
-  { href: "/boards", label: "Boards" },
-  { href: "/about", label: "About" },
-];
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { navIsActive, SITE_NAV } from "@/lib/nav";
 
 export function SiteHeader() {
+  const pathname = usePathname() || "/";
   return (
     <header className="border-b border-rule/80 bg-card/70 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4">
@@ -22,16 +16,20 @@ export function SiteHeader() {
           </span>
           <span className="block h-px w-8 bg-gold transition-all group-hover:w-12" />
         </Link>
-        <nav className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-navy">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="hover:text-ochre"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy sm:gap-x-5">
+          {SITE_NAV.filter((item) => item.href !== "/about").map((item) => {
+            const active = navIsActive(pathname, item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={active ? "text-ochre" : "hover:text-ochre"}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </header>

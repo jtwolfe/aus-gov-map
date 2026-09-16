@@ -6,12 +6,24 @@ export default function NotFound() {
       <p className="eyebrow">404</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">Not in this map</h1>
       <p className="mt-3 text-muted">
-        That hearing or person is not in the current seed. Try search, or return
-        home.
+        That hearing, person, agency, instrument, or board is not in the
+        current store. Empty is correct until ingest writes the row — it is
+        not a finding.
       </p>
-      <Link href="/" className="mt-6 inline-block text-navy hover:text-ochre">
-        ← Home
-      </Link>
+      <nav className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <Link href="/" className="link">
+          Home
+        </Link>
+        <Link href="/search" className="link">
+          Search
+        </Link>
+        <Link href="/accountability" className="link">
+          Accountability
+        </Link>
+        <Link href="/atlas" className="link">
+          Atlas
+        </Link>
+      </nav>
     </div>
   );
 }

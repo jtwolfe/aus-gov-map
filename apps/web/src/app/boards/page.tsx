@@ -26,6 +26,14 @@ export default async function BoardsPage() {
 
       {persist ? <CreateBoardForm /> : null}
 
+      {!boards.length ? (
+        <p className="border border-dashed border-rule bg-paper-2/50 px-5 py-6 text-sm leading-relaxed text-muted">
+          No boards in the current store. Create one when Postgres is up, or
+          run <span className="font-mono">make db-apply</span> to seed the demo
+          board. Empty is correct — it is not a finding.
+        </p>
+      ) : null}
+
       <section className="grid gap-4 md:grid-cols-2">
         {boards.map((board) => (
           <article key={board.id} className="border border-rule bg-card p-5">

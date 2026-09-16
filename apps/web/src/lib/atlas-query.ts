@@ -86,7 +86,16 @@ export type HearingRollup = {
   portfolioChipCount: number;
   agencyChipCount: number;
   takenOnNoticeCount: number;
+  /** Dominant sourced segment portfolio when hearings.portfolio is empty. */
+  segmentPortfolio?: string | null;
+  /** Dominant sourced segment agency string (Hansard chip). */
+  segmentAgency?: string | null;
 } & LaneHint;
+
+export type HearingQonLink = {
+  hearingId: string;
+  qonId: string;
+};
 
 export type QonEvent = {
   id: string;
@@ -130,6 +139,7 @@ export type TestedLink = {
   hearingId: string | null;
   qonId: string | null;
   scrutinyId: string | null;
+  linkKind?: string;
 };
 
 export type AtlasTenure = TenureInput & { laneId: string };
@@ -284,6 +294,39 @@ export function openPresentStart(window: DateWindow, today = todayUtc()): string
   return start < window.from ? window.from : start;
 }
 
+export function firstSourcedText(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    const trimmed = (value ?? "").trim();
+    if (trimmed) return trimmed;
+  }
+  return null;
+}
+
+/**
+ * Lane hint for a hearing-level moment. Prefers a matched agency row, then
+ * hearings.portfolio, then the dominant sourced segment portfolio / agency
+ * string. Never invents a name that is not on the hearing or its segments.
+ */
+export function deriveHearingLaneHint(row: {
+  portfolio?: string | null;
+  segmentPortfolio?: string | null;
+  segmentAgency?: string | null;
+  agencySlug?: string | null;
+  agencyName?: string | null;
+  personId?: string | null;
+  personSlug?: string | null;
+  personName?: string | null;
+}): LaneHint {
+  return {
+    agencySlug: firstSourcedText(row.agencySlug),
+    agencyName: firstSourcedText(row.agencyName, row.segmentAgency),
+    portfolio: firstSourcedText(row.portfolio, row.segmentPortfolio),
+    personId: row.personId ?? null,
+    personSlug: row.personSlug ?? null,
+    personName: row.personName ?? null,
+  };
+}
+
 export function assignLane(hint: LaneHint, mode: LaneMode): Lane {
   if (mode === "person") {
     if (hint.personId || hint.personSlug) {
@@ -304,6 +347,15 @@ export function assignLane(hint: LaneHint, mode: LaneMode): Lane {
       label: hint.agencyName || hint.agencySlug,
       kind: "agency",
       href: `/agencies/${hint.agencySlug}`,
+    };
+  }
+  if (hint.agencyName) {
+    const slug = slugify(hint.agencyName);
+    return {
+      id: `agency:${slug}`,
+      label: hint.agencyName,
+      kind: "agency",
+      href: `/atlas?agency=${encodeURIComponent(hint.agencyName)}`,
     };
   }
   if (hint.portfolio) {
@@ -365,7 +417,8 @@ export function hearingMoments(rows: HearingRollup[], mode: LaneMode): AtlasMome
   const out: AtlasMoment[] = [];
   for (const row of rows) {
     if (!isIsoDate(row.heldOn)) continue;
-    const lane = assignLane(row, mode);
+    const hint = deriveHearingLaneHint(row);
+    const lane = assignLane(hint, mode);
     out.push({
       id: `hearing:${row.id}`,
       laneId: lane.id,
@@ -379,6 +432,8 @@ export function hearingMoments(rows: HearingRollup[], mode: LaneMode): AtlasMome
         portfolioChips: row.portfolioChipCount,
         agencyChips: row.agencyChipCount,
         takenOnNotice: row.takenOnNoticeCount,
+        lanePortfolio: hint.portfolio ?? null,
+        laneAgency: hint.agencySlug ?? hint.agencyName ?? null,
       },
     });
   }
@@ -455,6 +510,7 @@ export function buildArcs(
   tested: TestedLink[],
   momentIds: Set<string>,
   instrumentIds: Set<string>,
+  hearingQons: HearingQonLink[] = [],
 ): AtlasArc[] {
   const arcs: AtlasArc[] = [];
   const seen = new Set<string>();
@@ -499,7 +555,43 @@ export function buildArcs(
     }
   }
 
+  // QoN rows that name a hearing are a sourced TON / question path.
+  for (const link of hearingQons) {
+    if (!link.hearingId || !link.qonId) continue;
+    push({
+      id: `qon-hearing:${link.qonId}`,
+      fromMomentId: `hearing:${link.hearingId}`,
+      toMomentId: `qon:${link.qonId}:asked`,
+      toInstrumentId: null,
+      kind: "ton",
+    });
+  }
+
+  const fromHearingForInstrument = (instrumentId: string): string | null => {
+    const claim = claims.find((c) => c.instrumentId === instrumentId && c.hearingId);
+    if (claim?.hearingId) return `hearing:${claim.hearingId}`;
+    const promised = tested.find(
+      (l) =>
+        l.instrumentId === instrumentId &&
+        l.hearingId &&
+        (l.linkKind === "promised_in" || l.linkKind === "mentioned"),
+    );
+    return promised?.hearingId ? `hearing:${promised.hearingId}` : null;
+  };
+
   for (const link of tested) {
+    const kind = (link.linkKind ?? "tested_in").toLowerCase();
+    if (kind === "promised_in" && link.hearingId) {
+      push({
+        id: `promised:${link.instrumentId}:${link.hearingId}`,
+        fromMomentId: `hearing:${link.hearingId}`,
+        toMomentId: null,
+        toInstrumentId: link.instrumentId,
+        kind: "promise",
+      });
+      continue;
+    }
+    if (kind !== "tested_in" && kind !== "tested") continue;
     const toMoment = link.hearingId
       ? `hearing:${link.hearingId}`
       : link.qonId
@@ -507,19 +599,31 @@ export function buildArcs(
         : link.scrutinyId
           ? `anao:${link.scrutinyId}`
           : null;
-    if (!toMoment) continue;
-    // Prefer a claim on the same instrument as the from-end; otherwise skip
-    // if we cannot find a hearing moment that mentioned it.
-    const fromClaim = claims.find((c) => c.instrumentId === link.instrumentId && c.hearingId);
-    const fromMomentId = fromClaim?.hearingId ? `hearing:${fromClaim.hearingId}` : null;
-    if (!fromMomentId || fromMomentId === toMoment) continue;
-    push({
-      id: `tested:${link.instrumentId}:${toMoment}`,
-      fromMomentId,
-      toMomentId: toMoment,
-      toInstrumentId: null,
-      kind: "tested",
-    });
+    const fromMomentId = fromHearingForInstrument(link.instrumentId);
+    if (toMoment && fromMomentId && fromMomentId !== toMoment) {
+      push({
+        id: `tested:${link.instrumentId}:${toMoment}`,
+        fromMomentId,
+        toMomentId: toMoment,
+        toInstrumentId: null,
+        kind: "tested",
+      });
+      continue;
+    }
+    // Instrument later tested (ANAO / scrutiny) with no earlier hearing claim:
+    // still a sourced receipt if the instrument thread is in the payload.
+    if (link.scrutinyId && instrumentIds.has(link.instrumentId)) {
+      const fromClaim = claims.find((c) => c.instrumentId === link.instrumentId && c.hearingId);
+      if (fromClaim?.hearingId) {
+        push({
+          id: `tested:${link.instrumentId}:anao:${link.scrutinyId}`,
+          fromMomentId: `hearing:${fromClaim.hearingId}`,
+          toMomentId: `anao:${link.scrutinyId}`,
+          toInstrumentId: null,
+          kind: "tested",
+        });
+      }
+    }
   }
 
   return arcs;

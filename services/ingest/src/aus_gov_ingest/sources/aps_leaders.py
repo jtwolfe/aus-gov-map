@@ -98,9 +98,11 @@ LICENSE_NOTE = (
 
 GAPS = (
     "directory.gov.au agency pages and the Directory XML export are often "
-    "unreachable from datacentre IPs. Historical secretary timelines beyond "
-    "what a current executive page states need annual reports or the Wayback "
-    "Machine. Do not invent occupancy. Estimates appearance is not a tenure."
+    "unreachable from datacentre IPs (Azure WAF / timeout). Live fetch falls "
+    "back to fixtures/live/aps/*.json. Historical secretary timelines use "
+    "published instruments and the PMC secretary-appointments page — dates "
+    "only where those pages state them. Do not invent occupancy. Estimates "
+    "appearance is not a tenure."
 )
 
 _MONTHS = {
@@ -454,8 +456,10 @@ class ApsLeadersSource:
                 "schema": "infra/postgres/007_accountability.sql + 010_aps_leaders.sql",
                 "note": (
                     "Current APS secretaries / deputies from directory.gov.au or "
-                    "official executive pages. Fixture fallback if live pages are "
-                    "blocked. No invented historical tenures."
+                    "official executive pages. Fixture fallback (leaders.json + "
+                    "historical_tenures.json) if live pages are WAF-blocked. "
+                    "Historical bars only where an instrument or published "
+                    "timeline states start/end. No invented dates."
                 ),
             },
         )
@@ -502,6 +506,9 @@ class ApsLeadersSource:
         files = [path] if path.is_file() else sorted(path.iterdir())
         used = []
         for file in files:
+            # Parser-test excerpts stay in-tree; they are not a second occupancy source.
+            if file.name.endswith(".excerpt.html") or file.name.endswith(".excerpt.htm"):
+                continue
             if file.suffix.lower() == ".json":
                 payload = json.loads(file.read_text(encoding="utf-8"))
                 leaders = payload.get("leaders") if isinstance(payload, dict) else payload
