@@ -40,7 +40,7 @@ X-axis is **time** (past left, present / latest data right). Y-axis is
 | **Lane** | Portfolio / agency (default) or a person | `agencies.portfolio` / `agencies.slug`, or `people`. Hearing moments also use sourced `hearing_segments.portfolio` / `.agency` when `hearings.portfolio` is null (`v_atlas_hearing_moments.lane_portfolio`). |
 | **Tenure bar** | Occupancy of a seat | `person_roles` only (`handbook`, `aps_leaders`, …) |
 | **Moment** | Dated scrutiny point | Hearing (segments rolled up), QoN asked/answered, ANAO item |
-| **Instrument thread** | Longer band for a measure / program / contract | `instruments` dates; proposed is dashed and off by default |
+| **Instrument thread** | Longer band for a measure / program / contract / **bill / act** | `instruments` dates; proposed is dashed and off by default. Law threads href to `/laws/[slug]`. |
 | **Arc** | Sparse promise / TON / tested link | `claims` (`qon_id` / `instrument_id`), `qons.hearing_id`, `instrument_links` (`promised_in` / `tested_in`), and `outcomes` → scrutiny. No decorative arcs. |
 | **Scrubber** | Vertical as-of line | Client cursor; optional `asOf=` on the API |
 | **Focus** | Dim unrelated marks | `focus=person:slug\|agency:slug\|instrument:slug` |
@@ -141,6 +141,11 @@ Moment `kind`: `hearing` | `qon` | `anao`. QoN asked vs answered are
 separate moment ids (`qon:{id}:asked`, `qon:{id}:answered`) sharing one
 ledger row. Arc `kind`: `promise` | `assurance` | `ton` | `tested`.
 
+**Votes and judgments stay on dossiers** (`/laws/[slug]`, person pages).
+They are not Atlas moments: a division is a many-person event, and
+plotting aye/no would crowd the view and imply a score. See
+[`laws-and-precedent.md`](laws-and-precedent.md).
+
 Fixture mode (no `DATABASE_URL`, or foundation tables missing) returns
 `ready: false`, empty arrays, and a needed-hint that points at
 Accountability — **no invented tenures**.
@@ -191,7 +196,8 @@ Mini-atlas uses the same API with `compact=1` and a tight filter
 | Promise → receipt | Sparse arcs from `claims` |
 | QoN debt | QoN moments + open/overdue styling in the present zone |
 | Chain completeness | Instrument threads; missing duty links stay gaps, not findings |
-| Instruments explorer | Threads on the atlas; dossier at `/accountability/instruments/[slug]` |
+| Instruments explorer | Threads on the atlas; dossier at `/accountability/instruments/[slug]` (Bills/Acts at `/laws/[slug]`) |
+| Laws | Act/Bill threads; votes and judgments on the law dossier |
 | Agencies / people | Mini-atlas on those pages |
 
 Nav: **Atlas** sits next to Accountability. The Accountability overview

@@ -504,7 +504,7 @@ export async function loadInstruments(q: string | null) {
   const hint = needed(
     "The instruments explorer lists programs, measures, bills, contracts, grants, and policies once those adapters write rows. Search is title ILIKE only. budget_measure and austender now persist sourced rows; instrument_propose stays proposed-only.",
     {
-      sources: ["budget_measure", "austender", "instrument_propose", "anao"],
+      sources: ["budget_measure", "austender", "instrument_propose", "anao", "legislation"],
       tables: ["instruments", "agencies"],
     },
   );
@@ -560,7 +560,7 @@ export async function loadInstrument(slug: string) {
   const hint = needed(
     "An instrument dossier needs a sourced row in instruments. budget_measure and austender persist asserted rows; instrument_propose stays proposed-only.",
     {
-      sources: ["budget_measure", "austender", "instrument_propose"],
+      sources: ["budget_measure", "austender", "instrument_propose", "legislation"],
       tables: ["instruments", "agencies"],
     },
   );

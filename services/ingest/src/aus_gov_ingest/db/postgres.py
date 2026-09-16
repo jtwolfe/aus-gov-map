@@ -15,6 +15,7 @@ from aus_gov_ingest.models import (
     AppearanceIn,
     BoardIn,
     CommitteeIn,
+    DivisionIn,
     DocumentIn,
     HandbookEntryIn,
     HandbookRoleIn,
@@ -164,6 +165,14 @@ class PostgresStore:
                 rows = conn.execute(
                     "SELECT source_key FROM person_roles WHERE source_key IS NOT NULL"
                 ).fetchall()
+            except Exception:
+                return set()
+        return {row["source_key"] for row in rows if row.get("source_key")}
+
+    def existing_division_keys(self) -> set[str]:
+        with self.connect() as conn:
+            try:
+                rows = conn.execute("SELECT source_key FROM divisions").fetchall()
             except Exception:
                 return set()
         return {row["source_key"] for row in rows if row.get("source_key")}
@@ -1258,7 +1267,7 @@ class PostgresStore:
             ).fetchone()
             chunk_id = row["id"] if row else None
         instrument_type = item.kind if item.kind in {
-            "program", "measure", "bill", "contract", "grant", "policy", "other",
+            "program", "measure", "bill", "act", "contract", "grant", "policy", "other",
         } else "other"
         agency_id = self.resolve_agency(
             conn,
@@ -1433,7 +1442,8 @@ class PostgresStore:
             "agency_id": str(agency_id) if agency_id else None,
         }
         item_type = item.item_type if item.item_type in {
-            "qon", "anao", "inquiry_report", "division", "hearing_segment", "other",
+            "qon", "anao", "inquiry_report", "division", "hearing_segment",
+            "judgment", "other",
         } else "other"
         conn.execute(
             """
@@ -1569,6 +1579,230 @@ class PostgresStore:
                 source,
             ),
         )
+
+    def lookup_instrument_id(self, conn: Connection, source_key: str) -> UUID | None:
+        row = conn.execute(
+            "SELECT id FROM instruments WHERE source_key = %s",
+            (source_key,),
+        ).fetchone()
+        return row["id"] if row else None
+
+    def lookup_scrutiny_id(self, conn: Connection, source_key: str) -> UUID | None:
+        row = conn.execute(
+            "SELECT id FROM scrutiny_items WHERE source_key = %s",
+            (source_key,),
+        ).fetchone()
+        return row["id"] if row else None
+
+    def lookup_instrument_id_by_title(self, conn: Connection, title: str) -> UUID | None:
+        """Match an existing bill/act by title fragment. Never creates a row."""
+        needle = (title or "").strip()
+        if len(needle) < 8:
+            return None
+        row = conn.execute(
+            """
+            SELECT id FROM instruments
+            WHERE instrument_type IN ('bill', 'act')
+              AND (
+                title ILIKE %s
+                OR %s ILIKE '%' || title || '%'
+              )
+            ORDER BY CASE instrument_type WHEN 'bill' THEN 0 ELSE 1 END
+            LIMIT 1
+            """,
+            (f"%{needle[:80]}%", needle),
+        ).fetchone()
+        return row["id"] if row else None
+
+    def find_existing_person(self, conn: Connection, name: str) -> UUID | None:
+        """Resolve a published name to an existing people row. Never INSERT."""
+        if not (name or "").strip():
+            return None
+        item = PersonIn(slug=canonical_slug(name), name=name)
+        merge = self.find_person_merge(conn, item)
+        return merge["id"] if merge else None
+
+    def link_instrument(
+        self,
+        conn: Connection,
+        *,
+        instrument_id: UUID,
+        scrutiny_item_id: UUID,
+        link_kind: str,
+        source: str | None,
+        notes: str | None = None,
+    ) -> None:
+        kind = link_kind if link_kind in {
+            "accountable_for", "responsible_official", "promised_in", "tested_in",
+            "voted_on", "funded_by", "mentioned", "other",
+            "construes", "invalidates", "upholds",
+        } else "other"
+        try:
+            conn.execute(
+                """
+                INSERT INTO instrument_links (
+                    instrument_id, target_kind, target_id, scrutiny_item_id,
+                    link_kind, source, notes
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (instrument_id, target_kind, target_id, link_kind) DO UPDATE SET
+                    notes = COALESCE(EXCLUDED.notes, instrument_links.notes)
+                """,
+                (
+                    instrument_id,
+                    "scrutiny",
+                    scrutiny_item_id,
+                    scrutiny_item_id,
+                    kind,
+                    source,
+                    notes,
+                ),
+            )
+        except Exception:
+            # Pre-013 volumes reject new link kinds — skip rather than invent.
+            return
+
+    def upsert_division(
+        self,
+        conn: Connection,
+        item: DivisionIn,
+        *,
+        instrument_id: UUID | None = None,
+    ) -> UUID:
+        did = _uuid("division", item.source_key)
+        slug = slugify(item.source_key)[:80] or slugify(item.title)
+        house = item.house if item.house in {"representatives", "senate", "other"} else (
+            "other" if item.house else None
+        )
+        scrutiny_id = None
+        try:
+            scrutiny_id = self.upsert_scrutiny_item(
+                conn,
+                ScrutinyItemIn(
+                    source_key=item.source_key,
+                    item_type="division",
+                    title=item.title,
+                    published_on=item.divided_on,
+                    source=item.source,
+                    source_url=item.source_url,
+                    summary=item.summary,
+                    identifiers=item.identifiers or {},
+                ),
+            )
+        except Exception:
+            scrutiny_id = None
+        try:
+            conn.execute(
+                """
+                INSERT INTO divisions (
+                    id, slug, source_key, title, house, divided_on, number,
+                    instrument_id, scrutiny_item_id, ayes, noes, abstentions,
+                    possible_turnout, source, source_url, identifiers, summary
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (source_key) DO UPDATE SET
+                    title = EXCLUDED.title,
+                    house = COALESCE(EXCLUDED.house, divisions.house),
+                    divided_on = COALESCE(EXCLUDED.divided_on, divisions.divided_on),
+                    number = COALESCE(EXCLUDED.number, divisions.number),
+                    instrument_id = COALESCE(EXCLUDED.instrument_id, divisions.instrument_id),
+                    scrutiny_item_id = COALESCE(EXCLUDED.scrutiny_item_id, divisions.scrutiny_item_id),
+                    ayes = COALESCE(EXCLUDED.ayes, divisions.ayes),
+                    noes = COALESCE(EXCLUDED.noes, divisions.noes),
+                    abstentions = COALESCE(EXCLUDED.abstentions, divisions.abstentions),
+                    source_url = COALESCE(EXCLUDED.source_url, divisions.source_url),
+                    identifiers = EXCLUDED.identifiers,
+                    summary = COALESCE(EXCLUDED.summary, divisions.summary),
+                    updated_at = now()
+                """,
+                (
+                    did,
+                    slug,
+                    item.source_key,
+                    item.title,
+                    house,
+                    item.divided_on,
+                    item.number,
+                    instrument_id,
+                    scrutiny_id,
+                    item.ayes,
+                    item.noes,
+                    item.abstentions,
+                    item.possible_turnout,
+                    item.source,
+                    item.source_url,
+                    Json(item.identifiers or {}),
+                    item.summary,
+                ),
+            )
+        except Exception:
+            # 012 not applied — scrutiny_item (division) is still useful.
+            return did
+        row = conn.execute(
+            "SELECT id FROM divisions WHERE source_key = %s", (item.source_key,)
+        ).fetchone()
+        division_id = row["id"] if row else did
+        if instrument_id and scrutiny_id:
+            self.link_instrument(
+                conn,
+                instrument_id=instrument_id,
+                scrutiny_item_id=scrutiny_id,
+                link_kind="tested_in",
+                source=item.source,
+                notes="Sourced parliamentary division",
+            )
+        for vote in item.votes:
+            person_id = self.find_existing_person(conn, vote.person_name)
+            vote_id = _uuid("division_vote", item.source_key, vote.person_name, vote.vote)
+            conn.execute(
+                """
+                INSERT INTO division_votes (
+                    id, division_id, person_id, person_name, vote, party,
+                    electorate, source, identifiers
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (division_id, lower(person_name), vote) DO UPDATE SET
+                    person_id = COALESCE(EXCLUDED.person_id, division_votes.person_id),
+                    party = COALESCE(EXCLUDED.party, division_votes.party),
+                    electorate = COALESCE(EXCLUDED.electorate, division_votes.electorate)
+                """,
+                (
+                    vote_id,
+                    division_id,
+                    person_id,
+                    vote.person_name,
+                    vote.vote,
+                    vote.party,
+                    vote.electorate,
+                    item.source,
+                    Json(vote.identifiers or {}),
+                ),
+            )
+            if person_id and instrument_id:
+                try:
+                    conn.execute(
+                        """
+                        INSERT INTO instrument_links (
+                            instrument_id, target_kind, target_id, person_id,
+                            scrutiny_item_id, link_kind, source, notes
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (instrument_id, target_kind, target_id, link_kind) DO NOTHING
+                        """,
+                        (
+                            instrument_id,
+                            "person",
+                            person_id,
+                            person_id,
+                            scrutiny_id,
+                            "voted_on",
+                            item.source,
+                            f"{vote.vote} on {item.title}",
+                        ),
+                    )
+                except Exception:
+                    pass
+        return division_id
 
     def resolve_appearance(self, conn: Connection, link: AppearanceIn) -> UUID | None:
         if link.person_id:

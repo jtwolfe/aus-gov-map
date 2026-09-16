@@ -1,9 +1,5 @@
 /**
  * Top-level chrome. Keep this list the single source for header + footer.
- *
- * LAWS_NAV_SLOT: a parallel Stage 3a PR may insert
- * `{ href: "/laws", label: "Laws" }` after Atlas (or Accountability).
- * Do not rename existing hrefs here without coordinating that PR.
  */
 export const SITE_NAV = [
   { href: "/search", label: "Search" },
@@ -12,6 +8,7 @@ export const SITE_NAV = [
   { href: "/agencies", label: "Agencies" },
   { href: "/accountability", label: "Accountability" },
   { href: "/atlas", label: "Atlas" },
+  { href: "/laws", label: "Laws" },
   { href: "/insights", label: "Insights" },
   { href: "/boards", label: "Boards" },
   { href: "/about", label: "About" },

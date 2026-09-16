@@ -191,3 +191,16 @@ Recorded dry-runs: `dry_run_anao.json`, `dry_run_budget_measure.json`, `dry_run_
 Live transports (this environment): AusTender OCDS and data.gov.au / budget.gov.au BP2 DOCX succeed; anao.gov.au often times out or WAF-blocks datacentre IPs — fixture fallback is expected.
 
 ANAO outcomes are created only when the fixture excerpt or report page contains parseable finding language (`partly effective`, `not effective`, `fully effective`). Agreement language is recorded in notes when present; it is not treated as a verdict.
+
+## Legislation / They Vote For You / judgments (Stage 3a)
+
+```bash
+python -m aus_gov_ingest run --source legislation --path fixtures/live/legislation --dry-run
+python -m aus_gov_ingest run --source theyvoteforyou --path fixtures/live/tvfy --dry-run
+python -m aus_gov_ingest run --source judgments --path fixtures/live/judgments --dry-run
+```
+
+FRL title pages and theyvoteforyou.org.au are often Cloudflare / WAF blocked from datacentre IPs — fixture fallback is expected. TVFY fixtures are a **short published excerpt** of a recorded consideration-in-detail division (the NACC Bill third reading was agreed without a division). Judgments are a fixture MVP; this repo does not republish reasons.
+
+Do not invent FRL ids, vote positions, or holdings.
+

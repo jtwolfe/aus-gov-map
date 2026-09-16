@@ -324,7 +324,7 @@ export function LayerGuide() {
         ["Hearing points", "estimates / aph_transcript_file → hearings (segments roll up)"],
         ["QoN diamonds", "qon → qons"],
         ["ANAO squares", "anao → scrutiny_items"],
-        ["Instrument threads", "budget_measure, austender; instrument_propose is proposed-only"],
+        ["Instrument threads", "budget_measure, austender, legislation (bill/act); instrument_propose is proposed-only. Votes stay on /laws dossiers."],
         ["Arcs", "claims, qons.hearing_id, instrument_links (promised_in / tested_in), outcomes"],
       ].map(([k, v]) => (
         <div key={k}>

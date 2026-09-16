@@ -5,6 +5,7 @@ import { CrossLinks } from "@/components/cross-links";
 import { MiniAtlas } from "@/components/mini-atlas";
 import { loadInstrument } from "@/lib/accountability";
 import { formatDate, instrumentTypeLabel } from "@/lib/format";
+import { isLawType } from "@/lib/laws";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,9 @@ export default async function InstrumentPage({
                   { href: `/atlas?instrument=${encodeURIComponent(row.slug)}&includeProposed=1`, label: "Atlas focus" },
                   { href: "/accountability/promise-receipt", label: "Promise → receipt" },
                   { href: "/accountability/chain-completeness", label: "Chain completeness" },
+                  ...(isLawType(row.instrumentType)
+                    ? [{ href: `/laws/${row.slug}`, label: "Law dossier" }]
+                    : []),
                   ...(row.agencySlug
                     ? [{ href: `/agencies/${row.agencySlug}`, label: "Agency" }]
                     : []),
@@ -106,6 +110,16 @@ export default async function InstrumentPage({
               </div>
             ) : null}
           </dl>
+          {isLawType(row.instrumentType) ? (
+            <p className="text-sm text-muted">
+              This is a Bill or Act. The law dossier (status, votes, judgments)
+              is at{" "}
+              <Link href={`/laws/${row.slug}`} className="link">
+                /laws/{row.slug}
+              </Link>
+              .
+            </p>
+          ) : null}
           <MiniAtlas instrument={row.slug} agency={row.agencySlug ?? undefined} />
         </>
       )}

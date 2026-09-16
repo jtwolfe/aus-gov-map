@@ -33,8 +33,12 @@ def _primary_count(source_name: str, batch: SourceBatch) -> int:
         return len(batch.questions)
     if source_name == "anao":
         return len(batch.scrutiny_items)
-    if source_name in {"instrument_propose", "budget_measure", "austender"}:
+    if source_name in {"instrument_propose", "budget_measure", "austender", "legislation"}:
         return len(batch.instruments)
+    if source_name == "theyvoteforyou":
+        return len(batch.divisions)
+    if source_name == "judgments":
+        return len(batch.scrutiny_items)
     if source_name == "agencies":
         return len(batch.agencies)
     if source_name == "aps_leaders":
@@ -67,6 +71,9 @@ def _dry_run_meta(batch: SourceBatch, *, embedder_name: str) -> dict[str, Any]:
         "instruments": len(batch.instruments),
         "scrutiny_items": len(batch.scrutiny_items),
         "outcomes": len(batch.outcomes),
+        "divisions": len(batch.divisions),
+        "named_votes": sum(len(d.votes) for d in batch.divisions),
+        "instrument_links": len(batch.instrument_links),
         "person_roles": len(batch.person_roles),
         "occupancies": len(batch.person_roles),
         "role_types": sorted({pr.role_type for pr in batch.person_roles}),
@@ -118,8 +125,12 @@ def run_ingest(
             known = store.existing_qon_keys()
         elif source_name == "anao":
             known = store.existing_scrutiny_keys(item_type="anao")
-        elif source_name in {"budget_measure", "austender"}:
+        elif source_name in {"budget_measure", "austender", "legislation"}:
             known = store.existing_instrument_keys(source=source_name)
+        elif source_name == "theyvoteforyou":
+            known = store.existing_division_keys()
+        elif source_name == "judgments":
+            known = store.existing_scrutiny_keys(item_type="judgment")
         elif source_name == "aps_leaders":
             known = store.existing_person_role_keys()
 
@@ -278,13 +289,46 @@ def _persist(
                 conn, outcome, instrument_id=iid, scrutiny_item_id=sid
             )
             upserted += 1
-            if iid and sid:
+            if iid and sid and batch.source != "judgments":
                 store.link_tested_in(
                     conn,
                     instrument_id=iid,
                     scrutiny_item_id=sid,
                     source=outcome.source or batch.source,
                 )
+
+        for extra in batch.instrument_links:
+            iid = instrument_ids.get(extra.instrument_source_key)
+            if not iid and extra.instrument_source_key:
+                iid = store.lookup_instrument_id(conn, extra.instrument_source_key)
+            sid = (
+                scrutiny_ids.get(extra.target_source_key)
+                if extra.target_source_key
+                else None
+            )
+            if not sid and extra.target_source_key:
+                sid = store.lookup_scrutiny_id(conn, extra.target_source_key)
+            if iid and sid:
+                store.link_instrument(
+                    conn,
+                    instrument_id=iid,
+                    scrutiny_item_id=sid,
+                    link_kind=extra.link_kind,
+                    source=extra.source or batch.source,
+                    notes=extra.notes,
+                )
+                upserted += 1
+
+        for division in batch.divisions:
+            iid = None
+            if division.instrument_source_key:
+                iid = instrument_ids.get(division.instrument_source_key)
+                if not iid:
+                    iid = store.lookup_instrument_id(conn, division.instrument_source_key)
+                    if not iid:
+                        iid = store.lookup_instrument_id_by_title(conn, division.title)
+            store.upsert_division(conn, division, instrument_id=iid)
+            upserted += 1
 
         conn.commit()
     return upserted, chunks_written

@@ -13,8 +13,8 @@ export const LENSES = [
   { href: "/accountability/qon-debt", label: "QoN debt" },
   { href: "/accountability/chain-completeness", label: "Chain completeness" },
   { href: "/accountability/instruments", label: "Instruments" },
+  { href: "/laws", label: "Laws" },
   { href: "/agencies", label: "Agencies" },
-  // LAWS_NAV_SLOT: a parallel Stage 3a PR may add { href: "/laws", label: "Laws" }.
 ];
 
 export const OVERVIEW_LENSES = [
@@ -55,8 +55,14 @@ export const OVERVIEW_LENSES = [
     body: "Programs, measures, bills, contracts, grants, and policies. Search titles and identifiers once adapters write rows.",
   },
   {
-    href: "/agencies",
+    href: "/laws",
     kicker: "06",
+    title: "Laws",
+    body: "Bills and Acts as the decision spine: status, sourced divisions, and court holdings that cite the Act. No guilt labels.",
+  },
+  {
+    href: "/agencies",
+    kicker: "07",
     title: "Agencies",
     body: "Official department names plus the current secretary or agency head when aps_leaders has written a sourced occupancy.",
   },

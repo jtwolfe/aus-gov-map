@@ -10,8 +10,22 @@ from pydantic import BaseModel, Field
 PersonRole = Literal["chair", "senator", "minister", "official", "witness", "appeared"]
 HearingType = Literal["estimates", "committee", "other"]
 QonStatus = Literal["open", "answered", "overdue", "refused", "unknown"]
-InstrumentKind = Literal["bill", "program", "measure", "contract", "grant", "policy", "other"]
-ScrutinyType = Literal["qon", "anao", "inquiry_report", "division", "hearing_segment", "other"]
+InstrumentKind = Literal["bill", "act", "program", "measure", "contract", "grant", "policy", "other"]
+ScrutinyType = Literal["qon", "anao", "inquiry_report", "division", "hearing_segment", "judgment", "other"]
+VoteValue = Literal["aye", "no", "abstain", "absent"]
+InstrumentLinkKind = Literal[
+    "accountable_for",
+    "responsible_official",
+    "promised_in",
+    "tested_in",
+    "voted_on",
+    "funded_by",
+    "mentioned",
+    "other",
+    "construes",
+    "invalidates",
+    "upholds",
+]
 OutcomeSignal = Literal["met", "unmet", "partial", "adverse", "unknown"]
 SegmentKind = Literal[
     "portfolio_header",
@@ -246,6 +260,41 @@ class HearingSegmentIn(BaseModel):
     metadata: dict = Field(default_factory=dict)
 
 
+class DivisionVoteIn(BaseModel):
+    person_name: str
+    vote: VoteValue
+    party: str | None = None
+    electorate: str | None = None
+    identifiers: dict = Field(default_factory=dict)
+
+
+class DivisionIn(BaseModel):
+    source_key: str
+    title: str
+    house: str | None = None
+    divided_on: date | None = None
+    number: int | None = None
+    instrument_source_key: str | None = None
+    ayes: int | None = None
+    noes: int | None = None
+    abstentions: int | None = None
+    possible_turnout: int | None = None
+    source: str = "theyvoteforyou"
+    source_url: str | None = None
+    identifiers: dict = Field(default_factory=dict)
+    summary: str | None = None
+    votes: list[DivisionVoteIn] = Field(default_factory=list)
+
+
+class InstrumentLinkIn(BaseModel):
+    instrument_source_key: str
+    link_kind: InstrumentLinkKind
+    target_kind: str = "scrutiny"
+    target_source_key: str | None = None
+    source: str | None = None
+    notes: str | None = None
+
+
 class SourceBatch(BaseModel):
     source: str
     hearings: list[HearingIn] = Field(default_factory=list)
@@ -261,6 +310,8 @@ class SourceBatch(BaseModel):
     scrutiny_items: list[ScrutinyItemIn] = Field(default_factory=list)
     outcomes: list[OutcomeIn] = Field(default_factory=list)
     person_roles: list[PersonRoleIn] = Field(default_factory=list)
+    divisions: list[DivisionIn] = Field(default_factory=list)
+    instrument_links: list[InstrumentLinkIn] = Field(default_factory=list)
     meta: dict = Field(default_factory=dict)
 
 

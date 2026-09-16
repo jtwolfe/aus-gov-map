@@ -17,6 +17,9 @@ export function SiteFooter() {
           <Link href="/accountability" className="hover:text-navy">
             Accountability
           </Link>
+          <Link href="/laws" className="hover:text-navy">
+            Laws
+          </Link>
           <Link href="/atlas" className="hover:text-navy">
             Atlas
           </Link>

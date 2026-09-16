@@ -30,10 +30,11 @@ export default async function SearchPage({
         <p className="eyebrow">Find in the record</p>
         <h1 className="mt-2 font-serif text-4xl text-ink">Search</h1>
         <p className="mt-3 text-muted">
-          Keyword uses Postgres full-text over hearings, documents, chunks, and
-          people. Semantic ranks pgvector cosine when ingest has written
-          embeddings (same hash embedder as the CLI). Filters apply to the
-          hearing a hit belongs to.
+          Keyword uses Postgres full-text over hearings, documents, chunks,
+          people, and instruments (Bills/Acts included). Semantic ranks
+          pgvector cosine when ingest has written embeddings (same hash
+          embedder as the CLI). Hearing filters apply to the hearing a hit
+          belongs to.
         </p>
         <div className="mt-6">
           <SearchForm

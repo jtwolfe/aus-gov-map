@@ -13,10 +13,13 @@ from aus_gov_ingest.sources.estimates import EstimatesSource
 from aus_gov_ingest.sources.fixture import FixtureSource
 from aus_gov_ingest.sources.handbook import HandbookSource
 from aus_gov_ingest.sources.instrument_propose import InstrumentProposeSource
+from aus_gov_ingest.sources.judgments import JudgmentsSource
+from aus_gov_ingest.sources.legislation import LegislationSource
 from aus_gov_ingest.sources.openaustralia import OpenAustraliaSource
 from aus_gov_ingest.sources.qon import QonSource
 from aus_gov_ingest.sources.schedule import EstimatesScheduleSource
 from aus_gov_ingest.sources.senate_committee import SenateCommitteeSource
+from aus_gov_ingest.sources.theyvoteforyou import TheyVoteForYouSource
 
 SOURCES: dict[str, type] = {
     "fixture": FixtureSource,
@@ -33,6 +36,9 @@ SOURCES: dict[str, type] = {
     "agencies": AgenciesSource,
     "aps_leaders": ApsLeadersSource,
     "instrument_propose": InstrumentProposeSource,
+    "legislation": LegislationSource,
+    "theyvoteforyou": TheyVoteForYouSource,
+    "judgments": JudgmentsSource,
 }
 
 PATH_SOURCES = {
@@ -45,6 +51,9 @@ PATH_SOURCES = {
     "anao",
     "budget_measure",
     "austender",
+    "legislation",
+    "theyvoteforyou",
+    "judgments",
 }
 
 

@@ -85,6 +85,7 @@ function needed(note: string, extra: Partial<NeededHint> = {}): NeededHint {
       "anao",
       "budget_measure",
       "austender",
+      "legislation",
     ],
     tables: extra.tables ?? [
       "person_roles",
@@ -98,7 +99,7 @@ function needed(note: string, extra: Partial<NeededHint> = {}): NeededHint {
 }
 
 const EMPTY_HINT = needed(
-  "The Atlas reads sourced occupancies, hearing-level moments, QoNs, ANAO items, and instruments. Fixture mode has hearings only — no invented tenures. Start Postgres, apply 007–011, then run the listed ingest sources.",
+  "The Atlas reads sourced occupancies, hearing-level moments, QoNs, ANAO items, and instruments (including Bills/Acts). Votes stay on /laws dossiers. Fixture mode has hearings only — no invented tenures. Start Postgres, apply 007–013, then run the listed ingest sources.",
 );
 
 async function tablesExist(names: readonly string[]): Promise<boolean> {
@@ -690,7 +691,10 @@ async function loadInstrumentRows(
     status: (r.status as string | null) ?? null,
     start: dateOnly(r.start_on),
     end: dateOnly(r.ended_on),
-    href: `/accountability/instruments/${r.slug}`,
+    href:
+      r.instrument_type === "bill" || r.instrument_type === "act"
+        ? `/laws/${r.slug}`
+        : `/accountability/instruments/${r.slug}`,
     agencySlug: (r.agency_slug as string | null) ?? null,
     agencyName: (r.agency_name as string | null) ?? null,
     portfolio: (r.portfolio as string | null) ?? null,

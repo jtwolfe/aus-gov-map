@@ -106,6 +106,13 @@ export default function AboutPage() {
           Responsibility Atlas
         </a>{" "}
         (<span className="font-mono">docs/responsibility-atlas.md</span>).
+        Stage 3a puts Bills and Acts on that spine —{" "}
+        <a className="link" href="/laws">
+          /laws
+        </a>{" "}
+        (<span className="font-mono">docs/laws-and-precedent.md</span>). Votes
+        are sourced divisions only. Judgments are court holdings, not guilt
+        labels.
       </p>
       <h2 className="font-serif text-2xl text-navy">Current coverage</h2>
       <p className="leading-relaxed text-muted">

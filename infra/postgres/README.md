@@ -15,6 +15,8 @@ Numbered files in this directory are applied **once** by Docker on first volume 
 | `009_source_adapters.sql` | Additive: outcome confidence / source_key / agency + scrutiny FKs for ANAO / Budget / AusTender |
 | `010_aps_leaders.sql` | Additive: person_roles.source_key, claims.qon_id, agency-head view, QoN debt + responsible official |
 | `011_atlas.sql` | Responsibility Atlas: `v_atlas_hearing_moments` (segment roll-up) |
+| `012_laws.sql` | Stage 3a: `act` instrument type, `divisions`, `division_votes`, `v_law_vote_summary`, `v_atlas_law_threads` |
+| `013_precedent.sql` | Judgments: `judgment` scrutiny type, `construes` / `invalidates` / `upholds`, `v_precedent_links` |
 
 Readable copies of the views also live in `analytics/` (`001_views.sql` and `accountability_*.sql`).
 

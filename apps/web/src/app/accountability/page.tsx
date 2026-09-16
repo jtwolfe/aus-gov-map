@@ -74,10 +74,10 @@ export default async function AccountabilityPage() {
 
       <LensNeeded
         needed={{
-          note: "Lenses read Postgres views when 007–011 have been applied. Handbook, QoN, agencies, aps_leaders, instrument_propose, ANAO, Budget/PBS, and AusTender now write into that model. Sparse data is correct; nothing invents officials or findings. The Atlas is the temporal reading room.",
+          note: "Lenses read Postgres views when 007–013 have been applied. Handbook, QoN, agencies, aps_leaders, instrument_propose, ANAO, Budget/PBS, AusTender, legislation, They Vote For You, and judgments now write into that model. Sparse data is correct; nothing invents officials, votes, or findings. The Atlas is the temporal reading room.",
           apply: "make db-apply",
-          sources: ["handbook", "aps_leaders", "qon", "agencies", "instrument_propose", "anao", "budget_measure", "austender"],
-          tables: ["person_roles", "instruments", "qons", "claims", "scrutiny_items", "outcomes"],
+          sources: ["handbook", "aps_leaders", "qon", "agencies", "instrument_propose", "anao", "budget_measure", "austender", "legislation", "theyvoteforyou", "judgments"],
+          tables: ["person_roles", "instruments", "qons", "claims", "scrutiny_items", "outcomes", "divisions"],
         }}
       />
     </div>

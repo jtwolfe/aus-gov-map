@@ -4,9 +4,11 @@ import { CrossLinks } from "@/components/cross-links";
 import { MiniAtlas } from "@/components/mini-atlas";
 import { PinButton } from "@/components/pin-button";
 import { SourceBadge } from "@/components/source-badge";
+import { VoteList } from "@/components/vote-list";
 import { loadRoleAtDate } from "@/lib/accountability";
 import { getPerson } from "@/lib/data";
 import { formatDate, roleLabel, roleTypeLabel, typeLabel } from "@/lib/format";
+import { loadVotes } from "@/lib/laws";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,7 @@ export default async function PersonPage({
   const { person, appearances, satWith } = result;
   const occupancies = await loadRoleAtDate(null, person.slug, null);
   const roles = occupancies.rows.filter((row) => row.personSlug === person.slug);
+  const votes = await loadVotes({ person: person.slug });
 
   return (
     <article className="space-y-10">
@@ -57,6 +60,7 @@ export default async function PersonPage({
             { href: `/atlas?person=${encodeURIComponent(person.slug)}&lane=person`, label: "Atlas focus" },
             { href: `/accountability/role-at-date?person=${encodeURIComponent(person.slug)}`, label: "Role at date" },
             { href: "/accountability/qon-debt", label: "QoN debt" },
+            { href: "/laws", label: "Laws" },
             { href: "/accountability", label: "Accountability" },
           ]}
         />
@@ -98,6 +102,23 @@ export default async function PersonPage({
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {votes.rows.length ? (
+        <section>
+          <p className="eyebrow">Sourced divisions</p>
+          <h2 className="mt-2 font-serif text-2xl text-navy">Votes</h2>
+          <p className="mt-2 text-sm text-muted">
+            Recorded parliamentary divisions only. Sitting in Estimates is not
+            a vote and not a tenure.
+          </p>
+          <div className="mt-4">
+            <VoteList
+              votes={votes.rows}
+              empty="No sourced division votes resolved to this person."
+            />
+          </div>
         </section>
       ) : null}
 

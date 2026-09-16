@@ -39,6 +39,9 @@ python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
 python -m aus_gov_ingest run --source anao --limit 5 --dry-run
 python -m aus_gov_ingest run --source budget_measure --limit 10 --dry-run
 python -m aus_gov_ingest run --source austender --limit 10 --dry-run
+python -m aus_gov_ingest run --source legislation --limit 10 --dry-run
+python -m aus_gov_ingest run --source theyvoteforyou --limit 5 --dry-run
+python -m aus_gov_ingest run --source judgments --dry-run
 ```
 
 Persist the same passes when Postgres is up (omit `--dry-run`):
@@ -72,6 +75,9 @@ DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 | `anao` | ANAO work / performance-audit index → `scrutiny_items` (type anao). Outcomes only when finding language is parseable. Fixture fallback: `fixtures/live/anao/`. |
 | `budget_measure` | BP2 measures DOCX + data.gov.au PBS program-expense CSV → `instruments` (measure / program). PDF Budget Papers are follow-up. Fixture: `fixtures/live/budget/`. |
 | `austender` | AusTender OCDS API (recent / high-value, `--limit`) → `instruments` (type contract). Agency name-match. Fixture: `fixtures/live/austender/`. |
+| `legislation` | Federal Register of Legislation Bills/Acts → `instruments` (type `bill` / `act`) with FRL id, series, year, number. Live title pages; fixture: `fixtures/live/legislation/`. |
+| `theyvoteforyou` | They Vote For You divisions → `divisions` / `division_votes`. Resolves people only when they already exist. Fixture: `fixtures/live/tvfy/`. |
+| `judgments` | High Court / Federal Court fixture MVP → `scrutiny_items` (judgment) + `construes` / `upholds` / `invalidates`. Not a guilt label. |
 
 APH Azure Front Door **403s bot-like User-Agents**. The client sends a browser-like UA, `Accept` / `Accept-Language`, and keeps session cookies. `parlinfo.aph.gov.au` (XML/PDF/`toc_unixml`) still returns an Azure WAF **JS challenge** from typical datacentre IPs — ingest does **not** follow those redirects. The working structured source is `https://www.aph.gov.au/api/hansard/transcript?id=committees/estimate/{id}/0000`.
 

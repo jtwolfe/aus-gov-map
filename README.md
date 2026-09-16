@@ -44,6 +44,7 @@ is not a tenure. A later **Laws** reading room can hang off the same chrome.
 | `infra/neo4j` | Constraints / indexes + Stage 1 + duty-map graph |
 | `docs/accountability-map.md` | Stage 2 architecture (layers, edges, non-goals, sources, metrics) |
 | `docs/responsibility-atlas.md` | Responsibility Atlas (temporal duty view, `/atlas`, query contract) |
+| `docs/laws-and-precedent.md` | Stage 3a: Bills/Acts, divisions, precedent on the same spine |
 | `data/fixtures` | Offline seed (hearings, people, sample Official) |
 
 ## How to run
@@ -57,14 +58,14 @@ make db-up          # Postgres only — prints DATABASE_URL
 make up             # Postgres + Neo4j
 ```
 
-That starts **Postgres 16 + pgvector** (`localhost:5432`) and optionally **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Incremental files (`004`–`011`) also run on a fresh volume. Neo4j constraints are applied by `neo4j-init`.
+That starts **Postgres 16 + pgvector** (`localhost:5432`) and optionally **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Incremental files (`004`–`013`) also run on a fresh volume. Neo4j constraints are applied by `neo4j-init`.
 
 ```
 DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov
 neo4j / ausgovmap
 ```
 
-Existing volumes do **not** re-run `infra/postgres/*.sql`. Apply analytics views, Handbook stubs, accountability tables, Atlas helpers, and the demo board with:
+Existing volumes do **not** re-run `infra/postgres/*.sql`. Apply analytics views, Handbook stubs, accountability tables, Atlas helpers, laws/precedent, and the demo board with:
 
 ```bash
 make db-apply
@@ -195,6 +196,23 @@ force-directed graph. Swimlanes are portfolios or people; bars are sourced
 Architecture, API contract, and acceptance criteria:
 [`docs/responsibility-atlas.md`](docs/responsibility-atlas.md).
 
+## Laws and precedent (Stage 3a)
+
+`/laws` is the Bill / Act reading room on the same duty map. Dossiers show
+register status, sourced divisions (They Vote For You), and court holdings
+that cite the Act. Votes stay on dossiers — not as Atlas moments. Spec:
+[`docs/laws-and-precedent.md`](docs/laws-and-precedent.md).
+
+```bash
+make db-apply
+cd services/ingest
+python -m aus_gov_ingest run --source legislation --dry-run
+python -m aus_gov_ingest run --source theyvoteforyou --dry-run
+python -m aus_gov_ingest run --source judgments --dry-run
+# persist when DATABASE_URL reaches Postgres:
+# python -m aus_gov_ingest run --source legislation --no-graph
+```
+
 ## Accountability map (Stage 2)
 
 The product is becoming a **decision / duty map**: who held which office when (elected **and** public service), which instrument they were accountable or responsible for, and where that chain was later tested. Architecture: [`docs/accountability-map.md`](docs/accountability-map.md).
@@ -205,11 +223,11 @@ The product is becoming a **decision / duty map**: who held which office when (e
 | --- | --- | --- |
 | Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` (live OData + fixture fallback); `aps_leaders` (secretaries / agency heads) |
 | Agencies | `agencies` | `agencies` (official-name stubs); `aps_leaders` (links incumbents) |
-| Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); `budget_measure` (BP2 / PBS); `austender` (OCDS) |
-| Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments` | `qon` (EQON), `anao` (work index), Stage 1 hearings |
+| Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); `budget_measure` (BP2 / PBS); `austender` (OCDS); `legislation` (FRL bill/act) |
+| Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments`, `divisions` | `qon` (EQON), `anao` (work index), `theyvoteforyou`, `judgments`, Stage 1 hearings |
 | Outcomes | `outcomes` (sourced signals only) | `anao` (parseable finding language only) |
 
-Web: **Accountability** and **Atlas** in the nav. Lenses (safe with zero rows):
+Web: **Accountability**, **Laws**, and **Atlas** in the nav. Lenses (safe with zero rows):
 
 0. Responsibility Atlas — `/atlas` (temporal duty view; spec: [`docs/responsibility-atlas.md`](docs/responsibility-atlas.md))
 1. Role at date — `/accountability/role-at-date`
@@ -217,13 +235,14 @@ Web: **Accountability** and **Atlas** in the nav. Lenses (safe with zero rows):
 3. QoN debt — `/accountability/qon-debt`
 4. Chain completeness — `/accountability/chain-completeness`
 5. Instruments explorer — `/accountability/instruments`
+6. Laws — `/laws` (Bills/Acts, votes, judgments; spec: [`docs/laws-and-precedent.md`](docs/laws-and-precedent.md))
 
 The Atlas is the left→right past–present reading room for the same tables: tenure bars from `person_roles`, hearing-level moments (segments rolled up), QoN/ANAO points, instrument threads, and sparse claim arcs. Fixture mode degrades to an empty state plus a link to Accountability — it does not invent officials.
 
 APIs under `/api/accountability/*` read the views in `infra/postgres/analytics/accountability_*.sql` when present. `GET /api/qon` lists foundation `qons`.
 
 ```bash
-make db-apply   # 007–011 + views
+make db-apply   # 007–013 + views
 cd services/ingest
 python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
 python -m aus_gov_ingest run --source aps_leaders --limit 10 --dry-run
@@ -233,6 +252,9 @@ python -m aus_gov_ingest run --source instrument_propose --limit 1 --dry-run
 python -m aus_gov_ingest run --source anao --limit 5 --dry-run
 python -m aus_gov_ingest run --source budget_measure --limit 10 --dry-run
 python -m aus_gov_ingest run --source austender --limit 10 --dry-run
+python -m aus_gov_ingest run --source legislation --limit 10 --dry-run
+python -m aus_gov_ingest run --source theyvoteforyou --limit 5 --dry-run
+python -m aus_gov_ingest run --source judgments --dry-run
 # persist (omit --dry-run) when DATABASE_URL reaches Postgres:
 # DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 #   python -m aus_gov_ingest run --source anao --limit 10 --no-graph
@@ -256,8 +278,10 @@ See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `T
 - Full Budget Paper PDF table extraction (this pass uses BP2 DOCX + PBS CSV)
 - Questions on notice answers at scale (EQON has 176k+ rows; ingest is capped)
 - OpenAustralia / TheyWorkForYou-AU XML
-- GrantConnect + legislation API + TheyVoteForYou divisions
-- Asserted bills / instruments (this repo only proposes candidates from text)
+- GrantConnect + full FRL backfill + full TheyVoteForYou division lists
+- Law ↔ appropriation `FUNDED_BY` join (deferred; adapters exist separately)
+- Live Jade / AustLII judgment scrape (fixture MVP only)
+- Asserted bills / instruments from Estimates text (this repo still proposes those candidates)
 - Full historical APS secretary timelines (annual reports / Wayback)
 - Auth-backed shared boards
 - Production deploy
@@ -274,5 +298,8 @@ WEB_URL=http://localhost:3000 python3 scripts/verify_search_pins.py
 python3 scripts/verify_atlas.py
 DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov python3 scripts/verify_atlas.py
 WEB_URL=http://localhost:3000 python3 scripts/verify_atlas.py
+python3 scripts/verify_laws.py
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov python3 scripts/verify_laws.py
+WEB_URL=http://localhost:3000 python3 scripts/verify_laws.py
 cd apps/web && npm test
 ```
