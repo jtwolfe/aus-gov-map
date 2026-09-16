@@ -73,11 +73,16 @@ export default async function HomePage() {
           <Link href="/accountability" className="hover:text-ochre">
             Accountability
           </Link>
+          <span className="text-muted"> · </span>
+          <Link href="/atlas" className="hover:text-ochre">
+            Atlas
+          </Link>
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
           Stage 2 traces sourced occupancies, instruments, and scrutiny.
-          Lenses stay empty until Handbook, QoN, ANAO, Budget, or AusTender
-          rows land — they do not invent conclusions.
+          The Responsibility Atlas is the temporal reading room. Lenses stay
+          empty until Handbook, QoN, ANAO, Budget, or AusTender rows land —
+          they do not invent conclusions.
         </p>
       </section>
 

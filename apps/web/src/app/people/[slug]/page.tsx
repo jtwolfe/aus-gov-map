@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MiniAtlas } from "@/components/mini-atlas";
 import { PinButton } from "@/components/pin-button";
 import { SourceBadge } from "@/components/source-badge";
 import { loadRoleAtDate } from "@/lib/accountability";
@@ -86,6 +87,8 @@ export default async function PersonPage({
           </ul>
         </section>
       ) : null}
+
+      <MiniAtlas person={person.slug} lane="person" />
 
       <section>
         <p className="eyebrow">Appearances timeline</p>

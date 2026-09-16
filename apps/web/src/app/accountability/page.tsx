@@ -7,6 +7,12 @@ export const dynamic = "force-dynamic";
 
 const LENSES = [
   {
+    href: "/atlas",
+    kicker: "00",
+    title: "Responsibility Atlas",
+    body: "Left-to-right past–future view of tenures, Estimates moments, QoNs, ANAO items, and instrument threads. A scrubber asks role-at-date for the lanes in view.",
+  },
+  {
     href: "/accountability/role-at-date",
     kicker: "01",
     title: "Role at date",

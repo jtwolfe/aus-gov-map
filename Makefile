@@ -14,6 +14,7 @@ help:
 	@echo "  make web-dev                Next.js dev server (prefers DATABASE_URL)"
 	@echo "  make seed                   Load fixture seed via ingest CLI"
 	@echo "  make verify                 Search + pins verification script"
+	@echo "  make verify-atlas           Atlas query + HTTP verification"
 	@echo "  make down                   Stop compose stack"
 	@echo "  make ingest                 Show ingest CLI help"
 	@echo "  make install                Install web + ingest deps"
@@ -27,7 +28,7 @@ db-up:
 	@echo "Postgres is starting. Point the web app and ingest at:"
 	@echo "  DATABASE_URL=$(DATABASE_URL)"
 	@echo "Copy .env.example → .env or export that URL before make web-dev / ingest-live-files."
-	@echo "Existing volumes keep data; new volumes load infra/postgres/001–010."
+	@echo "Existing volumes keep data; new volumes load infra/postgres/001–011."
 
 down:
 	docker compose down
@@ -76,3 +77,7 @@ ingest:
 
 verify:
 	DATABASE_URL=$(DATABASE_URL) python3 scripts/verify_search_pins.py
+
+verify-atlas:
+	python3 scripts/verify_atlas.py
+	@if [ -n "$(DATABASE_URL)" ]; then DATABASE_URL=$(DATABASE_URL) python3 scripts/verify_atlas.py; fi

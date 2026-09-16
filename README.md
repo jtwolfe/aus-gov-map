@@ -33,6 +33,7 @@ This repository is a working scaffold — not a production service and not a his
 | `infra/postgres` | Extensions, schema, seed SQL, Stage 2 accountability tables |
 | `infra/neo4j` | Constraints / indexes + Stage 1 + duty-map graph |
 | `docs/accountability-map.md` | Stage 2 architecture (layers, edges, non-goals, sources, metrics) |
+| `docs/responsibility-atlas.md` | Responsibility Atlas (temporal duty view, `/atlas`, query contract) |
 | `data/fixtures` | Offline seed (hearings, people, sample Official) |
 
 ## How to run
@@ -46,14 +47,14 @@ make db-up          # Postgres only — prints DATABASE_URL
 make up             # Postgres + Neo4j
 ```
 
-That starts **Postgres 16 + pgvector** (`localhost:5432`) and optionally **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Incremental files (`004`–`007`) also run on a fresh volume. Neo4j constraints are applied by `neo4j-init`.
+That starts **Postgres 16 + pgvector** (`localhost:5432`) and optionally **Neo4j 5** (`7474` / `7687`). Schema and the fixture seed load on first Postgres init. Incremental files (`004`–`011`) also run on a fresh volume. Neo4j constraints are applied by `neo4j-init`.
 
 ```
 DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov
 neo4j / ausgovmap
 ```
 
-Existing volumes do **not** re-run `infra/postgres/*.sql`. Apply analytics views, Handbook stubs, accountability tables, and the demo board with:
+Existing volumes do **not** re-run `infra/postgres/*.sql`. Apply analytics views, Handbook stubs, accountability tables, Atlas helpers, and the demo board with:
 
 ```bash
 make db-apply
@@ -176,6 +177,14 @@ If no matching chunks exist yet, ingest Officials (or the fixture) first, then r
 
 `/insights` runs the starter inefficiency queries (people across many Estimates hearings, densest recent committees, repeated topic / FOI-procurement mentions). SQL views: `infra/postgres/analytics/`. Cypher twins: `infra/neo4j/queries/`.
 
+## Responsibility Atlas
+
+`/atlas` is a **temporal duty view** (past left → present right), not a
+force-directed graph. Swimlanes are portfolios or people; bars are sourced
+`person_roles`; points are hearings / QoNs / ANAO; threads are instruments.
+Architecture, API contract, and acceptance criteria:
+[`docs/responsibility-atlas.md`](docs/responsibility-atlas.md).
+
 ## Accountability map (Stage 2)
 
 The product is becoming a **decision / duty map**: who held which office when (elected **and** public service), which instrument they were accountable or responsible for, and where that chain was later tested. Architecture: [`docs/accountability-map.md`](docs/accountability-map.md).
@@ -190,18 +199,21 @@ The product is becoming a **decision / duty map**: who held which office when (e
 | Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments` | `qon` (EQON), `anao` (work index), Stage 1 hearings |
 | Outcomes | `outcomes` (sourced signals only) | `anao` (parseable finding language only) |
 
-Web: **Accountability** in the nav. Lenses (safe with zero rows):
+Web: **Accountability** and **Atlas** in the nav. Lenses (safe with zero rows):
 
+0. Responsibility Atlas — `/atlas` (temporal duty view; spec: [`docs/responsibility-atlas.md`](docs/responsibility-atlas.md))
 1. Role at date — `/accountability/role-at-date`
 2. Promise → receipt — `/accountability/promise-receipt`
 3. QoN debt — `/accountability/qon-debt`
 4. Chain completeness — `/accountability/chain-completeness`
 5. Instruments explorer — `/accountability/instruments`
 
+The Atlas is the left→right past–present reading room for the same tables: tenure bars from `person_roles`, hearing-level moments (segments rolled up), QoN/ANAO points, instrument threads, and sparse claim arcs. Fixture mode degrades to an empty state plus a link to Accountability — it does not invent officials.
+
 APIs under `/api/accountability/*` read the views in `infra/postgres/analytics/accountability_*.sql` when present. `GET /api/qon` lists foundation `qons`.
 
 ```bash
-make db-apply   # 007–010 + views
+make db-apply   # 007–011 + views
 cd services/ingest
 python -m aus_gov_ingest run --source handbook --limit 20 --dry-run
 python -m aus_gov_ingest run --source aps_leaders --limit 10 --dry-run
@@ -249,4 +261,8 @@ cd apps/web && npm run lint && npm run build
 python3 scripts/verify_search_pins.py
 DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov python3 scripts/verify_search_pins.py
 WEB_URL=http://localhost:3000 python3 scripts/verify_search_pins.py
+python3 scripts/verify_atlas.py
+DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov python3 scripts/verify_atlas.py
+WEB_URL=http://localhost:3000 python3 scripts/verify_atlas.py
+cd apps/web && npm test
 ```

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountabilityNav, EmptyRows } from "@/components/accountability-lens";
+import { MiniAtlas } from "@/components/mini-atlas";
 import { loadAgency, loadRoleAtDate } from "@/lib/accountability";
 import { formatDate, roleTypeLabel } from "@/lib/format";
 
@@ -123,6 +124,8 @@ export default async function AgencyPage({
               <p className="mt-3 text-sm text-muted">No overlapping occupancies in the current store.</p>
             )}
           </section>
+
+          <MiniAtlas agency={agency.slug} lane="agency" />
         </>
       )}
     </div>
