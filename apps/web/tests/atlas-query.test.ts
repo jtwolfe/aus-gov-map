@@ -63,9 +63,8 @@ describe("resolveWindow", () => {
       {},
       { today: "2026-09-16", defaultSpanDays: 366 * 4 },
     );
-    assert.equal(window.to, "2024-06-15");
-    assert.ok(window.from <= "2024-02-01");
-    assert.ok(window.to >= "2024-06-15");
+    assert.equal(window.from, "2024-01-02");
+    assert.equal(window.to, "2024-06-29");
   });
 
   it("swaps inverted from/to", () => {

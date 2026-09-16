@@ -239,9 +239,21 @@ export function resolveWindow(
   const dataMax = isIsoDate(bounds.max) ? bounds.max : null;
   const latest = dataMax && dataMax < today ? dataMax : dataMax ?? today;
   const earliest = dataMin ?? addDays(latest, -defaultSpan);
+  const observedSpan = dataMin && dataMax ? daysBetween(dataMin, dataMax) : defaultSpan;
 
-  let from = isIsoDate(requested.from) ? requested.from : addDays(latest, -defaultSpan);
-  let to = isIsoDate(requested.to) ? requested.to : latest;
+  let from: string;
+  let to: string;
+  if (isIsoDate(requested.from) || isIsoDate(requested.to)) {
+    from = isIsoDate(requested.from) ? requested.from : addDays(latest, -defaultSpan);
+    to = isIsoDate(requested.to) ? requested.to : latest;
+  } else if (dataMin && dataMax && observedSpan <= defaultSpan) {
+    // Dense first paint: don't leave years of empty gutter when the store is a short cluster.
+    from = addDays(dataMin, -30);
+    to = addDays(dataMax, 14);
+  } else {
+    from = addDays(latest, -defaultSpan);
+    to = latest;
+  }
 
   if (from > to) {
     const swap = from;

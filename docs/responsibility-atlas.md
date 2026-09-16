@@ -74,7 +74,7 @@ X-axis is **time** (past left, present / latest data right). Y-axis is
 | `instrument` | Instrument slug or title (`ILIKE`) |
 | `lane` | `agency` (default) or `person` |
 | `includeProposed` | `0` (default) or `1` |
-| `asOf` | Optional date; when set, payload includes `asOf` occupants |
+| `asOf` | Date for the role-at-date cross-section. When omitted, the server picks the latest mark in the window (or `to`). |
 | `qon` | `0` to omit QoN moments (default `1`) |
 | `anao` | `0` to omit ANAO moments (default `1`) |
 | `arcs` | `0` to omit arcs (default `1`) |

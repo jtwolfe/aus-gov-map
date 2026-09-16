@@ -1,4 +1,4 @@
-import type { NeededHint } from "./accountability";
+import type { NeededHint } from "./accountability-meta";
 import { postgresAvailable, query } from "./db";
 import {
   anaoMoments,
@@ -271,12 +271,17 @@ export async function loadAtlas(input: URLSearchParams | AtlasParams): Promise<A
       ? buildArcs(claimRows, testedRows, momentIds, instrumentIds).slice(0, caps.arcs)
       : [];
 
-    const asOfDate = params.asOf && params.asOf >= window.from && params.asOf <= window.to
+    const latestMark = [
+      ...momentsKept.map((m) => m.at),
+      ...tenuresKept.map((t) => t.end ?? t.start).filter((d): d is string => Boolean(d)),
+    ].sort()
+      .at(-1);
+    const asOfDate = params.asOf
       ? params.asOf
-      : params.asOf;
-    const asOf = asOfDate
-      ? { date: asOfDate, occupants: occupantsAtDate(tenuresKept, asOfDate) }
-      : null;
+      : latestMark && latestMark >= window.from && latestMark <= window.to
+        ? latestMark
+        : window.to;
+    const asOf = asOfDate ? { date: asOfDate, occupants: occupantsAtDate(tenuresKept, asOfDate) } : null;
 
     return {
       source: "postgres",

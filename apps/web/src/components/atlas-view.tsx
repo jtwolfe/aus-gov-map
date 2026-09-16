@@ -14,7 +14,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
   const pathname = usePathname();
   const params = payload.params;
   const defaultAsOf = clamp(
-    params.asOf ?? (todayUtc() < payload.window.to ? todayUtc() : payload.window.to),
+    params.asOf ?? payload.asOf?.date ?? (todayUtc() < payload.window.to ? todayUtc() : payload.window.to),
     payload.window.from,
     payload.window.to,
   );
@@ -87,7 +87,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
 
       <AccountabilityNav current="/atlas" />
 
-      <form className="grid gap-3 border border-rule bg-card p-4 md:grid-cols-12" method="get">
+      <form className="grid gap-3 border border-rule bg-card p-4 sm:grid-cols-2 md:grid-cols-12" method="get">
         <label className="text-sm text-muted md:col-span-2">
           From
           <input
@@ -191,6 +191,7 @@ export function AtlasView({ payload }: { payload: AtlasPayload }) {
             The Atlas is empty until Postgres holds sourced rows. Nothing here is
             inferred from silence. Use Accountability lenses in the meantime.
           </p>
+          <LayerGuide />
           <LensNeeded needed={payload.needed} />
           <p className="text-sm">
             <Link href="/accountability" className="link">

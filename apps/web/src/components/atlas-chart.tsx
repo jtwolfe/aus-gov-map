@@ -220,7 +220,7 @@ export function AtlasChart({
               const cpx = (x1 + x2) / 2;
               const cpy = Math.min(y1, y2) - 28;
               const dim = focus
-                ? !markMatchesFocus(focus, fromM) && !markMatchesFocus(focus, toI ?? {})
+                ? !markMatchesFocus(focus, fromM) && !(toI && markMatchesFocus(focus, toI))
                 : false;
               return (
                 <path
