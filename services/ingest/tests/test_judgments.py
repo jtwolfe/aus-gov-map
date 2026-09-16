@@ -72,6 +72,12 @@ def test_judgments_source_fixture() -> None:
     kinds = {lnk.link_kind for lnk in batch.instrument_links}
     assert kinds <= {"construes", "invalidates", "upholds"}
     assert all(o.signal == "unknown" for o in batch.outcomes)
+    titles = " ".join(s.title for s in batch.scrutiny_items)
+    assert "Mulligan" in titles
+    assert any(
+        lnk.instrument_source_key == "frl:C2013A00020" and lnk.link_kind == "construes"
+        for lnk in batch.instrument_links
+    )
 
 
 def test_judgments_dry_run() -> None:

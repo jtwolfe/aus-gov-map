@@ -238,7 +238,7 @@ def _from_flat_cn(row: dict) -> InstrumentIn | None:
             "CN": cn,
             "supplier": supplier,
             "license_note": LICENSE_NOTE,
-            **{k: row.get(k) for k in ("UNSPSC", "category") if row.get(k)},
+            **{k: row.get(k) for k in ("UNSPSC", "category", "funded_by_source_key") if row.get(k)},
         },
     )
 

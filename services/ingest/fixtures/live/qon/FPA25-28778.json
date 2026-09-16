@@ -1,0 +1,26 @@
+{
+  "Id": "official-28778-dps-desk",
+  "Number": "official-105",
+  "PortfolioQuestionNumber": "FPA25-OFFICIAL-105",
+  "AskedDate": "2025-03-27T00:00:00",
+  "Senators": [
+    {
+      "Title": "Senator",
+      "FirstName": "Jane",
+      "Surname": "Hume"
+    }
+  ],
+  "Agency": "Department of Parliamentary Services",
+  "Answered": false,
+  "Status": "Unanswered",
+  "Overdue": "No",
+  "Committee": "Finance and Public Administration",
+  "Portfolio": "Parliamentary departments",
+  "EstimatesRoundName": "2025-26 Budget estimates",
+  "QuestionText": "Senator HUME: On question on notice 105, you said you were unable to locate documentation of the approval for the work to be undertaken. I'm wondering whether you have any update on whether there is a receipt for that work that was undertaken. Ms Hinder: I can track back and provide that on notice.",
+  "BroadTopic": "DPS furniture / desk receipt",
+  "AnswerText": "",
+  "_hearing_source_key": "hansard:committees/estimate/28778",
+  "_source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard/Hansard_Display?bid=committees/estimate/28778/&sid=0000",
+  "_note": "Taken on notice in the Official for FPA Estimates 27 Mar 2025 (transcript 28778). Fixture metadata names the hearing."
+}

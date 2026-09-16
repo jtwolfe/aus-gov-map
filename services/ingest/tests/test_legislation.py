@@ -106,3 +106,14 @@ def test_legislation_dry_run() -> None:
     assert result.fetched >= 3
     assert result.meta["instruments"] >= 3
     assert result.upserted == 0
+
+
+def test_legislation_seed_includes_accountability_acts() -> None:
+    batch = LegislationSource(path=FIXTURES).fetch()
+    keys = {i.source_key for i in batch.instruments}
+    assert "frl:C2013A00020" in keys  # NDIS Act
+    assert "frl:C2004A00538" in keys  # Public Service Act
+    assert "frl:C2011A00009" in keys  # National Health Reform
+    assert "frl:C2004A01607" in keys  # Ombudsman
+    assert "frl:bill:national-disability-insurance-scheme-amendment-getting-the-ndis-back-on-track-no-1-bill-2024" in keys
+    assert len(batch.instruments) >= 12

@@ -31,6 +31,7 @@ from aus_gov_ingest.models import (
     ScrutinyItemIn,
     TopicIn,
 )
+from aus_gov_ingest.qon_hearing import HearingCandidate
 from aus_gov_ingest.people import canonical_slug, names_are_same_person, pick_display_name, slug as slugify
 from aus_gov_ingest.sources.util import stable_slug
 
@@ -1127,7 +1128,8 @@ class PostgresStore:
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (source_key) DO UPDATE SET
                 summary = COALESCE(EXCLUDED.summary, scrutiny_items.summary),
-                title = EXCLUDED.title
+                title = EXCLUDED.title,
+                hearing_id = COALESCE(EXCLUDED.hearing_id, scrutiny_items.hearing_id)
             """,
             (
                 scrutiny_id,
@@ -1160,7 +1162,8 @@ class PostgresStore:
                 due_on = COALESCE(EXCLUDED.due_on, qons.due_on),
                 answering_agency_id = COALESCE(EXCLUDED.answering_agency_id, qons.answering_agency_id),
                 identifiers = EXCLUDED.identifiers,
-                scrutiny_item_id = COALESCE(EXCLUDED.scrutiny_item_id, qons.scrutiny_item_id)
+                scrutiny_item_id = COALESCE(EXCLUDED.scrutiny_item_id, qons.scrutiny_item_id),
+                hearing_id = COALESCE(EXCLUDED.hearing_id, qons.hearing_id)
             """,
             (
                 qid,
@@ -1580,6 +1583,95 @@ class PostgresStore:
             ),
         )
 
+    def lookup_hearing_id(self, conn: Connection, source_key: str) -> UUID | None:
+        row = conn.execute(
+            "SELECT id FROM hearings WHERE source_key = %s",
+            (source_key,),
+        ).fetchone()
+        return row["id"] if row else None
+
+    def list_hearing_candidates(self, conn: Connection) -> list[HearingCandidate]:
+        try:
+            rows = conn.execute(
+                """
+                SELECT h.id, h.source_key, h.held_on, h.title, h.portfolio, h.hearing_type,
+                       c.name AS committee_name,
+                       COALESCE(v.segment_portfolio, v.lane_portfolio) AS segment_portfolio
+                FROM hearings h
+                LEFT JOIN committees c ON c.id = h.committee_id
+                LEFT JOIN v_atlas_hearing_moments v ON v.hearing_id = h.id
+                WHERE h.held_on IS NOT NULL
+                """
+            ).fetchall()
+        except Exception:
+            conn.rollback()
+            rows = conn.execute(
+                """
+                SELECT h.id, h.source_key, h.held_on, h.title, h.portfolio, h.hearing_type,
+                       c.name AS committee_name, NULL::text AS segment_portfolio
+                FROM hearings h
+                LEFT JOIN committees c ON c.id = h.committee_id
+                WHERE h.held_on IS NOT NULL
+                """
+            ).fetchall()
+        out: list[HearingCandidate] = []
+        for row in rows:
+            out.append(
+                HearingCandidate(
+                    source_key=row["source_key"],
+                    held_on=row["held_on"],
+                    title=row["title"] or "",
+                    portfolio=row["portfolio"],
+                    committee_name=row["committee_name"],
+                    hearing_type=row["hearing_type"] or "estimates",
+                    segment_portfolio=row["segment_portfolio"],
+                    hearing_id=str(row["id"]),
+                )
+            )
+        return out
+
+    def list_funding_instruments(self, conn: Connection) -> list[InstrumentIn]:
+        return self._list_instruments_by_type(conn, ("measure", "program"))
+
+    def list_contract_instruments(self, conn: Connection) -> list[InstrumentIn]:
+        return self._list_instruments_by_type(conn, ("contract", "grant"))
+
+    def _list_instruments_by_type(self, conn: Connection, kinds: tuple[str, ...]) -> list[InstrumentIn]:
+        try:
+            rows = conn.execute(
+                """
+                SELECT i.source_key, i.title, i.instrument_type, i.status, i.source,
+                       i.source_url, i.announced_on, i.commenced_on, i.ended_on,
+                       i.identifiers, a.name AS agency_name
+                FROM instruments i
+                LEFT JOIN agencies a ON a.id = i.agency_id
+                WHERE i.instrument_type = ANY(%s)
+                """,
+                (list(kinds),),
+            ).fetchall()
+        except Exception:
+            conn.rollback()
+            return []
+        items: list[InstrumentIn] = []
+        for row in rows:
+            ids = row["identifiers"] if isinstance(row["identifiers"], dict) else {}
+            items.append(
+                InstrumentIn(
+                    source_key=row["source_key"],
+                    title=row["title"],
+                    kind=row["instrument_type"],
+                    status=row["status"] or "sourced",
+                    agency_name=row["agency_name"] or ids.get("agency_name"),
+                    announced_on=row["announced_on"],
+                    commenced_on=row["commenced_on"],
+                    ended_on=row["ended_on"],
+                    source=row["source"],
+                    source_url=row["source_url"],
+                    identifiers=ids,
+                )
+            )
+        return items
+
     def lookup_instrument_id(self, conn: Connection, source_key: str) -> UUID | None:
         row = conn.execute(
             "SELECT id FROM instruments WHERE source_key = %s",
@@ -1593,6 +1685,44 @@ class PostgresStore:
             (source_key,),
         ).fetchone()
         return row["id"] if row else None
+
+    def link_funded_by(
+        self,
+        conn: Connection,
+        *,
+        instrument_id: UUID,
+        other_instrument_id: UUID,
+        source: str | None,
+        notes: str | None = None,
+        confidence: float | None = None,
+    ) -> None:
+        note = notes or ""
+        if confidence is not None and "confidence=" not in note:
+            note = f"{note} confidence={confidence:.2f}".strip()
+        try:
+            conn.execute(
+                """
+                INSERT INTO instrument_links (
+                    instrument_id, target_kind, target_id, other_instrument_id,
+                    link_kind, source, notes
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (instrument_id, target_kind, target_id, link_kind) DO UPDATE SET
+                    notes = COALESCE(EXCLUDED.notes, instrument_links.notes),
+                    other_instrument_id = EXCLUDED.other_instrument_id
+                """,
+                (
+                    instrument_id,
+                    "instrument",
+                    other_instrument_id,
+                    other_instrument_id,
+                    "funded_by",
+                    source or "funded_by",
+                    note or None,
+                ),
+            )
+        except Exception:
+            conn.rollback()
 
     def lookup_instrument_id_by_title(self, conn: Connection, title: str) -> UUID | None:
         """Match an existing bill/act by title fragment. Never creates a row."""

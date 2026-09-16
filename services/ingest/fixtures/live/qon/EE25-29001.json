@@ -1,0 +1,27 @@
+{
+  "Id": "official-29001-procurement",
+  "Number": "official-1",
+  "PortfolioQuestionNumber": "EE25-OFFICIAL-1",
+  "AskedDate": "2025-10-10T00:00:00",
+  "DueDate": "2025-11-21T00:00:00",
+  "Senators": [
+    {
+      "Title": "Senator",
+      "FirstName": "Jonathon",
+      "Surname": "Duniam"
+    }
+  ],
+  "Agency": "Department of Education",
+  "Answered": false,
+  "Status": "Unanswered",
+  "Overdue": "No",
+  "Committee": "Education and Employment",
+  "Portfolio": "Education",
+  "EstimatesRoundName": "2025-26 Supplementary Budget estimates",
+  "QuestionText": "Senator DUNIAM: With the process of procurement, do you go and look at what the standard market rate is? Is that one of the considerations that the department has in its decision-making process for procurement? Mr Boyd: I don't know. We'd have to take that on notice and check.",
+  "BroadTopic": "Education procurement / market rates",
+  "AnswerText": "",
+  "_hearing_source_key": "hansard:committees/estimate/29001",
+  "_source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard/Hansard_Display?bid=committees/estimate/29001/&sid=0000",
+  "_note": "Taken on notice in the Official for Education and Employment Estimates 10 Oct 2025 (transcript 29001). Fixture metadata names the hearing."
+}

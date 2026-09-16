@@ -43,6 +43,9 @@ def check_offline() -> None:
     assert "resolveWindow" in query
     assert "deriveHearingLaneHint" in query
     assert "HearingQonLink" in query
+    assert "looksLikePersonLabel" in query
+    assert "committeeAsPortfolio" in query
+    assert "agencyModeText" in query
 
     loader = (ROOT / "apps" / "web" / "src" / "lib" / "atlas.ts").read_text()
     assert "FROM person_roles" in loader
@@ -57,6 +60,8 @@ def check_offline() -> None:
     assert "v_atlas_hearing_moments" in sql_text
     assert "segment_portfolio" in sql_text
     assert "lane_portfolio" in sql_text
+    assert "committee_name" in sql_text
+    assert "Senator" in sql_text
 
     for rel in (
         "apps/web/src/app/atlas/page.tsx",

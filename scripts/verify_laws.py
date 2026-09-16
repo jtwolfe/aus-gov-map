@@ -15,6 +15,7 @@ With WEB_URL: HTTP 200 on /laws and empty-safe fixture behaviour.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import urllib.error
@@ -35,9 +36,12 @@ def check_offline() -> None:
     assert "CONSTRUES" in spec
     assert "INVALIDATES" in spec
     assert "FUNDED_BY" in spec
+    assert "deferred" not in spec.lower() or "sourced only" in spec.lower()
+    assert "title+agency+period" in spec or "distinctive title" in spec
     assert "No automated" in spec or "guilt" in spec.lower()
     assert "/laws" in spec
     assert "theyvoteforyou" in spec.lower() or "They Vote For You" in spec
+    assert "ingest-qon-hearings" in spec or "hearing_id" in spec
 
     map_doc = (ROOT / "docs" / "accountability-map.md").read_text()
     assert "laws-and-precedent.md" in map_doc
@@ -69,15 +73,23 @@ def check_offline() -> None:
     assert "from aus_gov_ingest.models import PersonIn" not in tvfy
     assert "people" in tvfy.lower() and "existing" in tvfy.lower()
 
+    makefile = (ROOT / "Makefile").read_text()
+    assert "ingest-qon-hearings" in makefile
+    assert "ingest-links" in makefile
+    assert "ingest-laws" in makefile
+
     for rel in (
         "apps/web/src/app/laws/page.tsx",
         "apps/web/src/app/laws/[slug]/page.tsx",
         "apps/web/src/lib/laws.ts",
         "services/ingest/src/aus_gov_ingest/sources/legislation.py",
         "services/ingest/src/aus_gov_ingest/sources/judgments.py",
+        "services/ingest/src/aus_gov_ingest/qon_hearing.py",
+        "services/ingest/src/aus_gov_ingest/funded_by.py",
         "services/ingest/fixtures/live/legislation/seed.json",
         "services/ingest/fixtures/live/tvfy/divisions.json",
         "services/ingest/fixtures/live/judgments/seed.json",
+        "services/ingest/fixtures/live/austender/cn4195346.json",
     ):
         assert (ROOT / rel).is_file(), rel
 
@@ -95,17 +107,28 @@ def check_ingest_dry_run() -> None:
     keys = [i.source_key for i in laws.instruments]
     assert len(keys) == len(set(keys)), "duplicate legislation source_keys"
     assert all(i.kind in {"bill", "act"} for i in laws.instruments)
+    titles = " ".join(i.title for i in laws.instruments)
+    assert "National Disability Insurance Scheme Act 2013" in titles
+    assert "Public Service Act 1999" in titles
+    assert "Ombudsman Act 1976" in titles
+    assert len([i for i in laws.instruments if i.kind == "act"]) >= 10
 
     votes = TheyVoteForYouSource(path=ROOT / "services" / "ingest" / "fixtures" / "live" / "tvfy").fetch()
     assert votes.divisions
     assert votes.people == []
     assert votes.meta.get("people_emitted") == 0
+    houses = {d.house for d in votes.divisions}
+    assert "representatives" in houses
+    assert "senate" in houses
+    assert any("NDIS" in (d.title or "") or "Disability" in (d.title or "") for d in votes.divisions)
 
     judgments = JudgmentsSource(path=ROOT / "services" / "ingest" / "fixtures" / "live" / "judgments").fetch()
     assert judgments.scrutiny_items
     kinds = {lnk.link_kind for lnk in judgments.instrument_links}
     assert kinds <= {"construes", "invalidates", "upholds"}
-    _ok("fixture ingest: upsert keys + no invented people")
+    cites = " ".join(s.title for s in judgments.scrutiny_items)
+    assert "Mulligan" in cites
+    _ok("fixture ingest: upsert keys + no invented people + expanded seed")
 
 
 def check_postgres(dsn: str) -> None:
@@ -143,6 +166,14 @@ def check_postgres(dsn: str) -> None:
             """
         )
         assert orphan_votes == 0, "division_votes.person_id must point at existing people"
+        funded = count(
+            "SELECT COUNT(*)::int AS n FROM instrument_links WHERE link_kind = 'funded_by'"
+        )
+        qon_hearings = count(
+            "SELECT COUNT(*)::int AS n FROM qons WHERE hearing_id IS NOT NULL"
+        )
+        if funded >= 0:
+            print(json.dumps({"funded_by_links": funded, "qons_with_hearing": qon_hearings}, indent=2))
         _ok(f"postgres laws tables (bills/acts={acts}, divisions={max(divisions, 0)})")
 
 

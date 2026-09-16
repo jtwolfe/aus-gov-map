@@ -75,6 +75,61 @@ export type ChainRow = {
   sourceUrl: string | null;
 };
 
+export type FundedByLink = {
+  kind: "funded_by" | "funds";
+  title: string;
+  slug: string;
+  href: string;
+  instrumentType: string | null;
+  source: string | null;
+  notes: string | null;
+  confidence: string | null;
+};
+
+export async function loadFundedByLinks(slug: string): Promise<FundedByLink[]> {
+  if (!(await postgresAvailable())) return [];
+  try {
+    const rows = await query<Record<string, unknown>>(
+      `
+      SELECT i.slug AS this_slug, i.title AS this_title,
+             o.slug AS other_slug, o.title AS other_title,
+             o.instrument_type AS other_type, o.source AS other_source,
+             il.notes, il.source
+      FROM instrument_links il
+      JOIN instruments i ON i.id = il.instrument_id
+      JOIN instruments o ON o.id = il.other_instrument_id
+      WHERE il.link_kind = 'funded_by'
+        AND (i.slug = $1 OR o.slug = $1)
+      LIMIT 20
+      `,
+      [slug],
+    );
+    return rows.map((r) => {
+      const isFunded = String(r.this_slug) === slug;
+      const otherSlug = isFunded ? String(r.other_slug) : String(r.this_slug);
+      const otherTitle = isFunded ? String(r.other_title) : String(r.this_title);
+      const otherType = (r.other_type as string | null) ?? null;
+      const notes = (r.notes as string | null) ?? null;
+      const confidence = notes?.match(/confidence=([0-9.]+)/)?.[1] ?? null;
+      return {
+        kind: isFunded ? "funded_by" : "funds",
+        title: otherTitle,
+        slug: otherSlug,
+        href:
+          otherType === "bill" || otherType === "act"
+            ? `/laws/${otherSlug}`
+            : `/accountability/instruments/${otherSlug}`,
+        instrumentType: otherType,
+        source: (r.source as string | null) ?? (r.other_source as string | null) ?? null,
+        notes,
+        confidence,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 export type InstrumentRow = {
   slug: string;
   title: string;

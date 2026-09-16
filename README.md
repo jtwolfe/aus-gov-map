@@ -205,12 +205,8 @@ that cite the Act. Votes stay on dossiers — not as Atlas moments. Spec:
 
 ```bash
 make db-apply
-cd services/ingest
-python -m aus_gov_ingest run --source legislation --dry-run
-python -m aus_gov_ingest run --source theyvoteforyou --dry-run
-python -m aus_gov_ingest run --source judgments --dry-run
-# persist when DATABASE_URL reaches Postgres:
-# python -m aus_gov_ingest run --source legislation --no-graph
+make ingest-laws                 # dry-run FRL / TVFY / judgments fixtures
+# make ingest-laws DRY_RUN=      # persist
 ```
 
 ## Accountability map (Stage 2)
@@ -223,7 +219,7 @@ The product is becoming a **decision / duty map**: who held which office when (e
 | --- | --- | --- |
 | Occupancy | `roles`, `person_roles` (FK to existing `people`; Handbook tables stay provenance) | `handbook` (live OData + fixture fallback); `aps_leaders` (secretaries / agency heads) |
 | Agencies | `agencies` | `agencies` (official-name stubs); `aps_leaders` (links incumbents) |
-| Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); `budget_measure` (BP2 / PBS); `austender` (OCDS); `legislation` (FRL bill/act) |
+| Instruments | `instruments`, `instrument_links` | `instrument_propose` (proposed only); `budget_measure` (BP2 / PBS); `austender` (OCDS); `legislation` (FRL bill/act). `FUNDED_BY` only when title+agency+period or a fixture key uniquely match (`make ingest-links`) |
 | Scrutiny | `scrutiny_items`, `qons`, `claims`, `hearing_segments`, `divisions` | `qon` (EQON), `anao` (work index), `theyvoteforyou`, `judgments`, Stage 1 hearings |
 | Outcomes | `outcomes` (sourced signals only) | `anao` (parseable finding language only) |
 
@@ -255,6 +251,10 @@ python -m aus_gov_ingest run --source austender --limit 10 --dry-run
 python -m aus_gov_ingest run --source legislation --limit 10 --dry-run
 python -m aus_gov_ingest run --source theyvoteforyou --limit 5 --dry-run
 python -m aus_gov_ingest run --source judgments --dry-run
+# After hearings exist, attach QoN hearing_id (fixture key or unique match):
+# make ingest-qon-hearings DRY_RUN=
+# Budget + AusTender FUNDED_BY when evidenced:
+# make ingest-links DRY_RUN=
 # persist (omit --dry-run) when DATABASE_URL reaches Postgres:
 # DATABASE_URL=postgresql://ausgov:ausgov@localhost:5432/ausgov \
 #   python -m aus_gov_ingest run --source anao --limit 10 --no-graph
@@ -279,7 +279,7 @@ See `infra/neo4j/README.md`. Stage 1 nodes: `Person`, `Hearing`, `Committee`, `T
 - Questions on notice answers at scale (EQON has 176k+ rows; ingest is capped)
 - OpenAustralia / TheyWorkForYou-AU XML
 - GrantConnect + full FRL backfill + full TheyVoteForYou division lists
-- Law ↔ appropriation `FUNDED_BY` join (deferred; adapters exist separately)
+- Broader `FUNDED_BY` (this pass writes sourced contract↔program links only; Act↔appropriation remains later)
 - Live Jade / AustLII judgment scrape (fixture MVP only)
 - Asserted bills / instruments from Estimates text (this repo still proposes those candidates)
 - Full historical APS secretary timelines (annual reports / Wayback)

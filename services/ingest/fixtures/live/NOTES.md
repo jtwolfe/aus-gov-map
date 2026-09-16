@@ -204,3 +204,28 @@ FRL title pages and theyvoteforyou.org.au are often Cloudflare / WAF blocked fro
 
 Do not invent FRL ids, vote positions, or holdings.
 
+Legislation seed now includes NDIS, Public Service, National Health
+Reform, Ombudsman, and related amendment Acts/Bills. TVFY excerpt adds
+Senate 2024-08-22/10 (NDIS Amendment Bill). Judgments include Mulligan
+[2015] FCA 544 construing the NDIS Act.
+
+## QoN ↔ hearing and FUNDED_BY
+
+```bash
+# After Officials exist, attach QoN hearing_id (fixture key or unique match)
+python -m aus_gov_ingest run --source qon --path fixtures/live/qon --dry-run
+# persist: make ingest-qon-hearings DRY_RUN=
+
+# Budget + AusTender; FUNDED_BY only when evidenced
+python -m aus_gov_ingest run --source budget_measure --path fixtures/live/budget --dry-run
+python -m aus_gov_ingest run --source austender --path fixtures/live/austender --dry-run
+# persist: make ingest-links DRY_RUN=
+```
+
+Official TON fixtures (`CA25-29000`, `FPA25-28778`, `LCA25-28779`,
+`EE25-29001`) name `_hearing_source_key` for the matching Estimates
+Official. AusTender `cn4195346.json` (CN4195346, Child Care Subsidy
+integrity) links to PBS Program 1.2 when the title, Department of
+Education, and 2025-26 year agree — or via `funded_by_source_key`.
+Never invent a funding edge from a short or ambiguous title.
+

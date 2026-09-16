@@ -37,7 +37,7 @@ X-axis is **time** (past left, present / latest data right). Y-axis is
 
 | Mark | Meaning | Source |
 | --- | --- | --- |
-| **Lane** | Portfolio / agency (default) or a person | `agencies.portfolio` / `agencies.slug`, or `people`. Hearing moments also use sourced `hearing_segments.portfolio` / `.agency` when `hearings.portfolio` is null (`v_atlas_hearing_moments.lane_portfolio`). |
+| **Lane** | Portfolio / agency (default) or a person | `agencies.portfolio` / `agencies.slug`, or `people`. Hearing moments also use sourced `hearing_segments.portfolio` / `.agency` when `hearings.portfolio` is null (`v_atlas_hearing_moments.lane_portfolio`), then the committee name with `Legislation`/`References Committee` stripped. Agency-mode labels reject person-shaped strings (`Senator …`, `Glyn Davis`) and honorific prefixes. |
 | **Tenure bar** | Occupancy of a seat | `person_roles` only (`handbook`, `aps_leaders`, …) |
 | **Moment** | Dated scrutiny point | Hearing (segments rolled up), QoN asked/answered, ANAO item |
 | **Instrument thread** | Longer band for a measure / program / contract / **bill / act** | `instruments` dates; proposed is dashed and off by default. Law threads href to `/laws/[slug]`. |
@@ -217,5 +217,6 @@ A researcher can:
    context (href to dossier or `source_url`).
 5. Jump to hearing, person, agency, and instrument pages.
 
-Tests must prove: date windowing, lane assignment, and **no tenure from
+Tests must prove: date windowing, lane assignment (including committee
+fallback and no person-named agency lanes), and **no tenure from
 hearing appearance alone**.

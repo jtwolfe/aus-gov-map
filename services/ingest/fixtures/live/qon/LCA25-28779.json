@@ -1,0 +1,26 @@
+{
+  "Id": "official-28779-outstanding",
+  "Number": "official-qon-stock",
+  "PortfolioQuestionNumber": "LCA25-OFFICIAL-1",
+  "AskedDate": "2025-03-27T00:00:00",
+  "Senators": [
+    {
+      "Title": "Senator",
+      "FirstName": "James",
+      "Surname": "Paterson"
+    }
+  ],
+  "Agency": "Department of Home Affairs",
+  "Answered": false,
+  "Status": "Unanswered",
+  "Overdue": "No",
+  "Committee": "Legal and Constitutional Affairs",
+  "Portfolio": "Home Affairs",
+  "EstimatesRoundName": "2025-26 Budget estimates",
+  "QuestionText": "Senator PATERSON: Of the more recent round of estimates, the 340 that are outstanding, how many have been provided to the minister's office? Ms Sharpe: I'd have to take that detail on notice as well.",
+  "BroadTopic": "Outstanding Home Affairs questions on notice",
+  "AnswerText": "",
+  "_hearing_source_key": "hansard:committees/estimate/28779",
+  "_source_url": "https://www.aph.gov.au/Parliamentary_Business/Hansard/Hansard_Display?bid=committees/estimate/28779/&sid=0000",
+  "_note": "Taken on notice in the Official for Legal and Constitutional Affairs Estimates 27 Mar 2025 (transcript 28779). Fixture metadata names the hearing."
+}
