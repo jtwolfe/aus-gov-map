@@ -230,9 +230,15 @@ export default async function LawDossierPage({
                     <span className="text-xs uppercase tracking-[0.12em] text-muted">{item.kind}</span>
                     {" · "}
                     {item.href ? (
-                      <a href={item.href} className="link" rel="noreferrer">
-                        {item.title}
-                      </a>
+                      item.href.startsWith("/") ? (
+                        <Link href={item.href} className="link">
+                          {item.title}
+                        </Link>
+                      ) : (
+                        <a href={item.href} className="link" rel="noreferrer">
+                          {item.title}
+                        </a>
+                      )
                     ) : (
                       item.title
                     )}

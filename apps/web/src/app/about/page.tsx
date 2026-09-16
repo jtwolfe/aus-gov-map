@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export const metadata = { title: "About" };
 
 export default function AboutPage() {
@@ -107,9 +109,9 @@ export default function AboutPage() {
         </a>{" "}
         (<span className="font-mono">docs/responsibility-atlas.md</span>).
         Stage 3a puts Bills and Acts on that spine —{" "}
-        <a className="link" href="/laws">
+        <Link className="link" href="/laws">
           /laws
-        </a>{" "}
+        </Link>{" "}
         (<span className="font-mono">docs/laws-and-precedent.md</span>). Votes
         are sourced divisions only. Judgments are court holdings, not guilt
         labels.

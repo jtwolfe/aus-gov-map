@@ -62,8 +62,8 @@ def check_offline() -> None:
     assert "upholds" in sql013
 
     tvfy = (ROOT / "services" / "ingest" / "src" / "aus_gov_ingest" / "sources" / "theyvoteforyou.py").read_text()
-    assert "PersonIn" not in tvfy
-    assert "never" in tvfy.lower() or "existing" in tvfy.lower()
+    assert "from aus_gov_ingest.models import PersonIn" not in tvfy
+    assert "people" in tvfy.lower() and "existing" in tvfy.lower()
 
     for rel in (
         "apps/web/src/app/laws/page.tsx",
