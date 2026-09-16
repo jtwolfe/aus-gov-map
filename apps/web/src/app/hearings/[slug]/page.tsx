@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Attribution } from "@/components/attribution";
+import { CrossLinks } from "@/components/cross-links";
 import { PinButton } from "@/components/pin-button";
 import { SourceBadge } from "@/components/source-badge";
 import { getHearing, loadCatalog, relatedPeople } from "@/lib/data";
@@ -74,6 +75,16 @@ export default async function HearingPage({
             licenseNote={hearing.documents[0]?.licenseNote}
           />
         </div>
+        <CrossLinks
+          items={[
+            hearing.portfolio
+              ? { href: `/atlas?portfolio=${encodeURIComponent(hearing.portfolio)}`, label: "Atlas · portfolio" }
+              : { href: "/atlas", label: "Atlas" },
+            { href: "/accountability", label: "Accountability" },
+            { href: "/accountability/qon-debt", label: "QoN debt" },
+            { href: "/agencies", label: "Agencies" },
+          ]}
+        />
         <div className="mt-6 flex flex-wrap gap-2">
           {hearing.topics.map((topic) => (
             <span

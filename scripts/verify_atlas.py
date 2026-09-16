@@ -41,6 +41,8 @@ def check_offline() -> None:
     assert "tenuresFromRoles" in query
     assert "hearing_people" not in query
     assert "resolveWindow" in query
+    assert "deriveHearingLaneHint" in query
+    assert "HearingQonLink" in query
 
     loader = (ROOT / "apps" / "web" / "src" / "lib" / "atlas.ts").read_text()
     assert "FROM person_roles" in loader
@@ -51,7 +53,10 @@ def check_offline() -> None:
 
     sql = ROOT / "infra" / "postgres" / "011_atlas.sql"
     assert sql.is_file()
-    assert "v_atlas_hearing_moments" in sql.read_text()
+    sql_text = sql.read_text()
+    assert "v_atlas_hearing_moments" in sql_text
+    assert "segment_portfolio" in sql_text
+    assert "lane_portfolio" in sql_text
 
     for rel in (
         "apps/web/src/app/atlas/page.tsx",
@@ -62,7 +67,10 @@ def check_offline() -> None:
         assert (ROOT / rel).is_file(), rel
 
     header = (ROOT / "apps" / "web" / "src" / "components" / "site-header.tsx").read_text()
-    assert 'href: "/atlas"' in header
+    nav = (ROOT / "apps" / "web" / "src" / "lib" / "nav.ts").read_text()
+    assert "SITE_NAV" in header
+    assert 'href: "/atlas"' in nav
+    assert 'href: "/agencies"' in nav
 
     _ok("offline spec + query builders + routes")
 
@@ -110,6 +118,43 @@ def check_postgres(dsn: str) -> None:
         appearances = count("SELECT COUNT(*) AS n FROM hearing_people")
         if appearances and tenures == 0:
             print("ok  appearances exist without tenures (Estimates ≠ occupancy)")
+
+        lane_cols = count(
+            """
+            SELECT COUNT(*) AS n FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = 'v_atlas_hearing_moments'
+              AND column_name = 'segment_portfolio'
+            """
+        )
+        if lane_cols:
+            sourced = count(
+                """
+                SELECT COUNT(*) AS n FROM v_atlas_hearing_moments
+                WHERE segment_portfolio IS NOT NULL OR segment_agency IS NOT NULL
+                """
+            )
+            unassigned_with_portfolio = count(
+                """
+                SELECT COUNT(*) AS n FROM v_atlas_hearing_moments
+                WHERE segment_portfolio IS NOT NULL AND lane_portfolio IS NULL
+                """
+            )
+            print(
+                json.dumps(
+                    {
+                        "hearings_with_segment_lane_evidence": sourced,
+                        "unassigned_despite_segment_portfolio": unassigned_with_portfolio,
+                    },
+                    indent=2,
+                )
+            )
+            assert unassigned_with_portfolio == 0
+            _ok("hearing moments with segment portfolio evidence leave unassigned")
+        claims = count("SELECT COUNT(*) AS n FROM claims WHERE qon_id IS NOT NULL OR instrument_id IS NOT NULL")
+        qon_hearings = count("SELECT COUNT(*) AS n FROM qons WHERE hearing_id IS NOT NULL")
+        if claims or qon_hearings:
+            print(json.dumps({"claims_linked": claims, "qons_with_hearing": qon_hearings}, indent=2))
+            _ok("arc source rows present when fixtures warrant")
     _ok("postgres atlas sources (tenures or moments)")
 
 

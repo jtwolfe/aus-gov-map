@@ -6,6 +6,16 @@ Stage 1 covers **Senate committees and Estimates hearings**: search the record, 
 
 This repository is a working scaffold — not a production service and not a historical backfill.
 
+## How the map fits together
+
+Search a hearing or person, open the dossier, then step sideways into the duty
+map. **Hearings** and **People** are the Stage 1 record. **Agencies**,
+**Accountability** lenses, and the **Atlas** read the same Postgres tables:
+occupancy (`person_roles`), instruments, QoNs, ANAO items, and sparse claim
+arcs. Boards pin anything you want to keep. Empty states name the ingest that
+fills the missing layer — silence is not a finding, and sitting in Estimates
+is not a tenure. A later **Laws** reading room can hang off the same chrome.
+
 ## Architecture
 
 ```

@@ -51,9 +51,21 @@ export default async function PromiseReceiptPage() {
                 ) : null}
               </p>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted">
-                {row.instrumentTitle
-                  ? `${row.instrumentType ?? "instrument"} · ${row.instrumentTitle}`
-                  : "No instrument linked yet"}
+                {row.instrumentTitle ? (
+                  <>
+                    {row.instrumentType ?? "instrument"}
+                    {" · "}
+                    {row.instrumentSlug ? (
+                      <Link href={`/accountability/instruments/${row.instrumentSlug}`} className="link normal-case tracking-normal">
+                        {row.instrumentTitle}
+                      </Link>
+                    ) : (
+                      row.instrumentTitle
+                    )}
+                  </>
+                ) : (
+                  "No instrument linked yet"
+                )}
                 {row.outcomeSignal
                   ? ` · outcome ${row.outcomeSignal}${row.outcomeOn ? ` ${formatDate(row.outcomeOn)}` : ""}`
                   : " · no sourced outcome"}

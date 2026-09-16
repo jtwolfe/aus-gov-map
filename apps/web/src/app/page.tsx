@@ -79,10 +79,10 @@ export default async function HomePage() {
           </Link>
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-          Stage 2 traces sourced occupancies, instruments, and scrutiny.
-          The Responsibility Atlas is the temporal reading room. Lenses stay
-          empty until Handbook, QoN, ANAO, Budget, or AusTender rows land —
-          they do not invent conclusions.
+          Search a hearing or person, then step into Accountability lenses or
+          the Atlas. Lenses stay empty until Handbook, APS leaders, QoN, ANAO,
+          Budget, or AusTender rows land — they do not invent conclusions or
+          guilt labels. Sitting in Estimates is not a tenure.
         </p>
       </section>
 

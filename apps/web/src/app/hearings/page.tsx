@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HearingCard } from "@/components/hearing-card";
 import { getCoverage, loadCatalog } from "@/lib/data";
 
@@ -19,8 +20,20 @@ export default async function HearingsPage() {
             ? ` (${coverage.liveHearings} live Hansard · ${coverage.sampleHearings} sample).`
             : "."}{" "}
           Live ingest upserts on <span className="font-mono">source_key</span>.
+          Sitting in Estimates is not a tenure.
         </p>
       </header>
+      {!catalog.hearings.length ? (
+        <p className="border border-dashed border-rule bg-paper-2/50 px-5 py-6 text-sm leading-relaxed text-muted">
+          No hearings in the current store. That layer is filled by{" "}
+          <span className="font-mono">estimates</span> /{" "}
+          <span className="font-mono">aph_transcript_file</span>. Empty is
+          correct — it is not a finding.{" "}
+          <Link href="/atlas" className="link">
+            Atlas
+          </Link>
+        </p>
+      ) : null}
       <div className="grid gap-4">
         {catalog.hearings.map((hearing) => (
           <HearingCard key={hearing.id} hearing={hearing} />

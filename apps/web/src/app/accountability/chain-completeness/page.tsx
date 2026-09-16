@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AccountabilityNav, EmptyRows } from "@/components/accountability-lens";
 import { loadChainCompleteness } from "@/lib/accountability";
 import { instrumentTypeLabel } from "@/lib/format";
@@ -30,7 +31,11 @@ export default async function ChainCompletenessPage() {
           {payload.rows.map((row) => (
             <li key={row.slug} className="py-3">
               <p className="eyebrow">{instrumentTypeLabel(row.instrumentType)}</p>
-              <p className="font-serif text-lg text-navy">{row.title}</p>
+              <p className="font-serif text-lg text-navy">
+                <Link href={`/accountability/instruments/${row.slug}`} className="hover:text-ochre">
+                  {row.title}
+                </Link>
+              </p>
               <p className="text-sm text-muted">{row.agencyName ?? "Agency not linked"}</p>
               <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted">
                 minister {row.hasAccountableMinister ? "linked" : "missing"}

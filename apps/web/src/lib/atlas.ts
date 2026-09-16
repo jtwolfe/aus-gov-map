@@ -23,6 +23,7 @@ import {
   type DataBounds,
   type DateWindow,
   type HearingAppearance,
+  type HearingQonLink,
   type HearingRollup,
   type InstrumentInput,
   type Lane,
@@ -175,6 +176,7 @@ export async function loadAtlas(input: URLSearchParams | AtlasParams): Promise<A
     const hasClaims = await tablesExist(["claims"]);
     const hasSegments = await tablesExist(["hearing_segments"]);
     const hasHearingView = await relationExists("v_atlas_hearing_moments");
+    const hasLaneEvidence = hasHearingView && (await columnExists("v_atlas_hearing_moments", "segment_portfolio"));
     const hasClaimsQon = hasClaims && (await columnExists("claims", "qon_id"));
     const hasInstrumentStatus = hasInstruments && (await columnExists("instruments", "status"));
 
@@ -186,13 +188,13 @@ export async function loadAtlas(input: URLSearchParams | AtlasParams): Promise<A
     const person = like(params.person);
     const instrument = like(params.instrument);
 
-    const [roleRows, appearanceRows, hearingRows, qonRows, anaoRows, instrumentRows, claimRows, testedRows] =
+    const [roleRows, appearanceRows, hearingRows, qonRows, anaoRows, instrumentRows, claimRows, testedRows, hearingQonRows] =
       await Promise.all([
         loadTenures(window, { agency, portfolio, person }),
         person && params.lane === "person"
           ? loadAppearances(person)
           : Promise.resolve<HearingAppearance[]>([]),
-        loadHearings(window, { agency, portfolio, person, hasSegments, hasHearingView }),
+        loadHearings(window, { agency, portfolio, person, hasSegments, hasHearingView: hasLaneEvidence }),
         params.qon && hasQons
           ? loadQons(window, { agency, portfolio, person })
           : Promise.resolve<QonEvent[]>([]),
@@ -208,6 +210,9 @@ export async function loadAtlas(input: URLSearchParams | AtlasParams): Promise<A
         params.arcs && hasInstruments
           ? loadTestedLinks()
           : Promise.resolve<TestedLink[]>([]),
+        params.arcs && hasQons
+          ? loadHearingQons()
+          : Promise.resolve<HearingQonLink[]>([]),
       ]);
 
     const roleTenures = tenuresFromRoles(roleRows, appearanceRows);
@@ -277,7 +282,7 @@ export async function loadAtlas(input: URLSearchParams | AtlasParams): Promise<A
     const momentIds = new Set(momentsKept.map((m) => m.id));
     const instrumentIds = new Set(instrumentsKept.map((i) => i.id));
     const arcs = params.arcs
-      ? buildArcs(claimRows, testedRows, momentIds, instrumentIds).slice(0, caps.arcs)
+      ? buildArcs(claimRows, testedRows, momentIds, instrumentIds, hearingQonRows).slice(0, caps.arcs)
       : [];
 
     const latestMark = [
@@ -447,9 +452,23 @@ async function loadHearings(
              COALESCE(v.segment_count, 0) AS segment_count,
              COALESCE(v.portfolio_chip_count, 0) AS portfolio_chip_count,
              COALESCE(v.agency_chip_count, 0) AS agency_chip_count,
-             COALESCE(v.taken_on_notice_count, 0) AS taken_on_notice_count
+             COALESCE(v.taken_on_notice_count, 0) AS taken_on_notice_count,
+             v.segment_portfolio, v.segment_agency, v.lane_portfolio,
+             a.slug AS agency_slug, a.name AS agency_name
       FROM hearings h
       LEFT JOIN v_atlas_hearing_moments v ON v.hearing_id = h.id
+      LEFT JOIN LATERAL (
+        SELECT ag.slug, ag.name
+        FROM agencies ag
+        WHERE v.segment_agency IS NOT NULL
+          AND (
+            ag.name ILIKE v.segment_agency
+            OR ag.slug ILIKE replace(lower(v.segment_agency), ' ', '-')
+            OR ag.name ILIKE '%' || v.segment_agency || '%'
+          )
+        ORDER BY CASE WHEN ag.name ILIKE v.segment_agency THEN 0 ELSE 1 END, ag.slug
+        LIMIT 1
+      ) a ON TRUE
     `
     : opts.hasSegments
       ? `
@@ -457,14 +476,35 @@ async function loadHearings(
              COUNT(hs.id)::int AS segment_count,
              COUNT(DISTINCT hs.portfolio) FILTER (WHERE hs.portfolio IS NOT NULL)::int AS portfolio_chip_count,
              COUNT(DISTINCT hs.agency) FILTER (WHERE hs.agency IS NOT NULL)::int AS agency_chip_count,
-             COUNT(*) FILTER (WHERE hs.kind = 'taken_on_notice')::int AS taken_on_notice_count
+             COUNT(*) FILTER (WHERE hs.kind = 'taken_on_notice')::int AS taken_on_notice_count,
+             (
+               SELECT NULLIF(btrim(s.portfolio), '')
+               FROM hearing_segments s
+               WHERE s.hearing_id = h.id AND NULLIF(btrim(s.portfolio), '') IS NOT NULL
+               GROUP BY NULLIF(btrim(s.portfolio), '')
+               ORDER BY COUNT(*) DESC
+               LIMIT 1
+             ) AS segment_portfolio,
+             (
+               SELECT NULLIF(btrim(s.agency), '')
+               FROM hearing_segments s
+               WHERE s.hearing_id = h.id AND NULLIF(btrim(s.agency), '') IS NOT NULL
+               GROUP BY NULLIF(btrim(s.agency), '')
+               ORDER BY COUNT(*) DESC
+               LIMIT 1
+             ) AS segment_agency,
+             NULL::text AS lane_portfolio,
+             NULL::text AS agency_slug,
+             NULL::text AS agency_name
       FROM hearings h
       LEFT JOIN hearing_segments hs ON hs.hearing_id = h.id
       `
       : `
       SELECT h.id, h.slug, h.title, h.held_on, h.portfolio, h.source_url,
              0::int AS segment_count, 0::int AS portfolio_chip_count,
-             0::int AS agency_chip_count, 0::int AS taken_on_notice_count
+             0::int AS agency_chip_count, 0::int AS taken_on_notice_count,
+             NULL::text AS segment_portfolio, NULL::text AS segment_agency,
+             NULL::text AS lane_portfolio, NULL::text AS agency_slug, NULL::text AS agency_name
       FROM hearings h
     `;
 
@@ -475,7 +515,9 @@ async function loadHearings(
       AND h.held_on >= $1::date AND h.held_on <= $2::date
       AND ($3::text IS NULL OR h.portfolio ILIKE '%' || $3 || '%'
            ${opts.hasSegments ? "OR EXISTS (SELECT 1 FROM hearing_segments s WHERE s.hearing_id = h.id AND (s.agency ILIKE '%' || $3 || '%' OR s.portfolio ILIKE '%' || $3 || '%'))" : ""})
-      AND ($4::text IS NULL OR h.portfolio ILIKE '%' || $4 || '%')
+      AND ($4::text IS NULL OR h.portfolio ILIKE '%' || $4 || '%'
+           ${opts.hasHearingView ? "OR v.lane_portfolio ILIKE '%' || $4 || '%' OR v.segment_portfolio ILIKE '%' || $4 || '%'" : ""}
+           ${opts.hasSegments && !opts.hasHearingView ? "OR EXISTS (SELECT 1 FROM hearing_segments s2 WHERE s2.hearing_id = h.id AND s2.portfolio ILIKE '%' || $4 || '%')" : ""})
       AND ($5::text IS NULL OR EXISTS (
             SELECT 1 FROM hearing_people hp
             JOIN people p ON p.id = hp.person_id
@@ -497,12 +539,16 @@ async function loadHearings(
     slug: String(r.slug),
     title: String(r.title),
     heldOn: dateOnly(r.held_on),
-    portfolio: (r.portfolio as string | null) ?? null,
+    portfolio: (r.lane_portfolio as string | null) ?? (r.portfolio as string | null) ?? null,
     href: `/hearings/${r.slug}`,
     segmentCount: Number(r.segment_count ?? 0),
     portfolioChipCount: Number(r.portfolio_chip_count ?? 0),
     agencyChipCount: Number(r.agency_chip_count ?? 0),
     takenOnNoticeCount: Number(r.taken_on_notice_count ?? 0),
+    segmentPortfolio: (r.segment_portfolio as string | null) ?? null,
+    segmentAgency: (r.segment_agency as string | null) ?? null,
+    agencySlug: (r.agency_slug as string | null) ?? null,
+    agencyName: (r.agency_name as string | null) ?? null,
   }));
 }
 
@@ -670,19 +716,48 @@ async function loadClaims(hasQon: boolean): Promise<ClaimLink[]> {
   }));
 }
 
-async function loadTestedLinks(): Promise<TestedLink[]> {
+async function loadHearingQons(): Promise<HearingQonLink[]> {
   const rows = await query<Record<string, unknown>>(`
-    SELECT instrument_id, hearing_id, scrutiny_item_id
-    FROM instrument_links
-    WHERE link_kind = 'tested_in'
+    SELECT id, hearing_id
+    FROM qons
+    WHERE hearing_id IS NOT NULL
     LIMIT 200
   `).catch(() => []);
   return rows.map((r) => ({
+    hearingId: String(r.hearing_id),
+    qonId: String(r.id),
+  }));
+}
+
+async function loadTestedLinks(): Promise<TestedLink[]> {
+  const linkRows = await query<Record<string, unknown>>(`
+    SELECT instrument_id, hearing_id, scrutiny_item_id, link_kind
+    FROM instrument_links
+    WHERE link_kind IN ('tested_in', 'promised_in', 'mentioned')
+    LIMIT 300
+  `).catch(() => []);
+  const outcomeRows = await query<Record<string, unknown>>(`
+    SELECT o.instrument_id, o.scrutiny_item_id, s.hearing_id
+    FROM outcomes o
+    JOIN scrutiny_items s ON s.id = o.scrutiny_item_id
+    WHERE o.instrument_id IS NOT NULL AND o.scrutiny_item_id IS NOT NULL
+    LIMIT 200
+  `).catch(() => []);
+  const fromLinks: TestedLink[] = linkRows.map((r) => ({
     instrumentId: String(r.instrument_id),
     hearingId: r.hearing_id ? String(r.hearing_id) : null,
     qonId: null,
     scrutinyId: r.scrutiny_item_id ? String(r.scrutiny_item_id) : null,
+    linkKind: String(r.link_kind),
   }));
+  const fromOutcomes: TestedLink[] = outcomeRows.map((r) => ({
+    instrumentId: String(r.instrument_id),
+    hearingId: r.hearing_id ? String(r.hearing_id) : null,
+    qonId: null,
+    scrutinyId: r.scrutiny_item_id ? String(r.scrutiny_item_id) : null,
+    linkKind: "tested_in",
+  }));
+  return [...fromLinks, ...fromOutcomes];
 }
 
 function slugish(value: string): string {

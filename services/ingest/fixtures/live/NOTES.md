@@ -164,8 +164,10 @@ python -m aus_gov_ingest run --source aps_leaders --limit 10 --dry-run
 python -m aus_gov_ingest run --source qon --limit 20 --dry-run
 ```
 
-See `fixtures/live/aps/NOTES.md`. Historical secretary timelines may need
-annual reports or the Wayback Machine — not invented here.
+See `fixtures/live/aps/NOTES.md` and `fixtures/live/qon/NOTES.md`.
+Directory.gov.au and EQON often WAF-block datacentre IPs — both adapters
+fall back to the committed JSON in those folders (including sourced
+historical secretary instruments). Do not invent occupancy or answers.
 
 ## ANAO / Budget / AusTender (first-pass adapters)
 

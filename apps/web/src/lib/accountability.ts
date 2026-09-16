@@ -30,6 +30,7 @@ export type PromiseReceiptRow = {
   personName: string | null;
   hearingSlug: string | null;
   hearingTitle: string | null;
+  instrumentSlug: string | null;
   instrumentTitle: string | null;
   instrumentType: string | null;
   outcomeSignal: string | null;
@@ -263,7 +264,7 @@ export async function loadPromiseReceipt() {
     const sql = (await viewExists("v_accountability_promise_receipt"))
       ? `
         SELECT claim_type, text_span, made_on, speaker_name, person_slug, person_name,
-               hearing_slug, hearing_title, instrument_title, instrument_type,
+               hearing_slug, hearing_title, instrument_slug, instrument_title, instrument_type,
                signal AS outcome_signal, outcome_on
         FROM v_accountability_promise_receipt
         ORDER BY made_on DESC NULLS LAST
@@ -273,7 +274,7 @@ export async function loadPromiseReceipt() {
         SELECT c.claim_type, c.text_span, c.made_on, c.speaker_name,
                p.slug AS person_slug, p.name AS person_name,
                h.slug AS hearing_slug, h.title AS hearing_title,
-               i.title AS instrument_title, i.instrument_type,
+               i.slug AS instrument_slug, i.title AS instrument_title, i.instrument_type,
                o.signal AS outcome_signal, o.occurred_on AS outcome_on
         FROM claims c
         LEFT JOIN people p ON p.id = c.person_id
@@ -294,6 +295,7 @@ export async function loadPromiseReceipt() {
       personName: (r.person_name as string | null) ?? null,
       hearingSlug: (r.hearing_slug as string | null) ?? null,
       hearingTitle: (r.hearing_title as string | null) ?? null,
+      instrumentSlug: (r.instrument_slug as string | null) ?? null,
       instrumentTitle: (r.instrument_title as string | null) ?? null,
       instrumentType: (r.instrument_type as string | null) ?? null,
       outcomeSignal: (r.outcome_signal as string | null) ?? null,

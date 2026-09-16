@@ -54,6 +54,19 @@ export default async function SearchPage({
         <p className="text-sm text-muted">Try “FOI”, “procurement”, or “Paterson”.</p>
       )}
 
+      {q && result.hits.length === 0 ? (
+        <p className="border border-dashed border-rule bg-paper-2/50 px-5 py-6 text-sm leading-relaxed text-muted">
+          No hits for “{q}”. Search reads hearings, documents, chunks, and
+          people. That layer is filled by{" "}
+          <span className="font-mono">estimates</span> /{" "}
+          <span className="font-mono">aph_transcript_file</span>. Empty is
+          correct — it is not a finding.{" "}
+          <Link href="/accountability" className="link">
+            Accountability
+          </Link>
+        </p>
+      ) : null}
+
       <ol className="space-y-4">
         {result.hits.map((hit) => (
           <li key={`${hit.mode}-${hit.kind}-${hit.id}`} className="border-b border-rule/70 pb-4">

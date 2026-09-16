@@ -14,14 +14,14 @@ import {
 import { formatDate, roleTypeLabel } from "@/lib/format";
 
 const ROLE_FILL: Record<string, string> = {
-  minister: "#1a3a4a",
-  secretary: "#2f5d46",
-  agency_head: "#2f5d46",
+  minister: "var(--color-navy)",
+  secretary: "var(--color-eucalyptus)",
+  agency_head: "var(--color-eucalyptus)",
   deputy: "#4a7a62",
-  senator: "#6b6458",
-  mp: "#6b6458",
-  shadow: "#c56a2d",
-  committee: "#b0892e",
+  senator: "var(--color-muted)",
+  mp: "var(--color-muted)",
+  shadow: "var(--color-ochre)",
+  committee: "var(--color-gold)",
   other: "#8a7f6c",
 };
 
@@ -67,11 +67,11 @@ export function AtlasChart({
   const from = payload.window.from;
   const to = payload.window.to;
   const today = todayUtc();
-  const gutter = compact ? 118 : 168;
+  const gutter = compact ? 96 : width < 720 ? 112 : 168;
   const right = 16;
   const top = compact ? 28 : 36;
   const plotW = Math.max(240, width - gutter - right);
-  const minSvg = compact ? 560 : 720;
+  const minSvg = compact ? 480 : 560;
 
   const xOf = (iso: string) => {
     const a = Date.parse(`${from}T00:00:00Z`);
@@ -139,7 +139,7 @@ export function AtlasChart({
         aria-label="Responsibility Atlas timeline. Horizontal bars are sourced tenures. Points are hearings, questions on notice, or ANAO items. Sitting in Estimates is not a tenure."
         width={Math.max(width, minSvg)}
         height={layout.height}
-        className="min-w-full touch-pan-y bg-card"
+        className="min-w-full touch-none bg-card sm:touch-pan-y"
         onPointerDown={(e) => {
           setDragging(true);
           (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
@@ -167,7 +167,7 @@ export function AtlasChart({
           Time runs left to right. Swimlanes are portfolios or people. Tenure bars
           come from person roles only. Hearing points are scrutiny, not occupancy.
         </desc>
-        <rect x={0} y={0} width="100%" height="100%" fill="#faf7f0" />
+        <rect x={0} y={0} width="100%" height="100%" fill="var(--color-card)" />
         <rect x={gutter} y={0} width={presentX - gutter} height={layout.height} fill="rgba(28,25,21,0.035)" />
         <rect
           x={presentX}
@@ -183,7 +183,7 @@ export function AtlasChart({
               x2={xOf(tick.iso)}
               y1={0}
               y2={layout.height}
-              stroke="#d4cbb8"
+              stroke="var(--color-rule)"
               strokeDasharray={tick.major ? "0" : "2 4"}
               strokeWidth={tick.major ? 1 : 0.6}
             />
@@ -227,7 +227,7 @@ export function AtlasChart({
                   key={arc.id}
                   d={`M ${x1} ${y1} Q ${cpx} ${cpy} ${x2} ${y2}`}
                   fill="none"
-                  stroke={arc.kind === "tested" ? "#2f5d46" : arc.kind === "ton" ? "#1a3a4a" : "#c56a2d"}
+                  stroke={arc.kind === "tested" ? "var(--color-eucalyptus)" : arc.kind === "ton" ? "var(--color-navy)" : "var(--color-ochre)"}
                   strokeOpacity={dim ? 0.08 : 0.45}
                   strokeWidth={1.2}
                 />
@@ -244,7 +244,7 @@ export function AtlasChart({
           return (
             <g key={lane.id} opacity={focus && !laneFocus ? 0.18 : 1}>
               <rect x={0} y={y0} width={Math.max(width, minSvg)} height={height} fill="transparent" />
-              <line x1={0} x2={Math.max(width, minSvg)} y1={y0 + height} y2={y0 + height} stroke="#d4cbb8" />
+              <line x1={0} x2={Math.max(width, minSvg)} y1={y0 + height} y2={y0 + height} stroke="var(--color-rule)" />
               <text
                 x={8}
                 y={y0 + 16}
@@ -290,7 +290,7 @@ export function AtlasChart({
                         x={x1 + 4}
                         y={y + tenureH - 4}
                         fontSize={9}
-                        fill="#faf7f0"
+                        fill="var(--color-card)"
                         fontFamily="Public Sans, sans-serif"
                       >
                         {truncate(shortName(t.personName), Math.floor(w / 6))}
@@ -312,9 +312,9 @@ export function AtlasChart({
                       width={Math.max(6, x2 - x1)}
                       height={compact ? 5 : 6}
                       rx={1}
-                      fill={proposed ? "none" : "#b0892e"}
+                      fill={proposed ? "none" : "var(--color-gold)"}
                       fillOpacity={0.45}
-                      stroke="#b0892e"
+                      stroke="var(--color-gold)"
                       strokeDasharray={proposed ? "3 2" : undefined}
                       onMouseEnter={(e) => setHover({ kind: "instrument", id: inst.id, x: e.clientX, y: e.clientY })}
                       onMouseLeave={() => setHover(null)}
@@ -337,7 +337,7 @@ export function AtlasChart({
                         cx={cx}
                         cy={cy}
                         r={4}
-                        fill="#1a3a4a"
+                        fill="var(--color-navy)"
                         onMouseEnter={(e) => setHover({ kind: "moment", id: m.id, x: e.clientX, y: e.clientY })}
                         onMouseLeave={() => setHover(null)}
                       />
@@ -347,15 +347,15 @@ export function AtlasChart({
                         y={cy - 3.5}
                         width={7}
                         height={7}
-                        fill="#b0892e"
+                        fill="var(--color-gold)"
                         onMouseEnter={(e) => setHover({ kind: "moment", id: m.id, x: e.clientX, y: e.clientY })}
                         onMouseLeave={() => setHover(null)}
                       />
                     ) : (
                       <polygon
                         points={`${cx},${cy - 5} ${cx + 4.5},${cy} ${cx},${cy + 5} ${cx - 4.5},${cy}`}
-                        fill={m.status === "answered" ? "#2f5d46" : "#c56a2d"}
-                        stroke={overdue ? "#1c1915" : "none"}
+                        fill={m.status === "answered" ? "var(--color-eucalyptus)" : "var(--color-ochre)"}
+                        stroke={overdue ? "var(--color-ink)" : "none"}
                         strokeWidth={overdue ? 1 : 0}
                         onMouseEnter={(e) => setHover({ kind: "moment", id: m.id, x: e.clientX, y: e.clientY })}
                         onMouseLeave={() => setHover(null)}
@@ -373,16 +373,16 @@ export function AtlasChart({
           x2={asOfX}
           y1={0}
           y2={layout.height}
-          stroke="#c56a2d"
+          stroke="var(--color-ochre)"
           strokeWidth={1.4}
           strokeDasharray="3 3"
         />
         <polygon
           points={`${asOfX - 6},0 ${asOfX + 6},0 ${asOfX},10`}
-          fill="#c56a2d"
+          fill="var(--color-ochre)"
         />
         {todayX != null ? (
-          <line x1={todayX} x2={todayX} y1={0} y2={layout.height} stroke="#2f5d46" strokeOpacity={0.35} />
+          <line x1={todayX} x2={todayX} y1={0} y2={layout.height} stroke="var(--color-eucalyptus)" strokeOpacity={0.35} />
         ) : null}
       </svg>
 
@@ -428,8 +428,11 @@ function AtlasTooltip({
   }
   return (
     <div
-      className="pointer-events-none fixed z-20 max-w-xs border border-rule bg-card px-3 py-2 text-xs shadow-sm"
-      style={{ left: hover.x + 12, top: hover.y + 12 }}
+      className="pointer-events-none fixed z-20 max-w-[min(20rem,calc(100vw-1.5rem))] border border-rule bg-card px-3 py-2 text-xs shadow-sm"
+      style={{
+        left: Math.min(hover.x + 12, typeof window !== "undefined" ? window.innerWidth - 280 : hover.x + 12),
+        top: Math.min(hover.y + 12, typeof window !== "undefined" ? window.innerHeight - 80 : hover.y + 12),
+      }}
     >
       <p className="font-serif text-sm text-navy">{title}</p>
       <p className="mt-1 text-muted">{body}</p>

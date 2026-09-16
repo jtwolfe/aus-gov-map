@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountabilityNav, EmptyRows } from "@/components/accountability-lens";
+import { CrossLinks } from "@/components/cross-links";
 import { MiniAtlas } from "@/components/mini-atlas";
 import { loadInstrument } from "@/lib/accountability";
 import { formatDate, instrumentTypeLabel } from "@/lib/format";
@@ -37,6 +38,20 @@ export default async function InstrumentPage({
           amounts stay nullable until a source provides them. Proposed status
           means a text candidate, not an asserted fact.
         </p>
+        <CrossLinks
+          items={
+            row
+              ? [
+                  { href: `/atlas?instrument=${encodeURIComponent(row.slug)}&includeProposed=1`, label: "Atlas focus" },
+                  { href: "/accountability/promise-receipt", label: "Promise → receipt" },
+                  { href: "/accountability/chain-completeness", label: "Chain completeness" },
+                  ...(row.agencySlug
+                    ? [{ href: `/agencies/${row.agencySlug}`, label: "Agency" }]
+                    : []),
+                ]
+              : [{ href: "/accountability", label: "Accountability" }]
+          }
+        />
         <p className="mt-2 text-xs text-muted">
           Source · <span className="font-mono">{payload.source}</span>
           {row?.status ? ` · ${row.status}` : ""}

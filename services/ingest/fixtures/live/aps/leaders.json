@@ -1,8 +1,8 @@
 {
   "license_note": "© Commonwealth of Australia. Australian Government Directory / official department executive pages. Research / non-commercial use. Attribute the originating agency.",
   "source_url": "https://www.directory.gov.au/",
-  "note": "Current APS secretaries and deputies from official pages fetched 2026-09-15. start_date is stored only when the source states a month or day; otherwise null. end_date is null for current incumbents. Historical tenures are included only when the same official page states them. Do not invent occupancy.",
-  "gaps": "directory.gov.au agency pages and the Directory XML export timed out from this datacentre IP. Historical secretary timelines beyond what a current executive page states need annual reports or the Wayback Machine — follow-up, not invented here.",
+  "note": "Current APS secretaries and deputies from official pages and published instruments. start_date / end_date only where a source states a day or month. Current incumbents have end_date null even when an appointment term is known. See historical_tenures.json for prior secretaries. Do not invent occupancy.",
+  "gaps": "directory.gov.au agency pages and the Directory XML export timed out from this datacentre IP (WAF). Live adapter falls back to this folder. Appointment-term end dates (e.g. 15 June 2030) are not occupancy ends.",
   "leaders": [
     {
       "name": "Jenny Wilkinson",
@@ -11,11 +11,11 @@
       "agency_slug": "treasury",
       "agency_name": "Department of the Treasury",
       "portfolio": "Treasury",
-      "start_date": "2025-06-01",
+      "start_date": "2025-06-16",
       "end_date": null,
-      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive",
+      "source_url": "https://www.pmc.gov.au/resources/instrument-appointment-ms-jenny-wilkinson-psm-0",
       "directory_url": "https://www.directory.gov.au/portfolios/treasury/department-treasury",
-      "notes": "Treasury executive page: became Secretary in June 2025. Day of month not stated; stored as the first of that month."
+      "notes": "Public Service (Secretary of the Department of the Treasury) Appointment 2025: five-year term commencing 16 June 2025. Treasury executive page only stated the month."
     },
     {
       "name": "Jenny Wilkinson",
@@ -24,10 +24,10 @@
       "agency_slug": "finance",
       "agency_name": "Department of Finance",
       "portfolio": "Finance",
-      "start_date": "2022-08-01",
-      "end_date": "2025-06-01",
-      "source_url": "https://treasury.gov.au/the-department/about-treasury/our-executive",
-      "notes": "Same Treasury page: Secretary of Finance from August 2022 to June 2025. Month-only dates stored as the first of the month. Successor not named on that page."
+      "start_date": "2022-08-09",
+      "end_date": "2025-06-16",
+      "source_url": "https://www.pmc.gov.au/sites/default/files/resource/download/instrument-appointment-finance-wilkinson.pdf",
+      "notes": "Finance appointment instrument: five years commencing 9 August 2022. End is the day the Treasury appointment commenced (16 June 2025, PM secretary-appointments 10 June 2025). Treasury executive page had stated month-only August 2022–June 2025."
     },
     {
       "name": "Damien White",
@@ -105,11 +105,11 @@
       "agency_slug": "home-affairs",
       "agency_name": "Department of Home Affairs",
       "portfolio": "Home Affairs",
-      "start_date": null,
+      "start_date": "2023-11-28",
       "end_date": null,
-      "source_url": "https://www.homeaffairs.gov.au/about-us/who-we-are/our-senior-staff",
+      "source_url": "https://www.pmc.gov.au/resources/instrument-appointment-ms-stephanie-foster-psm",
       "directory_url": "https://www.directory.gov.au/portfolios/home-affairs/department-home-affairs",
-      "notes": "Listed as Secretary on the Home Affairs senior-staff page fetched 2026-09-15. No appointment date on that page."
+      "notes": "Home Affairs senior-staff page listed the name without a date. Instrument of appointment: five years commencing 28 November 2023 (still serving; appointment term ends 27 November 2028)."
     },
     {
       "name": "Clare Sharp",
